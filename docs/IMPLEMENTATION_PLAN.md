@@ -1,6 +1,6 @@
 # Bloom Android implementation plan
 
-**Status:** Watering and Light & placement implemented and verified as recorded in STATUS.md. Reminder preferences/navigation were reviewed, authorized, and implemented in section 8; verification is in STATUS.md.
+**Status:** Watering, Light & placement, reminder preferences/navigation, Soil health, Care timeline, guarded Back, and dynamic theming are implemented. Latest verification is recorded in STATUS.md; only manual OS/accessibility checks and future correction scope remain.
 **Platform:** Flutter Android.
 **Source of truth:** [`STATUS.md`](STATUS.md) for shipped behavior; [`PRD.md`](PRD.md) for product intent and scope.
 **Last updated:** 15 November 2026
@@ -44,31 +44,33 @@ Bloom should make the next watering check clearer, faster, and more trustworthy.
 
 **Status:** Complete.
 
-1. Add focused Dart tests for profile values, first-check calculation, timing classification, watering transitions, dry follow-up, late completion, edit validation, and failed persistence. **Done: 12 tests pass.**
+1. Add focused Dart tests for profile values, first-check calculation, timing classification, watering transitions, dry follow-up, late completion, edit validation, and failed persistence. **Done; the latest pulled-main run passes 74 tests across watering, placement, reminders, soil care, timeline, and navigation.**
 2. Make `flutter analyze` pass with zero findings. **Done.**
 3. Build a debug APK with the Android Studio JDK and install it on the available emulator. **Done.**
 4. Keep verification results and known environment limitations in `docs/STATUS.md`. **Done.**
 
 ### P1 — Verify the complete Android journey
 
-**Status:** Core journey complete; notification permission/delivery and accessibility checks remain.
+**Status:** Automated and emulator integration verification complete; long-idle/OEM notification behavior, real permission denial/re-enable, and manual accessibility checks remain.
 
 - Add each catalog plant and confirm its starting schedule. **Covered by domain tests; Snake Plant verified on emulator.**
 - Enter a valid last-watered date and confirm the calculated next check. **Date/time picker verified on emulator; calculation covered by domain tests.**
 - Reject future last-watered dates. **Covered by domain tests.**
 - Complete Watered and confirm Last watered, Past, and the next schedule. **Verified on emulator and covered by domain tests.**
-- Complete Checked — not watered for dry, damp, and unknown soil. **Covered by domain tests; device interaction remains.**
-- Resolve an overdue task without creating a duplicate immediate task. **Covered by domain behavior; device interaction remains.**
+- Complete Checked — not watered for dry, damp, and unknown soil. **Covered by domain tests and the current integration suite.**
+- Resolve an overdue task without creating a duplicate immediate task. **Covered by domain behavior and notification routing tests.**
 - Edit a future next-check date and confirm it changes Upcoming without creating history. **Verified on emulator.**
-- Remove a plant and confirm its schedule and records are removed. **Covered by current store behavior; device interaction remains.**
-- Deny notification permission and confirm in-app tasks remain intact. **Remaining device check.**
+- Remove a plant and confirm its schedule and records are removed. **Covered by current store behavior and stale/deleted notification fallback tests.**
+- Deny notification permission and confirm in-app tasks remain intact. **Real OS permission-dialog check remains.**
 - Relaunch the app and confirm the garden, records, and preferences persist. **Verified on emulator.**
 
 ### P2 — Accessibility and resilience
 
+**Status:** Automated coverage complete; manual OS and accessibility review remains.
+
 - Review TalkBack labels, selected states, disabled Save, errors, destructive confirmation, and the new Edit next check action.
 - Review large Android font sizes, narrow widths, dark theme behavior, and system animation settings.
-- Verify notification tap routing when notification deep-link handling is added.
+- Verify long-idle/OEM notification delivery and permission re-enable behavior.
 - Decide whether record-level deletion/Undo belongs in the next release; it is not currently implemented despite older product notes mentioning it.
 
 ## 5. Deliberately deferred
@@ -83,11 +85,11 @@ Do not add these to the watering baseline without a new product decision:
 
 ## 6. Definition of done for the next milestone
 
-- Focused automated domain tests exist and pass. **Complete: 12 tests.**
+- Focused automated domain/widget tests exist and pass. **Complete: 74 tests on latest pulled main.**
 - The debug APK builds and launches on the supported Android emulator. **Complete.**
 - The core add → check → edit → relaunch journey is manually verified on Android. **Complete.**
 - Persistence failures do not replace the saved garden with an uncommitted state.
-- Notification permission and future-only scheduling are verified on-device.
+- Notification routing and future-only scheduling are verified on-device. **Complete; long-idle/OEM delivery remains manual.**
 - TalkBack and Android text scaling do not hide the primary action or alter the meaning of outcomes.
 - `STATUS.md` reflects the evidence rather than planned behavior.
 
@@ -196,7 +198,7 @@ The user authorized one global preference, automatic-only updates after today, c
 - Use `sh tool/test_android.sh -d <test-device>` and isolated cache-file repositories. Extend the runner's targets if new integration files are added; do not test against or uninstall the normal app/data. Real tap delivery verification needs an actual notification tap, not merely calling the Dart resolver.
 - Add deterministic injectable clock/notification/navigation seams as needed. Keep temporary device time/timezone/font settings confined to the test device and restore them after testing.
 - Run relevant existing tests, analysis, and debug build after implementation. Record actual results and unverified OS delivery cases in STATUS.md; do not reuse the previous feature's evidence as proof of this release.
-- Align all six main docs with the reviewed decision and final implementation. Implementation and tests are authorized; a new commit or push has not been requested for this change.
+- Align all six main docs with the reviewed decision and final implementation. **Current docs and latest verification are recorded in STATUS.md.**
 
 ### R6 — Implemented boundaries and repeatable verification
 
@@ -223,9 +225,9 @@ Verify pending/acknowledged collapse/expand without writes, existing save/failur
 Validation: 55 host tests and both isolated Android placement tests passed, analysis returned zero findings, and the normal APK built/installed in place. Compact Android preview visually reviewed. Source hashes matched the tested checkout; four normal saved files matched the pre-test backup before update and the garden JSON remained identical after launch. Full manual TalkBack review remains separate. See STATUS.md.
 
 
-## 11. Soil health — documentation and implementation plan for review
+## 11. Soil health — implemented release record
 
-**Stage:** Subsequently authorized under D48–D49, including integrated drainage. Implementation and verification complete; evidence in STATUS.md. [PRD section 18](PRD.md#18-soil-health--release-requirements) defines confirmed scope, proposed SH-01–12 requirements, content references, acceptance criteria, and three open decisions. D45–D47 retain rationale and the unconfirmed drainage recommendation.
+**Stage:** Subsequently authorized under D48–D49, including integrated drainage. Implementation and verification are complete; evidence is in STATUS.md. [PRD section 18](PRD.md#18-soil-health--release-requirements) defines the confirmed scope, SH-01–12 requirements, content references, acceptance criteria, and remaining boundaries. D45–D47 remain as historical rationale; D49 is the adopted release decision.
 
 ### S0 — Adopted release contract
 

@@ -333,7 +333,7 @@ Environmental checks should distinguish light, airflow, humidity, drafts, and te
 
 ### D11 — Nutrition must distinguish materials and avoid universal remedies
 
-**Status:** Soil health requirements drafted in PRD section 18 / D45–D47; not implemented.
+**Status:** Soil health is implemented for the approved on-demand scope; broader nutrition guidance remains deferred.
 
 #### Product reasoning
 
@@ -341,7 +341,7 @@ Coco coir primarily changes medium structure and water-holding behavior; it is n
 
 #### Decision
 
-A future nutrition experience must distinguish **changed growing medium** from **fed**, capture only useful product/material context, encourage following the product label, and avoid treating pale leaves alone as proof of nutrient deficiency.
+The implemented Soil health experience distinguishes **Adding nutrients** from **Refresh potting mix** and **Repotting**, supports explicitly recorded overlapping actions, and does not create a nutrition schedule or claim a measured health score. Any broader nutrition guidance must distinguish **changed growing medium** from **fed**, capture only useful product/material context, encourage following the product label, and avoid treating pale leaves alone as proof of nutrient deficiency.
 
 #### Options rejected
 
@@ -355,7 +355,7 @@ Earlier exploration considered Fed, Changed growing medium, Checked — no amend
 
 ### D12 — Repotting should be evidence-led, not routine
 
-**Status:** Evidence-led direction retained in the Soil health draft (PRD section 18 / D45–D47); not implemented.
+**Status:** Implemented inside the approved on-demand Soil health scope; recurring or chemistry-heavy guidance remains deferred.
 
 #### Options considered
 
@@ -365,7 +365,7 @@ Earlier exploration considered Fed, Changed growing medium, Checked — no amend
 
 #### Decision
 
-Use a guided inspection based on evidence such as circling roots, roots at drainage holes, unusually rapid drying, severely degraded medium, instability, or a recent purchase transition. “Bigger” is not automatically better because a larger pot can keep roots wet.
+Use a guided inspection based on evidence such as circling roots, roots at drainage holes, unusually rapid drying, severely degraded medium, instability, or a recent purchase transition. The current Soil health flow also includes drainage checks. “Bigger” is not automatically better because a larger pot can keep roots wet.
 
 #### Safe outcomes
 

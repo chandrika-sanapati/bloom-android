@@ -1,6 +1,6 @@
 # Bloom — Android product requirements
 
-**Status:** Watering, Light & placement, reminder preferences, and notification navigation implemented; verification evidence and remaining manual checks in STATUS.md
+**Status:** Watering, Light & placement, reminder preferences/navigation, Soil health, Care timeline, guarded Back, and dynamic theming implemented; verification evidence and remaining manual checks are in STATUS.md
 **Product:** Bloom for Android, a local-first Flutter app
 **Owner:** Bloom product team
 **Last updated:** 15 November 2026

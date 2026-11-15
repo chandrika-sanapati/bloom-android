@@ -6,6 +6,22 @@
 
 This is the short, current implementation record. If it conflicts with an older screenshot, planning note, or copied design document, this file and the code are authoritative.
 
+## Latest local verification
+
+Latest pulled `main` was verified on the local Android 36 emulator (`emulator-5554`):
+
+- `flutter analyze`: passed with zero issues.
+- `flutter test`: **74 tests passed**.
+- Normal debug APK: built, installed, and launched as `com.chandrika.bloom`.
+- `integration_test/light_placement_test.dart`: **2 tests passed** using the isolated integration package.
+- `integration_test/care_timeline_test.dart`: **1 test passed** using the isolated integration package.
+- `integration_test/reminders_test.dart`: **1 test passed**, including foreground/background notification intents and stale/deleted fallbacks.
+- `tool/check_notification_launch.py`: **4 native cold-launch drawer-tap cases passed** for current, legacy, malformed, and deleted payloads; no garden records were created.
+- Dynamic color was detected from the emulator's Android system core palette.
+- The normal app was relaunched after testing; the working tree remained clean.
+
+The repeatable commands require Flutter, Android platform-tools, and the Android Studio JDK on `PATH`. The repository helper assumes those tools are available as `flutter` and `adb`; on this laptop use the pinned Flutter and Android Studio JDK paths when necessary.
+
 ## Implemented
 
 - Flutter app entry point and Material 3 shell.
@@ -138,11 +154,11 @@ See [PRD section 14](PRD.md#14-light--placement--release-requirements), [decisio
 
 The full tradeoff history recovered from the original Bloom product work is maintained in [`PRODUCT_DECISIONS.md`](PRODUCT_DECISIONS.md). It is platform-neutral and distinguishes current Android behavior from deferred and planned capabilities.
 
-## Remaining verification
+## Remaining manual verification
 
 1. Review long-idle/OEM notification delivery and the real permission-denial/re-enable interaction. Notification routing has automated Android evidence above.
 2. Review TalkBack labels, selected states, large Android font sizes, narrow layouts, dark theme behavior, and system animation settings.
-3. Consider record-level correction/Undo as separate future scope; the configurable reminder time is now implemented.
+3. Consider record-level watering correction/Undo as separate future scope; reminder time, notification navigation, light placement, soil health, timeline, and guarded Back are implemented.
 
 ## Soil health, Care timeline, and guarded Back — implemented and verified on 15 November 2026
 
@@ -154,7 +170,7 @@ All six docs include scope, rationale, conservative assessment rules, navigation
 
 Verification for this release:
 
-- `flutter test --no-pub`: **73 tests passed**, including all seven non-empty action combinations, 81 complete assessment answer combinations, early/unknown exits, legacy JSON, future-date/ownership/failed-write checks, combined timeline events, nested routes, toolbar/system Back, keep/discard, successful-save exit, unavailable-reminder draft protection, soil edit/removal, and narrow 2x-text dark layouts.
+- `flutter test --no-pub`: **73 tests passed** at the time of this release snapshot, including all seven non-empty action combinations, 81 complete assessment answer combinations, early/unknown exits, legacy JSON, future-date/ownership/failed-write checks, combined timeline events, nested routes, toolbar/system Back, keep/discard, successful-save exit, unavailable-reminder draft protection, soil edit/removal, and narrow 2x-text dark layouts. The latest pulled-main run is recorded in `Latest local verification` above with 74 tests.
 - `flutter analyze --no-pub`: **zero findings**. Host checks ran from an identical temporary checkout without parentheses; source/test hashes were compared with the repo.
 - `BLOOM_TEST_TARGET=integration_test/care_timeline_test.dart sh tool/test_android.sh -d emulator-5554`: **1 Android integration test passed**, exercising drainage's early result without a record, native Activity Back dispatch, preserved/discarded drafts, all three actions in one persisted event, disk reload, unchanged watering records/schedules, timeline editing, and return to the parent plant. The dedicated test package/cache file was used.
 - Normal debug APK: **built successfully**, checked to exclude IntegrationActivity, installed in place with `adb install -r`, and launched successfully. Four normal saved files matched the pre-test backup before installation. After launch, the user explicitly confirmed saving a watering check; verified existing plants/preferences/soil history and prior records remained intact, and the new record/schedule transition matched that action. Post-launch byte equality is therefore not claimed. The isolated test package was removed afterward.

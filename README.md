@@ -75,7 +75,7 @@ flutter analyze
 flutter test
 ```
 
-The domain/widget suite covers watering, placement, reminder timing, and notification navigation. Run `sh tool/test_android.sh -d emulator-5554` for placement, or set `BLOOM_TEST_TARGET=integration_test/reminders_test.dart` for reminder integration. Both use the separate test package and disable uninstall cleanup. Run `python3 tool/check_notification_launch.py` for real notification-drawer taps after process death. These runners grant notification permission only to the isolated test package. See [`docs/STATUS.md`](docs/STATUS.md) for the macOS path limitation and verification notes.
+The domain/widget suite covers watering, placement, reminder timing, soil health, care timeline, and notification navigation. Run `sh tool/test_android.sh -d emulator-5554` for placement, or set `BLOOM_TEST_TARGET` to `integration_test/care_timeline_test.dart` or `integration_test/reminders_test.dart` for the other Android integration suites. All use the separate test package and disable uninstall cleanup. Run `python3 tool/check_notification_launch.py` for real notification-drawer taps after process death. These runners grant notification permission only to the isolated test package. See [`docs/STATUS.md`](docs/STATUS.md) for the macOS path limitation and verification notes.
 
 ## Project layout
 
