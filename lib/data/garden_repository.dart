@@ -7,8 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../domain/models.dart';
 
-/// Reads and writes the garden as JSON in the app's support directory,
-/// matching the iOS `Bloom/garden.json` file.
+/// Reads and writes the garden as JSON in the app's support directory.
 class GardenRepository {
   GardenRepository({File? file}) : _file = file;
 
@@ -43,7 +42,7 @@ class GardenRepository {
   }
 }
 
-/// First-run hint flag, matching the iOS `hasSeenAddPlantHint` key.
+/// First-run hint flag persisted independently from the garden JSON.
 class FirstRunFlags {
   static const _addPlantHintKey = 'hasSeenAddPlantHint';
 

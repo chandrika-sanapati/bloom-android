@@ -6,8 +6,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../domain/models.dart';
 
-/// Schedules one future reminder per plant, mirroring the iOS
-/// `syncWateringNotifications`: only future checks, never overdue bursts.
+/// Schedules one future reminder per plant: only future checks, never overdue bursts.
 class WateringNotifications {
   WateringNotifications({FlutterLocalNotificationsPlugin? plugin})
       : _plugin = plugin ?? FlutterLocalNotificationsPlugin();

@@ -1,12 +1,44 @@
-# Bloom (Android)
+# Bloom for Android
 
-A focused Flutter app for intentional plant care: add a supported plant, check its soil, record whether you watered it, and see the next check.
+Bloom is a focused Flutter app for intentional plant care. It helps a user add a supported houseplant, check its soil, record what actually happened, and see the next check.
 
-Supported plants: Snake Plant, Monstera, Rubber Plant, and Pothos.
+The Android app is local-first: garden data is stored on the device and watering notifications are optional. A schedule is a prompt to inspect the plant, not an instruction to water on a date.
 
-## Run
+## Current scope
 
-Requires Flutter 3.44 or later, and the Android SDK with a JDK (Android Studio's bundled JDK works).
+Supported catalog plants:
+
+- Snake Plant — *Dracaena trifasciata*
+- Monstera — *Monstera deliciosa*
+- Rubber Plant — *Ficus elastica*
+- Pothos — *Epipremnum aureum*
+
+The current app supports:
+
+- Adding one of the four catalog plants.
+- Optionally supplying a last-watered date during setup.
+- A plant-type starting check interval.
+- Home with **My plants** and **Activity → Upcoming / Past**.
+- **Watered** and **Checked — not watered** outcomes.
+- Soil context: Dry, Damp, or Not sure.
+- A three-day follow-up after a dry, non-watering check.
+- Editing the next check date and time.
+- Removing a plant and its local watering history.
+- Local JSON persistence and optional future-check notifications.
+- Android notification permission handling that leaves in-app tasks available when permission is denied.
+
+Current limitations are tracked in [`docs/STATUS.md`](docs/STATUS.md). In particular, there is not yet an automated test suite, record-level deletion, a configurable reminder time screen, or support for arbitrary custom plants.
+
+## Requirements
+
+- Flutter 3.44.8 or later.
+- Dart 3.12.2 or later.
+- Android SDK with the platform and build tools required by `android/app/build.gradle.kts`.
+- A JDK supplied by Android Studio or another Android-compatible JDK.
+
+Flutter is not committed to this repository. Use the `flutter` command if it is on your PATH, or configure a local Flutter version manager and run the equivalent commands through it.
+
+## Run locally
 
 ```sh
 flutter pub get
@@ -19,27 +51,33 @@ Build a debug APK:
 flutter build apk --debug
 ```
 
+Useful checks:
+
+```sh
+flutter analyze
+flutter test
+```
+
+`flutter test` currently reports that no `test/` directory exists; see the verification notes in [`docs/STATUS.md`](docs/STATUS.md).
+
 ## Project layout
 
-- `lib/domain/` — models, watering profiles, and the store that applies watering transitions.
-- `lib/data/` — JSON persistence, first-run flags, and watering reminders.
-- `lib/ui/` — Home, catalog and setup, plant detail, watering check, and preferences.
-- `assets/images/` — plant photographs, shared with the iOS app.
+- `lib/domain/` — garden models, supported plant profiles, and schedule transitions.
+- `lib/data/` — local JSON persistence, first-run flags, and Android watering notifications.
+- `lib/ui/` — Home, catalog/setup, plant detail, watering check, and preferences screens.
+- `assets/images/` — bundled plant and empty-state images.
+- `android/` — the Android host and Gradle configuration.
+- `docs/` — product requirements, Android/Flutter design guidance, status, and roadmap.
 
-## Product context
+## Documentation
 
-The `docs/` folder holds the product and design context, copied from the iOS repo:
+- [`docs/STATUS.md`](docs/STATUS.md) — current implementation and verification source of truth.
+- [`docs/PRD.md`](docs/PRD.md) — product intent, behavior contract, scope, and roadmap.
+- [`docs/DESIGN_GUIDELINES.md`](docs/DESIGN_GUIDELINES.md) — Android/Flutter interaction and accessibility guidance.
+- [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) — completed work and the next engineering steps.
+- [`docs/AGENTS.md`](docs/AGENTS.md) — contribution and UX/engineering guidance.
+- [`docs/previews/README.md`](docs/previews/README.md) — explicitly historical iOS design references; not a specification for the Android UI.
 
-- `docs/PRD.md` — product requirements.
-- `docs/DESIGN_GUIDELINES.md` — interface and accessibility rules.
-- `docs/IMPLEMENTATION_PLAN.md` — phases and simplification rules.
-- `docs/AGENTS.md` — working guidance for contributors.
-- `docs/previews/` — screenshots of the iOS design, for visual reference.
+## Product boundary
 
-Those documents were written for the iOS app. They carry a banner noting which parts still apply.
-
-## Status
-
-Ported so far: the watering flow (add, check, next-check editing, removal), Home (Upcoming and Past), and preferences. Watering reminders are scheduled for future checks only, with permission requested when the user turns them on.
-
-Not yet verified: date entry in "Edit next check," and that a reminder fires at its scheduled time.
+Bloom is an assistant for remembering and recording plant checks. It does not diagnose disease, guarantee plant health, or claim that a date proves a plant needs water. Future environmental checks, nutrition, repotting, symptom guidance, additional plant profiles, and cloud sync are roadmap items, not current behavior.

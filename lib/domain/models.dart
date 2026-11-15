@@ -226,7 +226,7 @@ class Garden {
       );
 }
 
-/// Supported species, mirroring the iOS catalog and watering profiles.
+/// Supported species and watering profiles for the Android catalog.
 class PlantSpecies {
   const PlantSpecies({
     required this.name,
@@ -299,7 +299,7 @@ class PlantSpecies {
   }
 }
 
-/// Dry-soil follow-up window in days (2–5, default 3), as on iOS.
+/// Dry-soil follow-up window used by the current watering baseline.
 class WateringFollowUp {
   static const defaultDays = 3;
   static const allowedDays = [2, 3, 4, 5];

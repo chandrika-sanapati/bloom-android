@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import 'models.dart';
 
-/// Holds the garden and applies watering transitions, mirroring the iOS store.
+/// Holds the garden and applies watering transitions in one persistence boundary.
 class GardenStore extends ChangeNotifier {
   GardenStore({
     required Garden garden,

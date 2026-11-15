@@ -1,19 +1,30 @@
-> **Android port note (copied 2026-11-15 from the iOS repo):** This document was written for the native SwiftUI iOS app. The active target is now the Flutter Android app. Product intent and design rules still apply. iOS implementation details (SwiftUI, Xcode, simulator scripts, iOS-only screen references) do not. For implementation status, the Android repo history is the source of truth.
-
 # Repository guidance
+
+## Project context
+
+The active target is the Flutter Android app in this repository. The Android implementation and [`STATUS.md`](STATUS.md) are the source of truth for what exists. The product documents describe intended behavior, but must not claim that a feature is shipped until it is present in `lib/` and verified.
+
+The app is local-first and currently focused on watering check-ins for four catalog plants. Preserve local garden data and existing user changes when modifying persistence or the domain model. Prefer small, focused changes that match the existing Flutter structure.
 
 ## Product and UX responsibility
 
-Work at a senior/staff mobile UX/UI designer level as well as an engineer. Aim for a finished, customer-ready interface with visual and interaction finesse—not merely a functional arrangement of controls. Do not treat user feedback or requested UI changes as instructions to follow mechanically: evaluate them against the end customer's goal, task flow, information hierarchy, discoverability, accessibility, native iOS conventions, privacy, consistency, and interaction cost.
+Work at a senior mobile UX/UI designer level as well as an engineer. Aim for a finished, customer-ready interface rather than a merely functional arrangement of controls.
 
-- Keep the primary customer task direct. Avoid unnecessary setup steps, friction, redundant information, and making optional features feel mandatory.
-- Use hierarchy and restraint: establish one clear primary action, group related information, apply spacing consistently, avoid competing cards/labels, and reveal secondary configuration progressively when appropriate.
-- Sweat the details that make mobile interfaces feel coherent: native navigation and controls, concise labels, helpful empty/loading/disabled/success states, appropriate touch targets, Dynamic Type, and VoiceOver.
-- When a requested design seems likely to harm usability or conflict with established patterns, briefly explain why and recommend a stronger alternative before implementing a materially different approach.
-- Ask a focused question when the goal or tradeoff is unclear. Do not silently override an explicit product decision; surface the tradeoff and let the user choose.
-- When the direction is agreed, implement it consistently with `DESIGN_GUIDELINES.md`, including accessibility and dynamic type behavior.
+- Keep the primary customer task direct. Avoid unnecessary setup, friction, duplicate information, and making optional features feel mandatory.
+- Use hierarchy and restraint: establish one clear primary action, group related information, apply spacing consistently, and reveal secondary configuration progressively.
+- Use Android conventions and Flutter Material 3 controls while preserving Bloom's calm, plant-focused visual language.
+- Sweat the details: concise labels, useful empty/loading/error/success states, accessible touch targets, text scaling, TalkBack semantics, and sensible back navigation.
+- A due date means “check the plant,” not “water automatically.” Do not use language or defaults that imply otherwise.
+- Never record watering unless the user explicitly chooses **Watered**. **Checked — not watered** is a meaningful outcome.
+- When a requested change seems likely to harm usability, briefly explain the tradeoff and recommend a stronger alternative before making a materially different change.
+- Ask a focused question when the intended product tradeoff is unclear. Do not silently override an explicit decision.
 
-## Engineering
+## Engineering guidance
 
-- Preserve local garden data and existing user changes. Prefer small, focused changes consistent with the SwiftUI architecture.
-- Do not run tests unless requested. If a change could affect test expectations, call that out without starting test execution.
+- Keep schedule transitions in `lib/domain/garden_store.dart`; do not let screens mutate schedule state directly.
+- Keep profile content in `lib/domain/models.dart` or a dedicated domain file rather than hard-coding plant-specific behavior in widgets.
+- Persist schedule and record changes through the repository's single save boundary.
+- Treat notification permission as optional. In-app tasks must remain usable if permission is denied or unavailable.
+- Do not add silent schedule changes, unsupported plant advice, or fake fallback intervals.
+- Run tests and build checks when the user requests verification or when a change requires validation. State clearly when a check is unavailable because tooling or test coverage is missing.
+- Before pushing, inspect `git diff`, confirm the working tree contains only intentional changes, and use a descriptive commit message.
