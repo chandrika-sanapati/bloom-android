@@ -32,7 +32,9 @@ class _CheckScreenState extends State<CheckScreen> {
     );
     if (!mounted) return;
     if (record == null) {
-      setState(() => _error = "Your check couldn't be saved. Please try again.");
+      setState(
+        () => _error = "Your check couldn't be saved. Please try again.",
+      );
       return;
     }
     Navigator.of(context).pop();
@@ -46,7 +48,9 @@ class _CheckScreenState extends State<CheckScreen> {
         final plant = widget.store.plant(widget.plantId);
         final schedule = widget.store.scheduleFor(widget.plantId);
         if (plant == null || schedule == null) {
-          return const Scaffold(body: Center(child: Text('Watering task unavailable')));
+          return const Scaffold(
+            body: Center(child: Text('Watering task unavailable')),
+          );
         }
         final theme = Theme.of(context);
         final species = PlantSpecies.forPlant(plant);
@@ -87,6 +91,17 @@ class _CheckScreenState extends State<CheckScreen> {
                 'Scheduled check: ${formatDateTime(schedule.nextCheckAt)}',
                 style: theme.textTheme.bodySmall,
               ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52),
+                  alignment: Alignment.centerLeft,
+                ),
+                onPressed: () =>
+                    pickNextCheck(context, widget.store, widget.plantId),
+                icon: const Icon(Icons.calendar_today),
+                label: const Text('Edit next check'),
+              ),
               const SizedBox(height: 24),
               Text('What did you find?', style: theme.textTheme.titleSmall),
               const SizedBox(height: 8),
@@ -122,12 +137,6 @@ class _CheckScreenState extends State<CheckScreen> {
                 const SizedBox(height: 16),
                 Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
               ],
-              const SizedBox(height: 16),
-              TextButton.icon(
-                onPressed: () => pickNextCheck(context, widget.store, widget.plantId),
-                icon: const Icon(Icons.calendar_today),
-                label: const Text('Edit next check'),
-              ),
             ],
           ),
         );
