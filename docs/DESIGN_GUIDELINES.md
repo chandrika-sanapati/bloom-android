@@ -82,3 +82,29 @@ Do not add custom plant intervals, diagnosis, environmental inference, live weat
 - Keep Watered, Checked — not watered, Last watered, and existing watering controls understandable. Placement acknowledgment is a different fact and must not appear as a watering completion.
 - No new recurring light reminders, light activity tasks, repeated acknowledgment nudges, or automatic onboarding prompts. A user can leave the input unacknowledged indefinitely.
 - Use 48dp targets, text with icons, dynamic light/dark themes, reflowing content, TalkBack selected/saving/error states, and ordinary Android back navigation.
+
+## Reminder preferences and notification navigation
+
+**State:** Reviewed, authorized, and implemented on 15 November 2026. Follow [PRD section 15](PRD.md#15-reminder-preferences-and-notification-navigation--requirements) and decisions D33–D40. Verification evidence and remaining manual accessibility checks are in STATUS.md.
+
+- Keep Preferences compact: existing Watering notifications switch plus one Reminder time row. Show device-formatted local time and use the native picker with one final confirmation, not another settings page or dialog.
+- Explain the scope simply: **Applies to automatic checks after today. Custom times and today's checks stay unchanged.** Preserve calendar dates and overdue checks as specified in PRD 15.4. Do not offer bulk overwrite of user-set times.
+- Proposed legacy safeguard: when an older saved check's origin is unknown, preserve its time and explain only when relevant. Do not ask users to classify their garden. Custom provenance is internal state, not a new required field or recurring per-plant settings flow.
+- Keep the row usable with notifications off/denied and explain that enabling notifications is separate. Changing time alone never opens a permission prompt.
+- Distinguish a failed save from a saved preference with unavailable notifications. Use brief inline/snackbar feedback, preserve the last committed state, and avoid repeated taps while saving.
+- State that Android may deliver later; do not show an exact-delivery guarantee or add technical alarm/permission controls to the flow.
+- Notification copy names the plant and asks for a soil check. A valid tap opens Check watering with neither outcome selected; no lock-screen action records care in this scope.
+- Cold-entry Back/Cancel goes to Home. Warm entry preserves the existing stack and unfinished inputs; duplicate delivery reuses an open identical check.
+- Old/rescheduled reminders with an existing plant open its current detail with concise out-of-date feedback. Removed/malformed targets recover to Home. Always offer normal Back/Home recovery; avoid blocking error dialogs.
+- Respect TalkBack, large text, system 12/24-hour preferences, dynamic themes, and 48dp targets. This feature adds no plant setup input, recurring reminder category, or repeated nudge.
+
+## Occasional care — direction under discussion
+
+Adding nutrients and Pot & soil should offer on-demand need checks with progressive disclosure, keeping watering the primary frequent task (D41 / PRD section 16). Do not expose a large mandatory setup form or default recurring care obligations. Exact entry points and question flows remain proposals for review. Recommend finishing the light presentation pattern before Adding nutrients, followed by Pot & soil (D43). Reading guidance or answering a question must not automatically record treatment or imply proven nutrient sufficiency.
+
+Light & placement is also occasional care (D42). Initial guidance should help the user settle the plant; subsequent access is for voluntary review, without repeated relocation/confirmation prompts. Keep watering visually primary. The compact saved-state summary with expandable guidance is approved under D44 / PRD section 17. Preserve existing setup and acknowledgment semantics. Acknowledgment must not be presented as verified adequate light.
+
+
+## Approved compact light presentation
+
+Implemented and verified under D44 / PRD section 17: a collapsed Light & placement card on detail, showing the species requirement and a neutral report summary. Pending uses **Not recorded · Optional**; saved uses **You've placed it as suggested**; older versions use **Placement recorded for earlier advice**. Expand to see advice and the optional acknowledgment/correction control; preserve Material expansion semantics and wrapping at large text sizes. Setup continues to show full guidance. No Other care container or recurring light obligation is introduced. Earlier presentation-review gates are superseded for this scope.

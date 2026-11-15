@@ -34,11 +34,36 @@ This is the short, current implementation record. If it conflicts with an older 
 
 - Record-level deletion or Undo.
 - Adjustable dry follow-up window; the current implementation uses three days.
-- A user-facing default reminder-time editor; the current default is 09:00.
 - Arbitrary custom/unlisted plant creation or schedule setup.
-- Notification tap deep-link routing to a specific check screen.
 - Exact delivery timing; Android may deliver inexact alarms within its allowed window.
 - Cloud sync, accounts, analytics, environmental checks, diagnosis, nutrition, repotting, or other care domains.
+
+## Reminder preferences and notification navigation — implemented on 15 November 2026
+
+The user reviewed the documents and explicitly authorized implementation after confirming custom/today protection.
+
+- Preferences has one native **Reminder time** picker with device 12/24-hour formatting, cancellation/no-op behavior, failure/retry feedback, and inline scope disclosure. It works with notifications off/denied and does not request permission on time changes.
+- One atomic store transition updates the preference and automatic checks after today. Custom times (including times matching the old preference), every existing check today, overdue checks, and unclassified older checks stay exact. Missing/unknown `timeSource` loads as `legacy`; manual edits mark `custom`; first/completed automatic checks mark `preference`.
+- The existing Edit next check is a one-off override. Completion uses the preferred local clock on the calculated profile/follow-up day, retaining actual recorded timestamps, Last watered, and history. Dry non-watering follow-up stays three days. Placement still changes no watering state.
+- Versioned payloads identify plant/due/revision. Current tasks open Check watering, including overdue ones. Stale/completed/rescheduled/legacy links open current plant detail with feedback; deleted/invalid links recover Home. Opening a reminder writes no care history and selects no outcome.
+- Cold entry puts Home beneath the check. Warm entry preserves the current stack and reuses an identical top check, including one opened manually. Initialization and root routing deduplicate launch/callback delivery and do not replay on ordinary resume.
+- Incremental notifications keep unchanged requests, reuse/probe stable IDs, and schedule only future checks, one per plant. Optional permission or scheduling failure cannot roll back a saved preference. Zone/permission state refreshes at startup/resume; saved instants stay unchanged after travel.
+- The first valid minute after a DST gap and first occurrence during a repeated clock are deterministic. No exact-alarm request, new reminder category, overdue burst, or background travel adaptation was added.
+
+### Verification for this feature
+
+- `flutter analyze --no-pub`: **zero findings**.
+- `flutter test --no-pub`: **53 tests passed**. Includes original watering/placement tests plus atomic preference/provenance transitions, custom/today/overdue/legacy protection, concurrent writes, failure rollback, no-op revisions, preferred-clock successors, DST gap/fold, payload/ID/sync behavior, native-picker save/cancel/retry, permission denial, large text/dark layout, and cold/warm navigation/back-stack/deduplication.
+- Host checks ran from an identical temporary checkout without parentheses because of the existing Flutter 3.44.8 macOS native-assets issue below. Final source hashes were compared with the local repository.
+- Android reminder integration: **1 test passed**, covering persisted preference/custom provenance and posted native notification PendingIntents in foreground/background, including stale/deleted fallbacks.
+- Cold-launch Android verification: **4 drawer-tap cases passed** (current → check, legacy → detail, malformed/deleted → Home), with the fixture process confirmed ended before each actual SystemUI tap. Each retained unchanged garden state and no records. The separate headless Android 16 emulator used only `com.chandrika.bloom.integration` and cache fixtures.
+- Light-placement Android regression: **2 tests passed again** after the reminder changes, including setup skip/acknowledgment, detail correction, reload, and unchanged watering state.
+- Normal `flutter build apk --debug --target lib/main.dart`: **passed**. The normal APK's dex was checked to exclude IntegrationActivity/test receiver code. Installed with `adb install -r` and launched successfully as `com.chandrika.bloom`.
+- Before device testing, the normal app's saved files were backed up locally. All **8 saved files** matched the backup after isolated tests and before installation; the garden JSON remained **byte-for-byte unchanged** after in-place update and launch. This is evidence for this reminder implementation run; it does not undo the earlier placement-test incident described below.
+- Preferences and notification-opened check screenshots from isolated Android fixtures were visually inspected. System time formatting was 12-hour on device; widget tests also verified 24-hour display.
+- Remaining manual checks: full TalkBack/animation/font-setting audit; real OS permission-dialog denial/re-enable; delayed inexact delivery, long-idle battery restrictions, and OEM behavior. Deterministic DST/zone rules and routing tests do not prove exact or continuous background delivery.
+
+See [PRD section 15](PRD.md#15-reminder-preferences-and-notification-navigation--requirements), [D33–D40](PRODUCT_DECISIONS.md#14-reminder-preferences-and-navigation-decisions), and [implementation plan section 8](IMPLEMENTATION_PLAN.md#8-reminder-preferences-and-notification-navigation--implementation-plan) for the contract and implementation boundaries.
 
 ## Light & placement — implemented and verified on 15 November 2026
 
@@ -65,7 +90,7 @@ Verification:
 
 ### Device-test incident and corrected procedure
 
-The first Android integration run used the normal `com.chandrika.bloom` package. Flutter 3.44.8 defaults to uninstalling its test app after completion, which removed Bloom and cleared the emulator's existing local garden. No pre-test backup was taken, and those prior entries/history have not been restored. This was a verification mistake, not a plant-data migration. Do not claim that the user's emulator garden was preserved.
+The first Android integration run used the normal `com.chandrika.bloom` package. Flutter 3.44.8 defaults to uninstalling its test app after completion, which removed Bloom and cleared the emulator's existing local garden. No pre-test backup was taken, and those prior entries/history have not been restored. This was a verification mistake, not a plant-data migration. For that earlier run, do not claim that the user's emulator garden was preserved; subsequent reminder testing has separate backup/hash evidence above.
 
 The corrected `tool/test_android.sh` prebuilds an isolated APK using a test-only Gradle property, assigns `com.chandrika.bloom.integration`, and disables uninstall cleanup with `--no-uninstall`. Tests also use their own cache-file repositories. The corrected run verified package separation and passed both tests. The normal app is rebuilt/reinstalled afterward; the isolated test package can be removed explicitly. Use this runner for repeatable Android checks rather than a raw test invocation against the normal installation.
 
@@ -92,16 +117,21 @@ See [PRD section 14](PRD.md#14-light--placement--release-requirements), [decisio
 ## Current source map
 
 - `lib/domain/models.dart` — data model, profiles, outcomes, and timing.
-- `lib/domain/garden_store.dart` — state transitions and persistence boundary.
+- `lib/domain/garden_store.dart` — serialized state transitions and atomic persistence boundary.
+- `lib/domain/reminder_time.dart` — local calendar clocks and DST resolution.
+- `lib/domain/watering_notification.dart` — bounded payload parsing, current/stale resolution, and stable IDs.
+- `lib/main.dart` / `lib/ui/check_route.dart` — lifecycle-aware root routing and shared check identity.
 - `lib/data/garden_repository.dart` — JSON file storage and first-run flags.
 - `lib/data/watering_notifications.dart` — notification initialization, permission, and synchronization.
 - `lib/ui/home_screen.dart` — Home, collection, and activity.
 - `lib/ui/catalog_screen.dart` — supported catalog and setup.
 - `lib/ui/check_screen.dart` — watering check and outcome flow.
 - `lib/ui/plant_detail_screen.dart` — schedule details and removal.
-- `lib/ui/preferences_screen.dart` — notification preference.
+- `lib/ui/preferences_screen.dart` — optional notification switch and global time picker.
 - `lib/ui/light_placement_section.dart` — shared advice and optional checkbox.
 - `integration_test/light_placement_test.dart` — on-device setup/detail/persistence checks with cache-file fixtures.
+- `integration_test/reminders_test.dart` — persisted preference/custom timing and actual native notification-intent checks.
+- `integration_test/notification_launch_app.dart` / `tool/check_notification_launch.py` / `tool/android/NotificationTapTest.java` — isolated cold-launch fixture and real drawer taps from a separate UI Automator process.
 - `tool/test_android.sh` — isolated Android test runner; see the incident/procedure above.
 
 ## Product decision record
@@ -110,6 +140,26 @@ The full tradeoff history recovered from the original Bloom product work is main
 
 ## Remaining verification
 
-1. Verify notification delivery and permission denial on-device.
+1. Review long-idle/OEM notification delivery and the real permission-denial/re-enable interaction. Notification routing has automated Android evidence above.
 2. Review TalkBack labels, selected states, large Android font sizes, narrow layouts, dark theme behavior, and system animation settings.
-3. Decide whether record-level correction/Undo and a configurable reminder time belong in the next release.
+3. Consider record-level correction/Undo as separate future scope; the configurable reminder time is now implemented.
+
+## Next product discussion — occasional care
+
+The user confirmed **Adding nutrients** as the label and assessment-first, on-demand help for nutrient needs and Pot & soil, progressively disclosed so watering stays primary. The sunlight presentation refinement was subsequently implemented under D44; see its implementation record below. Adding nutrients, then Pot & soil, follow as requirements work. Requirements and assessment rules remain under discussion in PRD section 16 / decision D41; these features are not implemented and no implementation is authorized by this discussion.
+
+The user also clarified that Light & placement is occasional after initial setup (D42). Existing light guidance/acknowledgment remains implemented as before, with no recurring light reminders. The compact detail presentation is implemented under D44; new navigation/grouping beyond that scope remains discussion only.
+
+
+## Compact light presentation — implemented and verified on 15 November 2026
+
+The user authorized the detail-card refinement on 15 November 2026 (D44 / PRD section 17), and reiterated the documentation requirement. Detail uses a collapsed requirement/report summary and expands to the existing advice/checkbox; setup, saved acknowledgment, watering, and reminders retain their established behavior. Expansion itself is not persisted and writes nothing. Verification:
+
+- `flutter analyze --no-pub`: **zero findings**.
+- `flutter test --no-pub`: **55 tests passed** (including pending/acknowledged compact states, expansion/collapse without writes, existing save/failure/correction, setup, and narrow 2x-text dark layout). Host source came from the same temporary checkout used to avoid the macOS path limitation above; changed file hashes match the repo.
+- `sh tool/test_android.sh -d emulator-5554`: **2 isolated Android integration tests passed**, now also asserting the initially collapsed detail state before expansion. Setup remains fully visible and skippable; persistence/reload/correction and unchanged watering passed.
+- Normal debug APK build: **passed**; dex checked to exclude IntegrationActivity. Installed with `adb install -r` and relaunched successfully.
+- Compact Android detail screenshot captured from an isolated cache fixture and visually reviewed. A full manual TalkBack audit remains outstanding; Material expansion semantics are retained.
+- Normal saved data backed up before device tests: all **4 saved files** matched before the normal update, and the **garden JSON stayed byte-for-byte identical after launch**. The separate `.integration` test package was removed afterward.
+
+ Adding nutrients and Pot & soil remain requirements discussion only.

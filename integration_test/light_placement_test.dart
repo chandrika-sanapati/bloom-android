@@ -13,10 +13,17 @@ import 'package:path_provider/path_provider.dart';
 /// Runs against an isolated cache file, never the user's saved garden.
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  var capturedCompact = false;
   const label = "I've placed it as suggested";
 
   Future<void> revealCheckbox(WidgetTester tester) async {
-    await tester.scrollUntilVisible(find.byType(CheckboxListTile), 220);
+    await tester.scrollUntilVisible(find.text('Light & placement'), 220);
+    await tester.pumpAndSettle();
+    if (find.byType(CheckboxListTile).evaluate().isEmpty) {
+      await tester.tap(find.text('Light & placement'));
+      await tester.pumpAndSettle();
+    }
+    await tester.scrollUntilVisible(find.byType(CheckboxListTile), 150);
     await tester.pumpAndSettle();
   }
 
@@ -69,6 +76,16 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Light & placement'), 220);
+    await tester.pumpAndSettle();
+    expect(find.byType(CheckboxListTile), findsNothing);
+    if (!capturedCompact) {
+      final directory = await getTemporaryDirectory();
+      await File(
+        '${directory.path}/bloom-light-compact.png',
+      ).writeAsBytes(await binding.takeScreenshot('light-placement-compact'));
+      capturedCompact = true;
+    }
     await revealCheckbox(tester);
   }
 

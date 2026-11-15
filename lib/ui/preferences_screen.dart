@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-
 import '../data/watering_notifications.dart';
 import '../domain/garden_store.dart';
+import '../domain/models.dart';
 
 class PreferencesScreen extends StatefulWidget {
   const PreferencesScreen({
@@ -9,10 +9,8 @@ class PreferencesScreen extends StatefulWidget {
     required this.store,
     required this.notifications,
   });
-
   final GardenStore store;
   final WateringNotifications notifications;
-
   @override
   State<PreferencesScreen> createState() => _PreferencesScreenState();
 }
@@ -31,7 +29,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       setState(() {
         _busy = false;
         _message =
-            'Notifications are off in Android settings. Your tasks stay in Bloom.';
+            'Notifications are off in Android settings. Your checks stay in Bloom.';
       });
       return;
     }
@@ -41,50 +39,126 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       _busy = false;
       _message = saved
           ? null
-          : "Your notification preference couldn't be saved.";
+          : "Your notification preference couldn't be saved. Try again.";
+    });
+  }
+
+  Future<void> _chooseTime() async {
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    final preferences = widget.store.garden.preferences;
+    final chosen = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(
+        hour: preferences.reminderHour,
+        minute: preferences.reminderMinute,
+      ),
+    );
+    if (!mounted) return;
+    final saved =
+        chosen == null ||
+        await widget.store.setReminderTime(chosen.hour, chosen.minute);
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _message = saved
+          ? null
+          : "Your reminder time couldn't be saved. Try again.";
     });
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final enabled = widget.store.garden.preferences.taskNotifications;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Preferences'),
-        leading: TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: Listenable.merge([
+      widget.store,
+      widget.notifications.status,
+      widget.notifications.permissionGranted,
+    ]),
+    builder: (context, _) {
+      final theme = Theme.of(context);
+      final preferences = widget.store.garden.preferences;
+      final time = MaterialLocalizations.of(context).formatTimeOfDay(
+        TimeOfDay(
+          hour: preferences.reminderHour,
+          minute: preferences.reminderMinute,
         ),
-        leadingWidth: 96,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Card(
-            margin: EdgeInsets.zero,
-            child: SwitchListTile(
-              title: const Text('Watering notifications'),
-              value: enabled,
-              onChanged: _busy ? null : _update,
-            ),
+        alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+      );
+      final legacy = widget.store.garden.schedules.any(
+        (s) => s.timeSource == CheckTimeSource.legacy,
+      );
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Preferences'),
+          leading: TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
-            child: Text(
-              'Bloom only reminds you about future checks. Overdue tasks never create a notification burst.',
+          leadingWidth: 96,
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Text('Watering reminders', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 12),
+            Card(
+              margin: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  SwitchListTile(
+                    title: const Text('Watering notifications'),
+                    value: preferences.taskNotifications,
+                    onChanged: _busy ? null : _update,
+                  ),
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  ListTile(
+                    leading: const Icon(Icons.schedule),
+                    title: const Text('Reminder time'),
+                    subtitle: Text(time),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: _busy ? null : _chooseTime,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "Applies to automatic checks after today. Custom times and today's checks stay unchanged.",
+              style: theme.textTheme.bodyMedium,
+            ),
+            if (legacy) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Older saved checks keep their time until completed or edited.',
+                style: theme.textTheme.bodySmall,
+              ),
+            ],
+            const SizedBox(height: 16),
+            Text(
+              'Bloom reminds you about future checks only. Android may deliver reminders later than the chosen time.',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-          ),
-          if (_message != null) ...[
-            const SizedBox(height: 16),
-            Text(_message!, style: theme.textTheme.bodyMedium),
+            if (!preferences.taskNotifications) ...[
+              const SizedBox(height: 8),
+              const Text(
+                'Turn on watering notifications to receive reminders.',
+              ),
+            ],
+            if (_message ?? widget.notifications.status.value
+                case final String message) ...[
+              const SizedBox(height: 16),
+              Semantics(
+                liveRegion: true,
+                child: Text(message, style: theme.textTheme.bodyMedium),
+              ),
+            ],
           ],
-        ],
-      ),
-    );
-  }
+        ),
+      );
+    },
+  );
 }

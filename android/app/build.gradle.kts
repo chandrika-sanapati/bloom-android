@@ -27,12 +27,23 @@ android {
         } else {
             "com.chandrika.bloom"
         }
+        manifestPlaceholders["bloomActivity"] = if (integrationTestTarget) {
+            "com.chandrika.bloom.IntegrationActivity"
+        } else {
+            "com.chandrika.bloom.MainActivity"
+        }
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+    }
+
+    if (integrationTestTarget) {
+        sourceSets.getByName("debug") {
+            java.srcDir("src/integration/kotlin")
+        }
     }
 
     buildTypes {

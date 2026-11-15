@@ -18,19 +18,23 @@ class _CheckScreenState extends State<CheckScreen> {
   WateringOutcome? _outcome;
   Soil _soil = Soil.unknown;
   String? _error;
+  bool _saving = false;
 
   Future<void> _save() async {
+    if (_saving) return;
     final outcome = _outcome;
     if (outcome == null) {
       setState(() => _error = 'Choose what you did.');
       return;
     }
+    setState(() => _saving = true);
     final record = await widget.store.completeWateringCheck(
       plantId: widget.plantId,
       outcome: outcome,
       soil: _soil,
     );
     if (!mounted) return;
+    setState(() => _saving = false);
     if (record == null) {
       setState(
         () => _error = "Your check couldn't be saved. Please try again.",
@@ -48,8 +52,15 @@ class _CheckScreenState extends State<CheckScreen> {
         final plant = widget.store.plant(widget.plantId);
         final schedule = widget.store.scheduleFor(widget.plantId);
         if (plant == null || schedule == null) {
-          return const Scaffold(
-            body: Center(child: Text('Watering task unavailable')),
+          return Scaffold(
+            appBar: AppBar(title: const Text('Watering task unavailable')),
+            body: Center(
+              child: TextButton(
+                onPressed: () =>
+                    Navigator.of(context).popUntil((route) => route.isFirst),
+                child: const Text('Go to Home'),
+              ),
+            ),
           );
         }
         final theme = Theme.of(context);
@@ -67,8 +78,8 @@ class _CheckScreenState extends State<CheckScreen> {
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: FilledButton(
-                  onPressed: _outcome == null ? null : _save,
-                  child: const Text('Save'),
+                  onPressed: _outcome == null || _saving ? null : _save,
+                  child: Text(_saving ? 'Saving…' : 'Save'),
                 ),
               ),
             ],

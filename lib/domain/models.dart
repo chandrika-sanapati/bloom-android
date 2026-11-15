@@ -153,6 +153,8 @@ class WateringRecord {
   );
 }
 
+enum CheckTimeSource { preference, custom, legacy }
+
 class WateringSchedule {
   const WateringSchedule({
     required this.plantId,
@@ -160,6 +162,7 @@ class WateringSchedule {
     required this.nextCheckAt,
     required this.createdAt,
     required this.updatedAt,
+    this.timeSource = CheckTimeSource.legacy,
   });
 
   final String plantId;
@@ -167,15 +170,20 @@ class WateringSchedule {
   final DateTime nextCheckAt;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final CheckTimeSource timeSource;
 
-  WateringSchedule copyWith({DateTime? nextCheckAt, DateTime? updatedAt}) =>
-      WateringSchedule(
-        plantId: plantId,
-        intervalDays: intervalDays,
-        nextCheckAt: nextCheckAt ?? this.nextCheckAt,
-        createdAt: createdAt,
-        updatedAt: updatedAt ?? this.updatedAt,
-      );
+  WateringSchedule copyWith({
+    DateTime? nextCheckAt,
+    DateTime? updatedAt,
+    CheckTimeSource? timeSource,
+  }) => WateringSchedule(
+    plantId: plantId,
+    intervalDays: intervalDays,
+    nextCheckAt: nextCheckAt ?? this.nextCheckAt,
+    createdAt: createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    timeSource: timeSource ?? this.timeSource,
+  );
 
   Map<String, dynamic> toJson() => {
     'plantId': plantId,
@@ -183,6 +191,7 @@ class WateringSchedule {
     'nextCheckAt': nextCheckAt.toIso8601String(),
     'createdAt': createdAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
+    'timeSource': timeSource.name,
   };
 
   factory WateringSchedule.fromJson(Map<String, dynamic> json) =>
@@ -192,6 +201,10 @@ class WateringSchedule {
         nextCheckAt: DateTime.parse(json['nextCheckAt'] as String),
         createdAt: DateTime.parse(json['createdAt'] as String),
         updatedAt: DateTime.parse(json['updatedAt'] as String),
+        timeSource: CheckTimeSource.values.firstWhere(
+          (value) => value.name == json['timeSource'],
+          orElse: () => CheckTimeSource.legacy,
+        ),
       );
 }
 
@@ -206,9 +219,13 @@ class AppPreferences {
   final int reminderMinute;
   final bool taskNotifications;
 
-  AppPreferences copyWith({bool? taskNotifications}) => AppPreferences(
-    reminderHour: reminderHour,
-    reminderMinute: reminderMinute,
+  AppPreferences copyWith({
+    bool? taskNotifications,
+    int? reminderHour,
+    int? reminderMinute,
+  }) => AppPreferences(
+    reminderHour: reminderHour ?? this.reminderHour,
+    reminderMinute: reminderMinute ?? this.reminderMinute,
     taskNotifications: taskNotifications ?? this.taskNotifications,
   );
 
@@ -219,11 +236,14 @@ class AppPreferences {
   };
 
   factory AppPreferences.fromJson(Map<String, dynamic> json) => AppPreferences(
-    reminderHour: json['reminderHour'] as int? ?? 9,
-    reminderMinute: json['reminderMinute'] as int? ?? 0,
+    reminderHour: _validTimePart(json['reminderHour'], 23, 9),
+    reminderMinute: _validTimePart(json['reminderMinute'], 59, 0),
     taskNotifications: json['taskNotifications'] as bool? ?? false,
   );
 }
+
+int _validTimePart(Object? value, int max, int fallback) =>
+    value is int && value >= 0 && value <= max ? value : fallback;
 
 class Garden {
   const Garden({

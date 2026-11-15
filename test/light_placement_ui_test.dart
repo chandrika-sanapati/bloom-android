@@ -48,7 +48,13 @@ void main() {
   }
 
   Future<void> revealAcknowledgment(WidgetTester tester) async {
-    await tester.scrollUntilVisible(find.text(acknowledgmentLabel), 200);
+    await tester.scrollUntilVisible(find.text('Light & placement'), 200);
+    await tester.pumpAndSettle();
+    if (find.byType(CheckboxListTile).evaluate().isEmpty) {
+      await tester.tap(find.text('Light & placement'));
+      await tester.pumpAndSettle();
+    }
+    await tester.scrollUntilVisible(find.text(acknowledgmentLabel), 150);
     await tester.pumpAndSettle();
   }
 
@@ -113,6 +119,64 @@ void main() {
     expect(store.garden.plants, isEmpty);
     expect(writes, 0);
   });
+
+  for (final acknowledged in [false, true]) {
+    testWidgets(
+      'detail starts compact with saved placement=$acknowledged; review writes nothing',
+      (tester) async {
+        var writes = 0;
+        final store = GardenStore(
+          garden: Garden(
+            plants: [
+              acknowledged
+                  ? plant.copyWith(
+                      lightPlacement: LightPlacementAcknowledgment(
+                        acknowledgedAt: DateTime(2026, 11, 15),
+                        guidanceVersion: species.light.version,
+                      ),
+                    )
+                  : plant,
+            ],
+            schedules: [schedule],
+          ),
+          persist: (_) async {
+            writes++;
+          },
+        );
+        await tester.pumpWidget(
+          MaterialApp(
+            home: PlantDetailScreen(store: store, plantId: plant.id),
+          ),
+        );
+        await tester.scrollUntilVisible(find.text('Light & placement'), 200);
+        await tester.pumpAndSettle();
+        expect(find.text(species.light.requirement), findsOneWidget);
+        expect(
+          find.text(
+            acknowledged
+                ? "You've placed it as suggested"
+                : 'Not recorded · Optional',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text(species.light.placement), findsNothing);
+        expect(find.byType(CheckboxListTile), findsNothing);
+        await tester.tap(find.text('Light & placement'));
+        await tester.pumpAndSettle();
+        expect(find.text(species.light.placement), findsOneWidget);
+        expect(
+          tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
+          acknowledged,
+        );
+        await tester.tap(find.text('Light & placement'));
+        await tester.pumpAndSettle();
+        expect(find.byType(CheckboxListTile), findsNothing);
+        expect(writes, 0);
+        expect(store.scheduleFor(plant.id), same(schedule));
+        expect(store.garden.records, isEmpty);
+      },
+    );
+  }
 
   testWidgets(
     'detail waits for persistence, supports correction, and leaves dates alone',

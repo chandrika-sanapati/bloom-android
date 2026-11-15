@@ -6,6 +6,7 @@ import '../domain/garden_store.dart';
 import '../domain/models.dart';
 import 'catalog_screen.dart';
 import 'check_screen.dart';
+import 'check_route.dart';
 import 'plant_detail_screen.dart';
 import 'preferences_screen.dart';
 import 'widgets.dart';
@@ -78,7 +79,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void _openPlant(Plant plant) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => PlantDetailScreen(store: widget.store, plantId: plant.id),
+        settings: RouteSettings(name: '/plant/${plant.id}'),
+        builder: (_) =>
+            PlantDetailScreen(store: widget.store, plantId: plant.id),
       ),
     );
   }
@@ -87,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         fullscreenDialog: true,
+        settings: wateringCheckSettings(widget.store.scheduleFor(plant.id)!),
         builder: (_) => CheckScreen(store: widget.store, plantId: plant.id),
       ),
     );
@@ -154,7 +158,10 @@ class _EmptyHome extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Add your first plant', style: theme.textTheme.titleLarge),
+                    Text(
+                      'Add your first plant',
+                      style: theme.textTheme.titleLarge,
+                    ),
                     const SizedBox(height: 6),
                     Text(
                       'Tap + to choose a supported plant and start its watering check-ins.',
@@ -235,7 +242,10 @@ class _PopulatedHome extends StatelessWidget {
     );
   }
 
-  List<Widget> _upcoming(BuildContext context, List<(Plant, WateringSchedule)> scheduled) {
+  List<Widget> _upcoming(
+    BuildContext context,
+    List<(Plant, WateringSchedule)> scheduled,
+  ) {
     if (scheduled.isEmpty) {
       return const [
         EmptyActivityCard(
@@ -247,22 +257,31 @@ class _PopulatedHome extends StatelessWidget {
     final widgets = <Widget>[];
     for (final timing in CareTaskTiming.values) {
       final items = scheduled
-          .where((item) => CareTaskTiming.classify(item.$2.nextCheckAt) == timing)
+          .where(
+            (item) => CareTaskTiming.classify(item.$2.nextCheckAt) == timing,
+          )
           .toList();
       if (items.isEmpty) continue;
       if (timing != CareTaskTiming.upcoming) {
-        widgets.add(Padding(
-          padding: const EdgeInsets.only(top: 8, bottom: 8),
-          child: Text(timing.label, style: Theme.of(context).textTheme.titleSmall),
-        ));
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 8),
+            child: Text(
+              timing.label,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          ),
+        );
       }
       for (final item in items) {
-        widgets.add(TaskRow(
-          plant: item.$1,
-          schedule: item.$2,
-          timing: timing,
-          onTap: () => state._openCheck(item.$1),
-        ));
+        widgets.add(
+          TaskRow(
+            plant: item.$1,
+            schedule: item.$2,
+            timing: timing,
+            onTap: () => state._openCheck(item.$1),
+          ),
+        );
         widgets.add(const SizedBox(height: 8));
       }
     }

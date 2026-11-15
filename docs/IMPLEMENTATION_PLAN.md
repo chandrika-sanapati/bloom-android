@@ -1,6 +1,6 @@
 # Bloom Android implementation plan
 
-**Status:** Watering baseline and Light & placement implemented. Thirty host tests, two Android integration tests, static analysis, and the normal debug APK build pass. Remaining manual checks and the device-test incident are in STATUS.md.
+**Status:** Watering and Light & placement implemented and verified as recorded in STATUS.md. Reminder preferences/navigation were reviewed, authorized, and implemented in section 8; verification is in STATUS.md.
 **Platform:** Flutter Android.
 **Source of truth:** [`STATUS.md`](STATUS.md) for shipped behavior; [`PRD.md`](PRD.md) for product intent and scope.
 **Last updated:** 15 November 2026
@@ -9,7 +9,7 @@ Read [`PRODUCT_DECISIONS.md`](PRODUCT_DECISIONS.md) before changing scope. It pr
 
 ## 1. Implementation principle
 
-Bloom should make the next watering check clearer, faster, and more trustworthy. Keep schedule transitions centralized. The revised Light & placement proposal adds a species-specific suggestion and an optional saved action acknowledgment during setup and on plant detail. Placement acknowledgment leaves all watering dates and reminders unchanged in this release; watering stays the only recurring care system. Follow the review gate in section 7 before implementation.
+Bloom should make the next watering check clearer, faster, and more trustworthy. Keep schedule transitions centralized. The revised Light & placement proposal adds a species-specific suggestion and an optional saved action acknowledgment during setup and on plant detail. Placement acknowledgment leaves all watering dates and reminders unchanged in this release; watering stays the only recurring care system. The light-placement review gate in section 7 is complete. The reminder review gate in section 8 is also complete.
 
 ## 2. Current architecture
 
@@ -77,8 +77,8 @@ Do not add these to the watering baseline without a new product decision:
 
 - Arbitrary custom plant schedules or a fallback interval.
 - Per-plant interval editing, pause/resume, seasonal logic, or adaptive schedule changes.
-- Configurable reminder time UI.
-- Broader environmental context, live weather, sensors, nutrition, repotting, pruning, symptom diagnosis, or specialist routing. The bounded Light & placement proposal in section 7 is the current documentation work, not implemented scope.
+- Configurable reminder time and notification navigation are implemented under the reviewed scope in section 8.
+- Broader environmental context, live weather, sensors, nutrition, repotting, pruning, symptom diagnosis, or specialist routing. Light & placement in section 7 is implemented; broader environmental behavior remains outside it.
 - Cloud accounts, sync, sharing, analytics, or a separate watering-history destination.
 
 ## 6. Definition of done for the next milestone
@@ -147,3 +147,77 @@ Keep the PRD, product decisions, implementation plan, design guidance, status, a
 Use `sh tool/test_android.sh -d emulator-5554` with Flutter/JDK/Android SDK configured. The script scopes `ORG_GRADLE_PROJECT_bloomIntegrationTest=true` to test commands, prebuilds the APK so Flutter resolves the test application ID, and passes `--no-uninstall`. Gradle assigns **com.chandrika.bloom.integration**, separate from **com.chandrika.bloom**. Tests use app-cache files and do not load the user's garden. The retained test installation may be removed explicitly by its `.integration` package ID; rebuild/relaunch the normal app afterward if needed.
 
 Use this runner instead of a raw integration-test command on an emulator containing personal test data. The first device run used the normal package and Flutter's default uninstall cleanup, clearing the emulator garden; the incident and correction are recorded in STATUS.md. Host tests were run from an identical temporary checkout without parentheses because Flutter 3.44.8's macOS native-assets parser crashes on the current `Codes (VS)` path. Do not patch the SDK or change plant behavior to work around that host-tool limitation.
+
+## 8. Reminder preferences and notification navigation — implementation plan
+
+**State:** Reviewed and explicitly authorized on 15 November 2026; implementation complete. [PRD section 15](PRD.md#15-reminder-preferences-and-notification-navigation--requirements) is the contract; decisions D33–D40 explain the final rules. Verification evidence and outstanding manual checks are in STATUS.md.
+
+### R0 — Review completed
+
+The user authorized one global preference, automatic-only updates after today, custom/today/overdue/legacy protection, one-off overrides, preferred-clock completion, deterministic DST handling, and current/stale notification destinations. No extra migration or setup questionnaire is required.
+
+### R1 — Pure time rules, preferences, and atomic persistence
+
+- Extend AppPreferences copy/update paths for existing reminderHour/reminderMinute fields; validate inputs and preserve legacy/default behavior safely.
+- Introduce testable local-calendar time helpers for first checks, completion/follow-up checks, eligible automatic changes after today, and DST resolution. Do not add Duration hours to a UTC instant as a substitute for a local preferred clock.
+- Add a GardenStore preference transition that commits the new time and eligible automatic timestamps after today atomically. Preserve custom times, every existing check dated today, overdue checks, dates/history/intervals/placement, and protected notification trigger times.
+- Add persisted time provenance to WateringSchedule: preference/custom/legacy. Manual edits mark custom, including edits that match the global clock; global changes and sync must never clear that protection. Under the adopted one-off lifecycle, completing the check creates an automatic successor.
+- For old/unknown provenance, apply legacy protection without inferring intent or changing timestamps. Preserve old checks on upgrade and explain the limitation only when relevant; do not add a user classification flow. This policy was adopted with implementation authorization.
+- Distinguish a failed garden write from a notification resync failure after a successful write. Publish no uncommitted preference or task changes.
+
+### R2 — Minimal Preferences UI
+
+- Add one Reminder time row beside the existing notification controls, using the native time picker and device time formatting.
+- Save on final picker confirmation, with no second confirmation dialog or required setup input. Show scope and platform timing expectations inline.
+- Allow saving with notifications off/denied; never enable notifications or ask for permission solely because the user chose a time. Preserve/retry on persistence failure and disable duplicate in-flight saves.
+
+### R3 — Future-only notification synchronization and payload identity
+
+- Retain one-shot inexact watering reminders and one pending reminder per plant; update eligible changed automatic requests after committed time changes. Preserve protected custom/today/overdue request trigger times and avoid catch-up bursts.
+- Use stable, collision-safe bounded Android IDs. Make resync idempotent and explicitly clean up eligible old pending requests.
+- Replace the plant-only payload with a versioned plant/check/revision descriptor and a pure validator/resolver. Handle existing prefix-only payloads with the documented detail fallback.
+- Compare notification identity with current saved data; an edited/completed task must not redirect an old reminder into a new future check.
+- Refresh timezone/permission status and reconcile at startup/resume without blocking Home, promising exact delivery, or requesting exact-alarm access.
+
+### R4 — Handle startup and warm navigation
+
+- Extend WateringNotifications initialization with onDidReceiveNotificationResponse and inspect getNotificationAppLaunchDetails for notification-triggered startup using the pinned plugin API.
+- Queue/validate a target while the garden or Navigator is not ready. Share one resolver for cold and warm entry and deduplicate callback/launch-detail delivery.
+- Coordinate navigation in BloomApp/root navigation rather than navigating from a background isolate or service-owned stale BuildContext.
+- Cold entry establishes Home beneath the requested CheckScreen; warm entry preserves the existing stack/unfinished work and reuses an already-open identical check.
+- Deleted/missing/malformed targets recover to Home; stale or legacy targets with an existing plant recover to detail with concise feedback. Every fallback retains Back/Home recovery.
+- Opening a notification must not commit a care outcome, change a date, enable permissions, or replay an event on normal launch.
+
+### R5 — Verification and documentation
+
+- Unit tests: preference validation; provenance JSON/migration; first/completed check clock rules; preservation of custom/today/overdue/legacy timestamps and notification times; custom times equal to the old preference; repeated global changes/relaunch; one-off completion reset; DST cases; atomic failure/idempotence; versioned/legacy/malformed/stale target resolution; duplicate launch handling.
+- Widget tests: native-picker value/cancel/save, notifications-off and failed-save states, correct-route/back behavior, repeated taps, large text, and device-format display.
+- Android integration: real notifications/taps from foreground/background/terminated states, persisted preference/provenance updates, protected custom/today notification times, stale/deleted-target fallback, denied permission, no catch-up burst, timezone/DST where controllable, and preservation of the separate normal installation.
+- Use `sh tool/test_android.sh -d <test-device>` and isolated cache-file repositories. Extend the runner's targets if new integration files are added; do not test against or uninstall the normal app/data. Real tap delivery verification needs an actual notification tap, not merely calling the Dart resolver.
+- Add deterministic injectable clock/notification/navigation seams as needed. Keep temporary device time/timezone/font settings confined to the test device and restore them after testing.
+- Run relevant existing tests, analysis, and debug build after implementation. Record actual results and unverified OS delivery cases in STATUS.md; do not reuse the previous feature's evidence as proof of this release.
+- Align all six main docs with the reviewed decision and final implementation. Implementation and tests are authorized; a new commit or push has not been requested for this change.
+
+### R6 — Implemented boundaries and repeatable verification
+
+- `reminder_time.dart` resolves local calendar clocks, including DST gaps/folds. `GardenStore` serializes whole persistence transitions, so concurrent screens cannot overwrite each other's saved changes. Preference and eligible check times share one atomic write; optional notification failures cannot undo it. Schedule revisions change only when a timestamp changes.
+- `watering_notification.dart` validates bounded versioned payloads carrying plant, due instant, revision, and zone. Legacy payloads fall back to detail. Stable 31-bit IDs probe occupied requests; synchronization preserves unchanged pending requests and replaces changed ones at their saved instants.
+- `WateringNotifications` handles single-flight initialization, queued/cold/live responses, startup duplicate suppression, serialized incremental sync, permission/status feedback, and retry on resume. `BloomApp` owns routing after Navigator readiness; manually opened checks use the same route identity for duplicate suppression.
+- `tool/test_android.sh` prebuilds, installs/grants only `com.chandrika.bloom.integration`, and uses `--no-uninstall`. Select `BLOOM_TEST_TARGET=integration_test/reminders_test.dart` for the native intent suite. `tool/check_notification_launch.py` builds the isolated standalone fixture and a UI Automator test from the local SDK/JUnit cache, then taps real notifications after confirming the fixture process is gone.
+- The integration-only activity/channel is compiled from `src/integration/kotlin` only with the test Gradle flag. The normal APK uses MainActivity and contains no test channel or exported test receiver. Cold fixtures use cache files, never the normal garden.
+- Refresh the zone and pending request conversion on resume; preserve saved instants. Do not silently rebase existing protected checks after travel. Live background travel adaptation and exact delivery guarantees remain excluded.
+
+## 9. Occasional care — requirements refinement only
+
+Follow PRD section 16 and decisions D41–D43. The compact/expandable sunlight presentation is implemented and verified in section 10; existing light functionality remains its foundation. After that, refine **Adding nutrients** before Pot & soil: start from the user's need to decide whether an action is warranted, with progressive disclosure and watering kept primary. Review the smallest useful inputs and evidence-supported result/uncertainty handling before specifying records or reminders. Exact flows and implementation remain unapproved; do not add care schedules or code from these discussion notes.
+
+Apply D42 to the hierarchy discussion: Light & placement is setup/occasional review, not another recurring care task. Do not add expiry, automatic acknowledgment resets, or light reminders. Preserve setup, acknowledgment behavior, and saved placement data. D44 / section 10 authorize compact summaries and expandable advice on detail; relocation under Other care remains outside scope.
+
+
+## 10. Compact light presentation — implemented and verified
+
+D44 / PRD section 17 authorize this refinement. Add an opt-in compact presentation to the shared LightPlacementSection and enable it only on detail; keep a single shared guidance/checkbox body and unchanged setup. Use Material ExpansionTile, default collapsed, with light requirement and report status always visible. Keep expansion local to the view; make no domain/model/storage/scheduling change.
+
+Verify pending/acknowledged collapse/expand without writes, existing save/failure/correction, setup skip/acknowledgment, and narrow 2x-text dark layout. Update the isolated Android placement test to expand explicitly and assert initial compact state; capture a compact preview. Run host tests from a path without parentheses, analysis, isolated Android regression, and normal APK build. Back up and compare saved normal-app data; install normal APK with -r. Record actual results in STATUS.md and keep the six main docs aligned.
+
+Validation: 55 host tests and both isolated Android placement tests passed, analysis returned zero findings, and the normal APK built/installed in place. Compact Android preview visually reviewed. Source hashes matched the tested checkout; four normal saved files matched the pre-test backup before update and the garden JSON remained identical after launch. Full manual TalkBack review remains separate. See STATUS.md.

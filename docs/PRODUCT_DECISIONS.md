@@ -1,6 +1,6 @@
 # Bloom product decisions and tradeoffs
 
-**Status:** Watering baseline plus implemented Light & placement suggestion/acknowledgment; earlier concern-picker draft superseded; implementation authorized and verified on 15 November 2026; watering unchanged
+**Status:** Watering, Light & placement, reminder preferences, and notification navigation implemented; reviewed authorization and final decisions in section 14.
 **Last reviewed:** 15 November 2026
 **Decision scope:** Product, UX, content safety, and roadmap choices
 
@@ -646,3 +646,121 @@ Discuss requirements first. Document material decisions, alternatives, rationale
 - `README.md`: entry point to the current release and proposed scope.
 
 Keep these aligned as decisions evolve. Do not leave a material product decision only in chat or implement an unresolved choice silently. Product discussion, document editing, and an implementation plan are not implementation approval.
+
+## 14. Reminder preferences and navigation decisions
+
+Recorded on 15 November 2026. Feature selection and protection rules were reviewed before implementation was authorized; the adopted contract is in [PRD section 15](PRD.md#15-reminder-preferences-and-notification-navigation--requirements). D27's document-first gate is complete; D39 records explicit implementation authorization.
+
+### D33 — Put one global reminder time in Preferences
+
+**Status:** Selected, reviewed, and implemented under D39.
+
+Offer one Reminder time row beside the existing Watering notifications switch, native time picker, existing 09:00 fallback, and local 12/24-hour display. Save on final picker confirmation with inline scope explanation. No new plant-setup fields or per-plant recurring preferences.
+
+The alternative of separate per-plant preferences would add setup and precedence rules. One global time makes the setting easier to understand and maintain. It remains editable while notifications are off/denied; saving it must not enable notifications or request permission. In-app check times follow the chosen policy; delivery remains optional.
+
+### D34 — Update eligible automatic future checks, preserving user choices
+
+**Status:** Confirmed by the user: update existing future checks too, with custom timings and today's existing checks preserved. Migration/lifecycle details in D38 were adopted under D39.
+
+Apply a changed global clock only to explicitly automatic checks on later local calendar days, and to newly generated automatic checks. Preserve their calendar dates. Custom date/time edits, today's existing checks, and overdue checks retain their exact saved timestamps and reminder trigger times.
+
+The earlier draft would have overwritten custom future times and updated today's checks when the new time was still ahead. The user explicitly rejected custom-time overwriting and asked to keep today's checks as they are. Preserve this as a replaced proposal rather than implementing the old broad rule. User intent takes precedence over a bulk normalization shortcut.
+
+Commit preference and eligible timestamp changes together. Preserve intervals, history, Last watered, and placement state; do not generate care history or catch-up notifications. Choosing an unchanged preference remains a no-op. The legacy schedule constraint and proposed way to record time provenance are in D38.
+
+### D35 — Use the preferred clock consistently for automatic next checks
+
+**Status:** Adopted under D39 and implemented; preserves the pre-feature rationale below.
+
+Before this change, the app used the preference only for the first check and inherited the completion clock afterward. The implemented rule calculates the next local calendar day from the actual completion day plus the existing profile/follow-up days, then applying the preferred hour/minute. Preserve actual recordedAt and Last watered. This makes the visible task time and notification time agree, avoiding two unexplained clocks.
+
+Use device-local wall-clock semantics. Adopted DST handling is the first valid time after a gap and the first occurrence during a repeated time, with only one reminder. Reconcile timezone changes on startup/resume; do not promise continuous travel adaptation while the app stays closed. Exact per-check edits remain protected across global preference changes and synchronization. The adopted one-off lifecycle ends that override only when the user explicitly edits or completes the check; a new automatic successor follows the preference (D38).
+
+### D36 — Open a specific current check, and handle stale taps safely
+
+**Status:** Direct navigation and the identity/fallback contract adopted under D39 and implemented.
+
+A valid notification opens the identified plant's Check watering screen from closed, background, or foreground states. Cold entry has Home beneath it; warm entry preserves existing navigation/unfinished work. Repeated delivery of the same event must not open duplicate screens or replay on a normal launch.
+
+Identify the specific scheduled check/revision as well as the plant, then resolve against current local data. A plant-only link could send a reminder for a completed task into its newly scheduled future task, so new payloads must carry enough identity to reject that mismatch. Adopted stale/legacy fallback is the existing plant detail with current schedule and brief feedback; removed/invalid targets recover to Home. Payloads are validated data, not arbitrary route commands.
+
+A tap never records watering, preselects an outcome, changes a schedule, or enables notifications. Use both running-app response callbacks and notification-launch details, coordinated after garden/navigation readiness. No mandatory new confirmation prompt.
+
+### D37 — Keep reminders restrained and complete the document review first
+
+**Status:** Reviewed, authorized under D39, and implemented.
+
+Retain the existing optional switch, future-only one-shot reminders, and one pending watering reminder per plant. Add no daily digest, repeated overdue nudge, snooze, direct watering action, or new light reminder. Use inline scope/timing feedback rather than additional forms. Android delivery remains best effort/inexact; do not promise a guaranteed minute or request special exact-alarm access for this feature.
+
+Preference persistence and notification acceptance are different outcomes: a saved preference must survive a denied permission or OS scheduling failure, while a failed garden write must leave preference/tasks unchanged. Device testing must use the isolated test package and verify real tap entry without risking the normal app/data.
+
+The initial instruction authorized documents only. That review was completed, and D39 records the subsequent explicit authorization for implementation. Undo, backup/restore, nutrition, repotting, and sunlight-driven adaptation are separate future scope. Technical references and the baseline/code differences are captured in PRD 15.
+
+### D38 — Preserve custom times and today's checks; record provenance
+
+**Status:** Protection requirements explicitly confirmed by the user on 15 November 2026. Provenance representation, conservative migration, and one-off lifecycle were adopted under D39 and are implemented.
+
+#### Confirmed decision and rationale
+
+Changing the global Reminder time must not affect custom timings set by the user. Keep all today's existing checks at their saved times as well. A preference should not undo a deliberate next-check choice or rearrange the user's current day. Existing future-check updates therefore apply only to eligible automatic checks after today.
+
+#### Adopted implementation direction and tradeoffs
+
+The pre-feature model stored nextCheckAt, createdAt, and updatedAt without manual/automatic provenance. Timestamp equality with the old preference cannot prove intent. Add explicit per-check provenance (preference/custom/legacy) so automatic and custom choices can be distinguished without new user inputs.
+
+Mark new automatic first/completed checks as preference-based. Mark explicit Edit next check saves as custom even when the chosen time equals the preference. Protect a custom check across global changes, app startup/resume, and notification sync. Interpret the existing editor as a one-off override: after explicit completion, create a new automatic check at the preferred time. Recurring custom per-plant times would be separate scope.
+
+For old data without provenance, the adopted conservative migration is to preserve all those saved check times as legacy/unknown until the user edits or completes each check. This means the first global change after upgrade may not change older saved checks. It avoids overwriting genuine custom times, and adds no migration questionnaire or timestamp/history heuristic. This tradeoff was reviewed and adopted under D39; it is not a claim that all old checks were manually customized.
+
+Persist provenance backward-compatibly and test it with scheduling, cancellation/resync, repeated preference changes, relaunch, and future successor generation. Custom/today protection is confirmed; migration and one-off lifecycle review is recorded as completed in PRD 15.9.
+
+
+### D39 — Authorize reminder implementation with protected timings
+
+**Status:** Explicitly authorized by the user on 15 November 2026.
+
+Implement the reviewed reminder-time preference and notification navigation. Preserve custom, today, overdue, and unclassified legacy check times; use explicit per-check time provenance going forward. Adopt the conservative legacy migration and one-off custom lifecycle from PRD 15.4. Keep the separate test installation and back up normal emulator data before device verification. This authorization covers implementation and verification, not a new commit or push. Update all related docs with final behavior and evidence.
+
+### D40 — Preserve committed state and verify platform entry honestly
+
+**Status:** Implemented and verified within the limits recorded in STATUS.md.
+
+Serialize complete store transitions to preserve concurrent changes from stacked screens. Commit preference/provenance/timestamp changes before publishing them; an optional notification failure leaves the saved choice intact and surfaces retry feedback. Incremental synchronization leaves unchanged pending requests alone and resolves notifications against due instant plus schedule revision, not a plant ID alone.
+
+The native test activity/channel is compiled only into the isolated integration build. Foreground/background tests dispatch posted notifications' actual PendingIntents; cold-launch verification uses a separate UI Automator shell process to tap the notification drawer after confirming the fixture process has ended. This distinction matters: a receiver sending its own PendingIntent after process death is blocked by Android 16 background-activity rules and does not model a SystemUI user tap. No production exemption or permission was added to work around that test limitation.
+
+Timezone refresh converts pending requests using the current device zone while preserving saved instants, including custom and legacy checks. It does not silently rewrite the existing garden after travel. New automatic checks use the current preferred local clock. Keep long-idle/OEM delivery and manual TalkBack review separate from deterministic timing/routing evidence.
+
+### D41 — Assess occasional care needs on demand; disclose progressively
+
+**Status:** User-confirmed product direction on 15 November 2026; detailed requirements remain under discussion. No implementation authorization for these domains.
+
+Use **Adding nutrients** as customer-facing wording rather than Feeding. The user wants a way to check whether adding nutrients or pot/soil work is needed before taking action, rather than simply creating recurring schedules. Watering remains the primary, most frequent care journey. Develop the occasional-care requirements step by step, starting with Adding nutrients.
+
+Use progressive disclosure to keep these infrequent features from overwhelming everyday watering. Exact placement, labels, question branches, assessment rules, outcomes, persistence, and any later reminders are unresolved proposals. Earlier guidance-plus-history suggestions alone do not meet the user's assessment-first requirement. D11/D12 remain horticultural boundaries; do not claim nutrient sufficiency or diagnose a problem from an acknowledgment or a single symptom. Unknown information must not force treatment or a lengthy mandatory questionnaire. Document and review detailed flows before implementation under D27.
+
+### D42 — Light placement is occasional care, not a recurring task
+
+**Status:** User-confirmed product direction on 15 November 2026; future hierarchy changes remain proposals.
+
+Once a user has placed a plant in suitable light, Bloom should not imply it needs frequent relocation or repeated confirmation. Watering is the frequent recurring journey. Light & placement belongs to initial setup and occasional, user-initiated review; Adding nutrients and Pot & soil are also occasional care. Add no recurring light check, acknowledgment expiry, automatic reset, or relocation nudge.
+
+Preserve the implemented optional setup/detail suggestion and saved acknowledgment. That acknowledgment remains a user-reported action, not verified light sufficiency. A compact summary with expandable advice or grouping under Other care is a future layout proposal requiring review, not authorization to move or hide the existing controls. Revisit guidance when the user chooses to review changed placement/conditions; this creates no automatic watering change. Read alongside D41 and PRD sections 14/16.
+
+### D43 — Finish the occasional-light presentation before adding another care domain
+
+**Status:** Recommended sequencing in response to the user's sunlight-first proposal on 15 November 2026; detailed presentation still needs review. No new app implementation authorization inferred from the sequencing discussion.
+
+The existing sunlight feature already provides optional setup/detail guidance, persistent acknowledgment, and correction. The remaining proposed work is the progressive-disclosure presentation: keep watering primary; offer a compact Light & placement summary on detail, clear access to full guidance, and voluntary review/correction. Unacknowledged placement must remain easy to find without repeated prompts. Preserve setup, saved state, watering dates, and the absence of recurring light tasks.
+
+Recommend reviewing and finishing this small presentation refinement before refining Adding nutrients, then Pot & soil. It establishes the occasional-care interaction pattern without introducing nutrient assessment at the same time. Agree pending/acknowledged summaries and expand/review behavior in the docs before implementation; do not reopen measured-light assessment or automatic scheduling adaptation.
+
+
+### D44 — Authorize compact, expandable light guidance on plant detail
+
+**Status:** Explicitly authorized, implemented, and verified on 15 November 2026 after agreeing the sunlight-first refinement. Supersedes the presentation-review gate in D42/D43 for this scope only.
+
+Implement the reviewed compact Light & placement section on plant detail, keeping setup fully visible and watering primary. New detail pages start collapsed in both pending and acknowledged states. Show the species requirement plus a neutral saved-state summary, with Material expansion revealing existing advice/checkbox. Use Not recorded · Optional, You've placed it as suggested, or Placement recorded for earlier advice; none implies measured adequacy.
+
+Expansion is temporary UI state and writes nothing. Preserve optional setup, persisted acknowledgment/time/version, immediate save and correction, failure/retry, and unchanged watering/notification behavior. No new reminders, automatic resets, assessment, or Other care navigation container. This is a small presentation refinement, not new sunlight logic. Define exact behavior in PRD section 17 and record verification in STATUS.md. The user reiterated that every implemented product feature must be captured in the PRD and related repo docs. The user subsequently requested committing and pushing the completed, verified work upstream.

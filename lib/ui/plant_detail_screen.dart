@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
 import 'check_screen.dart';
+import 'check_route.dart';
 import 'light_placement_section.dart';
 import 'widgets.dart';
 
@@ -24,7 +25,16 @@ class PlantDetailScreen extends StatelessWidget {
         final plant = store.plant(plantId);
         final schedule = store.scheduleFor(plantId);
         if (plant == null || schedule == null) {
-          return const Scaffold(body: Center(child: Text('Plant unavailable')));
+          return Scaffold(
+            appBar: AppBar(title: const Text('Plant unavailable')),
+            body: Center(
+              child: TextButton(
+                onPressed: () =>
+                    Navigator.of(context).popUntil((route) => route.isFirst),
+                child: const Text('Go to Home'),
+              ),
+            ),
+          );
         }
         return _Body(store: store, plant: plant, schedule: schedule);
       },
@@ -104,6 +114,7 @@ class _BodyState extends State<_Body> {
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(
                 fullscreenDialog: true,
+                settings: wateringCheckSettings(schedule),
                 builder: (_) => CheckScreen(store: store, plantId: plant.id),
               ),
             ),
@@ -150,6 +161,7 @@ class _BodyState extends State<_Body> {
             ),
             const SizedBox(height: 24),
             LightPlacementSection(
+              compact: true,
               guidance: species.light,
               acknowledged: plant.lightPlacement != null,
               saving: _savingLight,

@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'models.dart';
+import 'reminder_time.dart';
 
 /// Holds the garden and applies watering transitions in one persistence boundary.
 class GardenStore extends ChangeNotifier {
@@ -43,8 +45,46 @@ class GardenStore extends ChangeNotifier {
     return null;
   }
 
+  // Serialize whole transitions, including snapshot construction, so a second
+  // screen cannot overwrite a preference or plant while a save is in flight.
+  Future<void> _tail = Future.value();
+  Future<T> _serial<T>(Future<T> Function() action) {
+    final work = _tail.then((_) => action());
+    _tail = work.then<void>((_) {}, onError: (Object _, StackTrace _) {});
+    return work;
+  }
+
+  Future<bool> addPlant(Plant value, {DateTime? lastWatered, DateTime? now}) =>
+      _serial(() => _addPlant(value, lastWatered: lastWatered, now: now));
+  Future<bool> savePlant(Plant value) => _serial(() => _savePlant(value));
+  Future<bool> setLightPlacementAcknowledged(
+    String id,
+    bool value, {
+    DateTime? now,
+  }) => _serial(() => _setLightPlacementAcknowledged(id, value, now: now));
+  Future<bool> deletePlant(String id) => _serial(() => _deletePlant(id));
+  Future<bool> editNextCheck(String id, DateTime value, {DateTime? now}) =>
+      _serial(() => _editNextCheck(id, value, now: now));
+  Future<WateringRecord?> completeWateringCheck({
+    required String plantId,
+    required WateringOutcome outcome,
+    required Soil soil,
+    DateTime? now,
+  }) => _serial(
+    () => _completeWateringCheck(
+      plantId: plantId,
+      outcome: outcome,
+      soil: soil,
+      now: now,
+    ),
+  );
+  Future<bool> setTaskNotifications(bool enabled) =>
+      _serial(() => _setTaskNotifications(enabled));
+  Future<bool> setReminderTime(int hour, int minute, {DateTime? now}) =>
+      _serial(() => _setReminderTime(hour, minute, now: now));
+
   /// Adds a plant and schedules its first check, as in `BloomStore.addPlant`.
-  Future<bool> addPlant(
+  Future<bool> _addPlant(
     Plant plant, {
     DateTime? lastWatered,
     DateTime? now,
@@ -73,13 +113,14 @@ class GardenStore extends ChangeNotifier {
           nextCheckAt: next,
           createdAt: current,
           updatedAt: current,
+          timeSource: CheckTimeSource.preference,
         ),
     ];
     return _commit(_garden.copyWith(plants: plants, schedules: schedules));
   }
 
   /// Renames or re-species an existing plant, or inserts it if missing.
-  Future<bool> savePlant(Plant plant) {
+  Future<bool> _savePlant(Plant plant) {
     final index = _garden.plants.indexWhere((p) => p.id == plant.id);
     final plants = [..._garden.plants];
     if (index >= 0) {
@@ -91,7 +132,7 @@ class GardenStore extends ChangeNotifier {
   }
 
   /// Saves placement independently of watering and notification scheduling.
-  Future<bool> setLightPlacementAcknowledged(
+  Future<bool> _setLightPlacementAcknowledged(
     String plantId,
     bool acknowledged, {
     DateTime? now,
@@ -125,7 +166,7 @@ class GardenStore extends ChangeNotifier {
   }
 
   /// Removes a plant with its schedule and history, as `deletePlant` does.
-  Future<bool> deletePlant(String id) => _commit(
+  Future<bool> _deletePlant(String id) => _commit(
     _garden.copyWith(
       plants: _garden.plants.where((p) => p.id != id).toList(),
       schedules: _garden.schedules.where((s) => s.plantId != id).toList(),
@@ -133,7 +174,7 @@ class GardenStore extends ChangeNotifier {
     ),
   );
 
-  Future<bool> editNextCheck(String plantId, DateTime date, {DateTime? now}) {
+  Future<bool> _editNextCheck(String plantId, DateTime date, {DateTime? now}) {
     final current = now ?? DateTime.now();
     final schedule = scheduleFor(plantId);
     if (schedule == null || date.isBefore(current)) return Future.value(false);
@@ -142,7 +183,11 @@ class GardenStore extends ChangeNotifier {
         schedules: [
           for (final s in _garden.schedules)
             if (s.plantId == plantId)
-              s.copyWith(nextCheckAt: date, updatedAt: current)
+              s.copyWith(
+                nextCheckAt: date,
+                updatedAt: current,
+                timeSource: CheckTimeSource.custom,
+              )
             else
               s,
         ],
@@ -151,7 +196,7 @@ class GardenStore extends ChangeNotifier {
   }
 
   /// Records a check and moves the next one, including the dry-soil follow-up.
-  Future<WateringRecord?> completeWateringCheck({
+  Future<WateringRecord?> _completeWateringCheck({
     required String plantId,
     required WateringOutcome outcome,
     required Soil soil,
@@ -169,7 +214,11 @@ class GardenStore extends ChangeNotifier {
     final intervalDays = outcome == WateringOutcome.watered
         ? schedule.intervalDays
         : (followUpDays ?? schedule.intervalDays);
-    final next = current.add(Duration(days: intervalDays));
+    final next = reminderOnDay(
+      DateTime.utc(current.year, current.month, current.day + intervalDays),
+      _garden.preferences.reminderHour,
+      _garden.preferences.reminderMinute,
+    );
 
     final record = WateringRecord(
       id: newId(),
@@ -186,7 +235,11 @@ class GardenStore extends ChangeNotifier {
         schedules: [
           for (final s in _garden.schedules)
             if (s.plantId == plantId)
-              s.copyWith(nextCheckAt: next, updatedAt: current)
+              s.copyWith(
+                nextCheckAt: next,
+                updatedAt: current,
+                timeSource: CheckTimeSource.preference,
+              )
             else
               s,
         ],
@@ -195,11 +248,51 @@ class GardenStore extends ChangeNotifier {
     return saved ? record : null;
   }
 
-  Future<bool> setTaskNotifications(bool enabled) => _commit(
+  Future<bool> _setTaskNotifications(bool enabled) => _commit(
     _garden.copyWith(
       preferences: _garden.preferences.copyWith(taskNotifications: enabled),
     ),
   );
+
+  Future<bool> _setReminderTime(int hour, int minute, {DateTime? now}) async {
+    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return false;
+    final preferences = _garden.preferences;
+    if (hour == preferences.reminderHour &&
+        minute == preferences.reminderMinute) {
+      return true;
+    }
+    final current = now ?? DateTime.now();
+    final today = calendarDay(current);
+    return _commit(
+      _garden.copyWith(
+        preferences: preferences.copyWith(
+          reminderHour: hour,
+          reminderMinute: minute,
+        ),
+        schedules: [
+          for (final schedule in _garden.schedules)
+            if (schedule.timeSource == CheckTimeSource.preference &&
+                schedule.nextCheckAt.isAfter(current) &&
+                calendarDay(schedule.nextCheckAt).isAfter(today))
+              _retime(schedule, hour, minute, current)
+            else
+              schedule,
+        ],
+      ),
+    );
+  }
+
+  WateringSchedule _retime(
+    WateringSchedule schedule,
+    int hour,
+    int minute,
+    DateTime now,
+  ) {
+    final next = reminderOnDay(schedule.nextCheckAt, hour, minute);
+    return next.isAtSameMomentAs(schedule.nextCheckAt)
+        ? schedule
+        : schedule.copyWith(nextCheckAt: next, updatedAt: now);
+  }
 
   /// First check: the reminder time on the day of the last watering plus the
   /// starting interval, or today at the reminder time when never watered.
@@ -211,10 +304,17 @@ class GardenStore extends ChangeNotifier {
     required int minute,
   }) {
     if (lastWatered != null && intervalDays != null) {
-      final base = lastWatered.add(Duration(days: intervalDays));
-      return DateTime(base.year, base.month, base.day, hour, minute);
+      return reminderOnDay(
+        DateTime.utc(
+          lastWatered.year,
+          lastWatered.month,
+          lastWatered.day + intervalDays,
+        ),
+        hour,
+        minute,
+      );
     }
-    return DateTime(now.year, now.month, now.day, hour, minute);
+    return reminderOnDay(now, hour, minute);
   }
 
   Future<bool> _commit(Garden next, {bool syncNotifications = true}) async {
@@ -225,7 +325,15 @@ class GardenStore extends ChangeNotifier {
     }
     _garden = next;
     notifyListeners();
-    if (syncNotifications) await onChanged?.call(next);
+    if (syncNotifications) {
+      // The committed garden remains authoritative if an optional side effect
+      // fails; notification status is reported by the notification service.
+      try {
+        await onChanged?.call(next);
+      } catch (_) {
+        /* Retry on resume. */
+      }
+    }
     return true;
   }
 }

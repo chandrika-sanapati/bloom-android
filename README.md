@@ -31,13 +31,17 @@ The current app supports:
 - Species-specific light/placement advice during setup and on plant detail.
 - Optional saved acknowledgment that the user placed the plant as suggested; watering dates stay unchanged.
 
-Current limitations are tracked in [`docs/STATUS.md`](docs/STATUS.md). In particular, record-level deletion, a configurable reminder time screen, notification tap routing, and support for arbitrary custom plants are not yet implemented.
+Current limitations are tracked in [`docs/STATUS.md`](docs/STATUS.md). In particular, record-level deletion and support for arbitrary custom plants are not yet implemented.
 
 ## Light & placement
 
 Bloom shows a species-specific Light & placement suggestion during Add a plant and on plant detail. Users can optionally acknowledge acting on it during setup or later, and the app stores that state per plant. This replaces the earlier dim/bright concern-picker proposal. Placement acknowledgment adds no recurring light reminders.
 
 The user confirmed that placement acknowledgment will leave watering schedules unchanged in this release; adaptation will be handled separately later. Review [PRD section 14](docs/PRD.md#14-light--placement--release-requirements), [current decisions D28–D31](docs/PRODUCT_DECISIONS.md#13-light--placement-release-decisions), and [the implementation plan](docs/IMPLEMENTATION_PLAN.md#7-light--placement--implementation-sequence). The flow was implemented and verified on 15 November 2026. See [STATUS.md](docs/STATUS.md) for verification evidence, remaining checks, and the emulator-data incident.
+
+## Reminder time and notification navigation
+
+Preferences includes a global **Reminder time** with the native time picker. Changes update automatic checks after today; custom, today's, overdue, and unclassified older check times are preserved. First/completed automatic checks use the preferred local clock. Notification taps open the specific current watering check; stale/legacy reminders open plant detail, and unavailable targets return Home. See [PRD section 15](docs/PRD.md#15-reminder-preferences-and-notification-navigation--requirements), [D33–D40](docs/PRODUCT_DECISIONS.md#14-reminder-preferences-and-navigation-decisions), and [implementation plan section 8](docs/IMPLEMENTATION_PLAN.md#8-reminder-preferences-and-notification-navigation--implementation-plan).
 
 ## Requirements
 
@@ -68,7 +72,7 @@ flutter analyze
 flutter test
 ```
 
-The domain/widget suite contains 30 tests. Two Android integration tests cover the light-placement flow; run them with `sh tool/test_android.sh -d emulator-5554` to use the separate test package and disable uninstall cleanup. See [`docs/STATUS.md`](docs/STATUS.md) for the macOS path limitation and verification notes.
+The domain/widget suite covers watering, placement, reminder timing, and notification navigation. Run `sh tool/test_android.sh -d emulator-5554` for placement, or set `BLOOM_TEST_TARGET=integration_test/reminders_test.dart` for reminder integration. Both use the separate test package and disable uninstall cleanup. Run `python3 tool/check_notification_launch.py` for real notification-drawer taps after process death. These runners grant notification permission only to the isolated test package. See [`docs/STATUS.md`](docs/STATUS.md) for the macOS path limitation and verification notes.
 
 ## Project layout
 
@@ -92,3 +96,14 @@ The domain/widget suite contains 30 tests. Two Android integration tests cover t
 ## Product boundary
 
 Bloom is an assistant for remembering and recording plant checks. It does not diagnose disease, guarantee plant health, or claim that a date proves a plant needs water. Broader environmental assessments, nutrition, repotting, symptom guidance, additional plant profiles, and cloud sync remain roadmap items.
+
+## Product discussion: occasional care
+
+The sunlight presentation refinement is implemented under D44. Next refine on-demand need checks for **Adding nutrients**, then **Pot & soil**, with watering kept primary (D43). These two new care domains remain requirements discussion, not implemented features or approved recurring schedules. See [PRD section 16](docs/PRD.md#16-occasional-care--direction-under-discussion) and decision D41 in the product decision record.
+
+Light & placement is also occasional care after initial setup, with voluntary review and no recurring light prompts (D42). Setup keeps its fully visible optional guidance; detail now uses the compact, expandable presentation described below.
+
+
+## Compact sunlight guidance
+
+Plant details now shows a compact, expandable Light & placement section, with watering kept primary and existing setup/acknowledgment behavior retained. Implemented and verified on 15 November 2026. See [PRD section 17](docs/PRD.md#17-light--placement--occasional-care-presentation-refinement), decision D44, implementation plan section 10, and STATUS.md for the detailed contract and verification. This does not add recurring light tasks or nutrient features.

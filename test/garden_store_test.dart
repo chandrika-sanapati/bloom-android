@@ -113,7 +113,7 @@ void main() {
         expect(store.lastWatered('plant-1'), recordedAt);
         expect(
           store.scheduleFor('plant-1')?.nextCheckAt,
-          DateTime(2026, 11, 30, 14),
+          DateTime(2026, 11, 30, 9),
         );
         expect(record?.scheduledFor, DateTime(2026, 11, 15, 9));
       },
@@ -134,7 +134,7 @@ void main() {
       expect(store.lastWatered('plant-1'), isNull);
       expect(
         store.scheduleFor('plant-1')?.nextCheckAt,
-        DateTime(2026, 11, 19, 14),
+        DateTime(2026, 11, 19, 9),
       );
     });
 
@@ -153,7 +153,7 @@ void main() {
 
         expect(
           store.scheduleFor('plant-1')?.nextCheckAt,
-          DateTime(2026, 11, 30, 14),
+          DateTime(2026, 11, 30, 9),
         );
         expect(store.lastWatered('plant-1'), isNull);
       },
