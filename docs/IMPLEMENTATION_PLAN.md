@@ -5,6 +5,8 @@
 **Source of truth:** [`STATUS.md`](STATUS.md) for shipped behavior; [`PRD.md`](PRD.md) for product intent and scope.
 **Last updated:** 15 November 2026
 
+Read [`PRODUCT_DECISIONS.md`](PRODUCT_DECISIONS.md) before changing scope. It preserves the alternatives and tradeoffs behind the current cuts and future roadmap.
+
 ## 1. Implementation principle
 
 Bloom should make the next watering check clearer, faster, and more trustworthy. Keep the domain small, keep schedule transitions centralized, and do not add a second care system until the watering loop has evidence behind it.

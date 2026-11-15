@@ -73,6 +73,7 @@ flutter test
 
 - [`docs/STATUS.md`](docs/STATUS.md) — current implementation and verification source of truth.
 - [`docs/PRD.md`](docs/PRD.md) — product intent, behavior contract, scope, and roadmap.
+- [`docs/PRODUCT_DECISIONS.md`](docs/PRODUCT_DECISIONS.md) — recovered product decisions, alternatives, tradeoffs, and revisit triggers.
 - [`docs/DESIGN_GUIDELINES.md`](docs/DESIGN_GUIDELINES.md) — Android/Flutter interaction and accessibility guidance.
 - [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) — completed work and the next engineering steps.
 - [`docs/AGENTS.md`](docs/AGENTS.md) — contribution and UX/engineering guidance.

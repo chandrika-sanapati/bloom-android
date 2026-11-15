@@ -57,6 +57,10 @@ This is the short, current implementation record. If it conflicts with an older 
 - `lib/ui/plant_detail_screen.dart` — schedule details and removal.
 - `lib/ui/preferences_screen.dart` — notification preference.
 
+## Product decision record
+
+The full tradeoff history recovered from the original Bloom product work is maintained in [`PRODUCT_DECISIONS.md`](PRODUCT_DECISIONS.md). It is platform-neutral and distinguishes current Android behavior from deferred and planned capabilities.
+
 ## Immediate next checks
 
 1. Run the complete add → check → edit → relaunch flow on the Android emulator.

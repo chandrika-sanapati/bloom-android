@@ -5,6 +5,8 @@
 **Owner:** Bloom product team
 **Last updated:** 15 November 2026
 
+The full product decision record—including alternatives, tradeoffs, future care-domain boundaries, and decision-revisit triggers—is in [`PRODUCT_DECISIONS.md`](PRODUCT_DECISIONS.md). This PRD focuses on the current Android behavior contract.
+
 ## 1. Product summary
 
 Bloom helps plant owners remember which plant to check, record what they actually did, and know when to look again. The first product loop is intentionally narrow:
