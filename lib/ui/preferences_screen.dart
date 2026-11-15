@@ -157,6 +157,8 @@ class _PreferencesScreenState extends State<PreferencesScreen>
       widget.store,
       widget.notifications.status,
       widget.notifications.permissionGranted,
+      widget.cloudSync.status,
+      widget.cloudSync.message,
     ]),
     builder: (context, _) {
       final theme = Theme.of(context);
@@ -201,6 +203,29 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                 ),
               ),
               const SizedBox(height: 24),
+            ],
+            if (widget.cloudSync.status.value != CloudSyncStatus.unavailable &&
+                widget.cloudSync.status.value != CloudSyncStatus.signedOut) ...[
+              const SizedBox(height: 16),
+              Text('Cloud sync', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Builder(
+                builder: (context) {
+                  final syncMessage = widget.cloudSync.message.value;
+                  final fallback = switch (widget.cloudSync.status.value) {
+                    CloudSyncStatus.syncing => 'Syncing your garden…',
+                    CloudSyncStatus.synced => 'Garden synced',
+                    CloudSyncStatus.conflict => 'Cloud conflict needs review',
+                    CloudSyncStatus.failed =>
+                      'Sync failed; garden remains local',
+                    _ => '',
+                  };
+                  return Text(
+                    syncMessage ?? fallback,
+                    style: theme.textTheme.bodyMedium,
+                  );
+                },
+              ),
             ],
             Text('Watering reminders', style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),

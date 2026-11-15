@@ -1,7 +1,7 @@
 # Bloom backend and identification plan
 
 **Decision:** Supabase Auth + Postgres + Storage + Edge Functions
-**Status:** Supabase project linked, `identify-plant` Edge Function deployed, Flutter provider/auth seams implemented, mandatory-auth gate and local-first garden sync implemented; live Google sign-in/PlantNet QA and database migration remain
+**Status:** Supabase project linked, `identify-plant` Edge Function deployed, Flutter provider/auth seams implemented, mandatory-auth gate and revisioned local-first garden sync implemented; live Google sign-in/PlantNet QA and production migration verification remain
 **Last updated:** 15 November 2026
 
 ## Goals

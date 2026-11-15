@@ -48,10 +48,14 @@ class AuthService {
     final idToken = authentication.idToken;
     if (idToken == null) return false;
 
-    final authorization = await account.authorizationClient
-        .authorizationForScopes(const ['email', 'profile']);
-    final accessToken = authorization?.accessToken;
-    if (accessToken == null) return false;
+    final scopes = const ['email', 'profile'];
+    final authorization =
+        await account.authorizationClient.authorizationForScopes(scopes) ??
+        await account.authorizationClient.authorizeScopes(scopes);
+    final accessToken = authorization.accessToken;
+    if (accessToken.isEmpty) {
+      throw const AuthException('Google did not return an access token.');
+    }
     await Supabase.instance.client.auth.signInWithIdToken(
       provider: OAuthProvider.google,
       idToken: idToken,

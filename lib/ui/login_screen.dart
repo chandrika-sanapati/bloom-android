@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/auth_service.dart';
 import '../data/cloud_garden_sync.dart';
@@ -54,12 +55,19 @@ class _LoginScreenState extends State<LoginScreen> {
               'Google sign-in is unavailable or was cancelled. Your local garden is still available.';
         });
       }
-    } catch (_) {
+    } on AuthException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _message = error.message;
+      });
+    } catch (error) {
       if (!mounted) return;
       setState(() {
         _busy = false;
         _message =
-            'Google sign-in could not be completed. You can continue using Bloom locally.';
+            'Google sign-in failed (${error.runtimeType}). ${error.toString()}'
+            '\nYou can continue using Bloom locally.';
       });
     }
   }
