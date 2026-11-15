@@ -24,10 +24,10 @@ This is the short, current implementation record. If it conflicts with an older 
 - Future next-check date/time editing.
 - Plant removal with schedule and record cleanup.
 - Optional future-only Android notifications and permission-denied messaging.
+- Focused domain tests for profiles, timing, watering transitions, editing, and failed persistence.
 
 ## Not implemented
 
-- Automated Dart tests: there is currently no `test/` directory.
 - Record-level deletion or Undo.
 - Adjustable dry follow-up window; the current implementation uses three days.
 - A user-facing default reminder-time editor; the current default is 09:00.
@@ -40,12 +40,10 @@ This is the short, current implementation record. If it conflicts with an older 
 - Flutter SDK available locally: 3.44.8.
 - Dart SDK: 3.12.2.
 - `flutter pub get`: passed.
-- `flutter analyze`: completes, but exits non-zero with two `prefer_initializing_formals` info findings:
-  - `lib/data/garden_repository.dart:13`
-  - `lib/domain/garden_store.dart:11`
-- `flutter test`: cannot run a suite because the `test/` directory does not exist.
+- `flutter analyze`: passed with no issues.
+- `flutter test`: passed; 12 focused tests.
 - `flutter doctor -v`: Android toolchain, Android SDK, emulator, and network resources are available. Xcode/CocoaPods warnings are irrelevant to this Android target.
-- Android Gradle build was not completed in the shell check because the shell's `java` command was not configured, although Flutter is configured to use Android Studio's JDK. Configure `JAVA_HOME` or `org.gradle.java.home` before treating the APK build as verified.
+- Android debug APK build: passed using Android Studio's JDK; output is `build/app/outputs/flutter-apk/app-debug.apk`.
 
 ## Current source map
 
@@ -61,8 +59,6 @@ This is the short, current implementation record. If it conflicts with an older 
 
 ## Immediate next checks
 
-1. Fix or intentionally document the two analyzer findings.
-2. Add focused domain tests.
-3. Configure the Android Studio JDK for Gradle and build a debug APK.
-4. Run the complete add → check → edit → relaunch flow on the Android emulator.
-5. Verify date entry, notification delivery, permission denial, TalkBack, and large-font layouts.
+1. Run the complete add → check → edit → relaunch flow on the Android emulator.
+2. Verify date entry, notification delivery, permission denial, TalkBack, and large-font layouts.
+3. Decide whether record-level correction/Undo and a configurable reminder time belong in the next release.

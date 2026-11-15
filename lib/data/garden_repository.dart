@@ -9,6 +9,8 @@ import '../domain/models.dart';
 
 /// Reads and writes the garden as JSON in the app's support directory.
 class GardenRepository {
+  // The public `file` name is intentional; `_file` is the lazily resolved cache.
+  // ignore: prefer_initializing_formals
   GardenRepository({File? file}) : _file = file;
 
   File? _file;

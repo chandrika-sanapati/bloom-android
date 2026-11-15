@@ -4,11 +4,12 @@ import 'models.dart';
 
 /// Holds the garden and applies watering transitions in one persistence boundary.
 class GardenStore extends ChangeNotifier {
+  // `garden` remains public while `_garden` stays private state.
   GardenStore({
     required Garden garden,
     required this.persist,
     this.onChanged,
-  }) : _garden = garden;
+  }) : _garden = garden; // ignore: prefer_initializing_formals
 
   /// Runs after each saved change, so reminders stay in step with the garden.
   final Future<void> Function(Garden garden)? onChanged;
@@ -50,6 +51,7 @@ class GardenStore extends ChangeNotifier {
     if (plant.name.trim().isEmpty) return false;
     final species = PlantSpecies.forPlant(plant);
     final current = now ?? DateTime.now();
+    if (lastWatered != null && lastWatered.isAfter(current)) return false;
     final reminder = _garden.preferences;
 
     final next = _firstCheck(
