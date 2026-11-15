@@ -1,0 +1,311 @@
+import 'dart:math';
+
+enum Soil {
+  dry('Dry'),
+  damp('Damp'),
+  unknown('Not sure');
+
+  const Soil(this.label);
+  final String label;
+}
+
+enum WateringOutcome {
+  watered('Watered'),
+  checkedNotWatered('Checked — not watered');
+
+  const WateringOutcome(this.label);
+  final String label;
+}
+
+enum CareTaskTiming {
+  overdue('Overdue'),
+  today('Today'),
+  upcoming('Upcoming');
+
+  const CareTaskTiming(this.label);
+  final String label;
+
+  static CareTaskTiming classify(DateTime date, {DateTime? now}) {
+    final current = now ?? DateTime.now();
+    if (date.isBefore(current)) return CareTaskTiming.overdue;
+    return _isSameDay(date, current) ? CareTaskTiming.today : CareTaskTiming.upcoming;
+  }
+}
+
+bool _isSameDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
+
+class Plant {
+  const Plant({
+    required this.id,
+    required this.name,
+    required this.species,
+    required this.asset,
+  });
+
+  final String id;
+  final String name;
+  final String species;
+  final String asset;
+
+  Plant copyWith({String? name, String? species, String? asset}) => Plant(
+        id: id,
+        name: name ?? this.name,
+        species: species ?? this.species,
+        asset: asset ?? this.asset,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'species': species,
+        'asset': asset,
+      };
+
+  factory Plant.fromJson(Map<String, dynamic> json) => Plant(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        species: json['species'] as String,
+        asset: json['asset'] as String,
+      );
+}
+
+class WateringRecord {
+  const WateringRecord({
+    required this.id,
+    required this.plantId,
+    required this.scheduledFor,
+    required this.recordedAt,
+    required this.outcome,
+    required this.soil,
+  });
+
+  final String id;
+  final String plantId;
+  final DateTime scheduledFor;
+  final DateTime recordedAt;
+  final WateringOutcome outcome;
+  final Soil soil;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'plantId': plantId,
+        'scheduledFor': scheduledFor.toIso8601String(),
+        'recordedAt': recordedAt.toIso8601String(),
+        'outcome': outcome.name,
+        'soil': soil.name,
+      };
+
+  factory WateringRecord.fromJson(Map<String, dynamic> json) => WateringRecord(
+        id: json['id'] as String,
+        plantId: json['plantId'] as String,
+        scheduledFor: DateTime.parse(json['scheduledFor'] as String),
+        recordedAt: DateTime.parse(json['recordedAt'] as String),
+        outcome: WateringOutcome.values.byName(json['outcome'] as String),
+        soil: Soil.values.byName(json['soil'] as String),
+      );
+}
+
+class WateringSchedule {
+  const WateringSchedule({
+    required this.plantId,
+    required this.intervalDays,
+    required this.nextCheckAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  final String plantId;
+  final int intervalDays;
+  final DateTime nextCheckAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  WateringSchedule copyWith({DateTime? nextCheckAt, DateTime? updatedAt}) =>
+      WateringSchedule(
+        plantId: plantId,
+        intervalDays: intervalDays,
+        nextCheckAt: nextCheckAt ?? this.nextCheckAt,
+        createdAt: createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'plantId': plantId,
+        'intervalDays': intervalDays,
+        'nextCheckAt': nextCheckAt.toIso8601String(),
+        'createdAt': createdAt.toIso8601String(),
+        'updatedAt': updatedAt.toIso8601String(),
+      };
+
+  factory WateringSchedule.fromJson(Map<String, dynamic> json) => WateringSchedule(
+        plantId: json['plantId'] as String,
+        intervalDays: json['intervalDays'] as int,
+        nextCheckAt: DateTime.parse(json['nextCheckAt'] as String),
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        updatedAt: DateTime.parse(json['updatedAt'] as String),
+      );
+}
+
+class AppPreferences {
+  const AppPreferences({
+    this.reminderHour = 9,
+    this.reminderMinute = 0,
+    this.taskNotifications = false,
+  });
+
+  final int reminderHour;
+  final int reminderMinute;
+  final bool taskNotifications;
+
+  AppPreferences copyWith({bool? taskNotifications}) => AppPreferences(
+        reminderHour: reminderHour,
+        reminderMinute: reminderMinute,
+        taskNotifications: taskNotifications ?? this.taskNotifications,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'reminderHour': reminderHour,
+        'reminderMinute': reminderMinute,
+        'taskNotifications': taskNotifications,
+      };
+
+  factory AppPreferences.fromJson(Map<String, dynamic> json) => AppPreferences(
+        reminderHour: json['reminderHour'] as int? ?? 9,
+        reminderMinute: json['reminderMinute'] as int? ?? 0,
+        taskNotifications: json['taskNotifications'] as bool? ?? false,
+      );
+}
+
+class Garden {
+  const Garden({
+    this.plants = const [],
+    this.schedules = const [],
+    this.records = const [],
+    this.preferences = const AppPreferences(),
+  });
+
+  final List<Plant> plants;
+  final List<WateringSchedule> schedules;
+  final List<WateringRecord> records;
+  final AppPreferences preferences;
+
+  Garden copyWith({
+    List<Plant>? plants,
+    List<WateringSchedule>? schedules,
+    List<WateringRecord>? records,
+    AppPreferences? preferences,
+  }) =>
+      Garden(
+        plants: plants ?? this.plants,
+        schedules: schedules ?? this.schedules,
+        records: records ?? this.records,
+        preferences: preferences ?? this.preferences,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'plants': plants.map((p) => p.toJson()).toList(),
+        'schedules': schedules.map((s) => s.toJson()).toList(),
+        'records': records.map((r) => r.toJson()).toList(),
+        'preferences': preferences.toJson(),
+      };
+
+  factory Garden.fromJson(Map<String, dynamic> json) => Garden(
+        plants: (json['plants'] as List? ?? [])
+            .map((p) => Plant.fromJson(p as Map<String, dynamic>))
+            .toList(),
+        schedules: (json['schedules'] as List? ?? [])
+            .map((s) => WateringSchedule.fromJson(s as Map<String, dynamic>))
+            .toList(),
+        records: (json['records'] as List? ?? [])
+            .map((r) => WateringRecord.fromJson(r as Map<String, dynamic>))
+            .toList(),
+        preferences: json['preferences'] == null
+            ? const AppPreferences()
+            : AppPreferences.fromJson(json['preferences'] as Map<String, dynamic>),
+      );
+}
+
+/// Supported species, mirroring the iOS catalog and watering profiles.
+class PlantSpecies {
+  const PlantSpecies({
+    required this.name,
+    required this.scientific,
+    required this.asset,
+    required this.minDays,
+    required this.maxDays,
+    required this.startingIntervalDays,
+    required this.careCue,
+  });
+
+  final String name;
+  final String scientific;
+  final String asset;
+  final int minDays;
+  final int maxDays;
+  final int startingIntervalDays;
+  final String careCue;
+
+  static const catalog = [
+    PlantSpecies(
+      name: 'Snake Plant',
+      scientific: 'Dracaena trifasciata',
+      asset: 'assets/images/snake.png',
+      minDays: 14,
+      maxDays: 30,
+      startingIntervalDays: 21,
+      careCue: 'Let the growing medium dry substantially before watering.',
+    ),
+    PlantSpecies(
+      name: 'Monstera',
+      scientific: 'Monstera deliciosa',
+      asset: 'assets/images/monstera.png',
+      minDays: 7,
+      maxDays: 14,
+      startingIntervalDays: 10,
+      careCue: 'Check the top 1–2 inches of soil and avoid waterlogging.',
+    ),
+    PlantSpecies(
+      name: 'Rubber Plant',
+      scientific: 'Ficus elastica',
+      asset: 'assets/images/rubber.png',
+      minDays: 7,
+      maxDays: 21,
+      startingIntervalDays: 14,
+      careCue: 'Use a free-draining medium and check before watering.',
+    ),
+    PlantSpecies(
+      name: 'Pothos',
+      scientific: 'Epipremnum aureum',
+      asset: 'assets/images/pothos.jpg',
+      minDays: 7,
+      maxDays: 21,
+      startingIntervalDays: 14,
+      careCue: 'Allow the soil to dry between checks; avoid keeping it constantly wet.',
+    ),
+  ];
+
+  static PlantSpecies? forPlant(Plant plant) {
+    final scientific = plant.species.trim().toLowerCase();
+    for (final species in catalog) {
+      if (species.scientific.toLowerCase() == scientific) return species;
+    }
+    for (final species in catalog) {
+      if (species.name.toLowerCase() == plant.name.trim().toLowerCase()) {
+        return species;
+      }
+    }
+    return null;
+  }
+}
+
+/// Dry-soil follow-up window in days (2–5, default 3), as on iOS.
+class WateringFollowUp {
+  static const defaultDays = 3;
+  static const allowedDays = [2, 3, 4, 5];
+}
+
+final _random = Random();
+
+String newId() =>
+    '${DateTime.now().microsecondsSinceEpoch}-${_random.nextInt(1 << 32)}';
