@@ -9,9 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  dynamic_color: ^1.9.0
   flutter_local_notifications: ^23.0.2
   flutter_timezone: ^5.1.1
-  intl: ^0.20.3
+  intl: ^0.20.2
   path: ^1.9.1
   path_provider: ^2.1.6
   shared_preferences: ^2.5.6

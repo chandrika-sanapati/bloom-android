@@ -27,6 +27,7 @@ The current app supports:
 - Local JSON persistence and optional future-check notifications.
 - Android notification permission handling that leaves in-app tasks available when permission is denied.
 - Notifications use best-effort inexact Android scheduling and never block app startup.
+- Material 3 light/dark themes using Android dynamic colors when available, with Bloom teal as the fallback.
 
 Current limitations are tracked in [`docs/STATUS.md`](docs/STATUS.md). In particular, record-level deletion, a configurable reminder time screen, notification tap routing, and support for arbitrary custom plants are not yet implemented.
 

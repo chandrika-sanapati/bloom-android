@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 
 import 'data/garden_repository.dart';
 import 'data/watering_notifications.dart';
@@ -49,20 +50,38 @@ class BloomApp extends StatelessWidget {
   final FirstRunFlags flags;
   final WateringNotifications notifications;
 
+  static const _brandSeed = Color(0xFF007A73);
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Bloom',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF007A73),
-        useMaterial3: true,
-      ),
-      home: HomeScreen(
-        store: store,
-        flags: flags,
-        notifications: notifications,
-      ),
+    return DynamicColorBuilder(
+      builder: (lightDynamic, darkDynamic) {
+        final lightScheme =
+            lightDynamic ??
+            ColorScheme.fromSeed(
+              seedColor: _brandSeed,
+              brightness: Brightness.light,
+            );
+        final darkScheme =
+            darkDynamic ??
+            ColorScheme.fromSeed(
+              seedColor: _brandSeed,
+              brightness: Brightness.dark,
+            );
+
+        return MaterialApp(
+          title: 'Bloom',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(colorScheme: lightScheme, useMaterial3: true),
+          darkTheme: ThemeData(colorScheme: darkScheme, useMaterial3: true),
+          themeMode: ThemeMode.system,
+          home: HomeScreen(
+            store: store,
+            flags: flags,
+            notifications: notifications,
+          ),
+        );
+      },
     );
   }
 }

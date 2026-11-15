@@ -9,6 +9,7 @@ This is the short, current implementation record. If it conflicts with an older 
 ## Implemented
 
 - Flutter app entry point and Material 3 shell.
+- Material 3 dynamic light/dark color schemes on supported Android versions, with a Bloom teal fallback.
 - Local garden JSON persistence under the app support directory.
 - First-run Add plant hint stored in `SharedPreferences`.
 - Four catalog plants: Snake Plant, Monstera, Rubber Plant, and Pothos.
@@ -47,6 +48,7 @@ This is the short, current implementation record. If it conflicts with an older 
 - `flutter test`: passed; 12 focused tests.
 - `flutter doctor -v`: Android toolchain, Android SDK, emulator, and network resources are available. Xcode/CocoaPods warnings are irrelevant to this Android target.
 - Android debug APK build: passed using Android Studio's JDK; output is `build/app/outputs/flutter-apk/app-debug.apk`.
+- Dynamic color verification: `dynamic_color` 1.9.0 detected the emulator's Android system core palette and Bloom launched successfully with the dynamic theme.
 - Emulator smoke check: initial launch exposed exact-alarm permission failure; notification scheduling was changed to inexact, best-effort delivery so the app can start without special-alarm access.
 - Clean emulator smoke flow passed: empty Home → add Snake Plant → Watered → verify Last watered/next check → edit next check to December 15 → force-stop/relaunch → verify the edited date persisted.
 - Date picker and time picker both opened and saved successfully during the emulator smoke flow.

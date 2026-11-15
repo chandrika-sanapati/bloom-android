@@ -5,6 +5,7 @@ These guidelines apply to the Flutter Android app. They replace the former iOS/S
 ## Platform and typography
 
 - Use Flutter Material 3 components and Android interaction conventions.
+- Use the Android dynamic color scheme when available; fall back to Bloom teal on unsupported devices. Keep semantic statuses such as overdue/caution distinguishable from the theme's primary action color.
 - Use the theme's system sans-serif typography and semantic `TextTheme` roles. Do not introduce arbitrary text sizes for emphasis.
 - Allow Android font scaling to reflow content. Never truncate the primary action, outcome labels, dates, or error guidance to preserve a single-line layout.
 - Use `headlineSmall` or `headlineMedium` for the screen title, `titleMedium`/`titleSmall` for sections, `bodyLarge`/`bodyMedium` for content, and `bodySmall`/`labelLarge` for supporting metadata.

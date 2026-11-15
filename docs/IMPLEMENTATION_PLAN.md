@@ -26,6 +26,7 @@ Bloom should make the next watering check clearer, faster, and more trustworthy.
 ## 3. Completed baseline
 
 - Four supported catalog profiles with bounded ranges and deterministic starting intervals.
+- Material 3 dynamic light/dark color schemes through `dynamic_color` 1.9.0, with Bloom teal fallback.
 - Optional last-watered date during setup, with a same-day baseline when it is unknown.
 - One active schedule per supported plant.
 - Today, Upcoming, and Overdue classification.
