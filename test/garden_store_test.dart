@@ -75,6 +75,25 @@ void main() {
       expect(store.garden.plants, hasLength(1));
       expect(store.garden.schedules, isEmpty);
     });
+
+    test('creates the reviewed Spider Plant profile', () async {
+      final store = storeWith();
+      final spider = Plant(
+        id: 'spider-1',
+        name: 'Spider Plant',
+        species: 'Chlorophytum comosum',
+        asset: 'assets/images/spider.jpg',
+      );
+
+      expect(await store.addPlant(spider, now: now), isTrue);
+      expect(store.scheduleFor('spider-1')?.intervalDays, 10);
+      expect(
+        store.scheduleFor('spider-1')?.nextCheckAt,
+        DateTime(2026, 11, 15, 9),
+      );
+      expect(PlantSpecies.forPlant(spider)?.minDays, 7);
+      expect(PlantSpecies.forPlant(spider)?.maxDays, 14);
+    });
   });
 
   group('schedule timing', () {

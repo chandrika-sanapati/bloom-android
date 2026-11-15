@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   final now = DateTime(2026, 11, 15, 10);
-  final species = PlantSpecies.catalog.last;
+  final species = PlantSpecies.catalog[3];
   final plant = Plant(
     id: 'plant-1',
     name: species.name,

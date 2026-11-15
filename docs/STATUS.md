@@ -11,7 +11,7 @@ This is the short, current implementation record. If it conflicts with an older 
 Latest pulled `main` was verified on the local Android 36 emulator (`emulator-5554`):
 
 - `flutter analyze`: passed with zero issues.
-- `flutter test`: **81 tests passed**, including latest-watering correction/recalculation, older-record protection, failed-save rollback, later custom-date preservation, notification no-burst safety, Undo invalidation, and denied-permission recovery UI.
+- `flutter test`: **82 tests passed**, including latest-watering correction/recalculation, older-record protection, failed-save rollback, later custom-date preservation, notification no-burst safety, Undo invalidation, denied-permission recovery UI, and the reviewed Spider Plant profile.
 - Normal debug APK: built, installed, and launched as `com.chandrika.bloom`.
 - `integration_test/light_placement_test.dart`: **2 tests passed** using the isolated integration package.
 - `integration_test/care_timeline_test.dart`: **2 tests passed** using the isolated integration package, including latest watering-record deletion and Snackbar Undo from the timeline.
@@ -22,6 +22,7 @@ Latest pulled `main` was verified on the local Android 36 emulator (`emulator-55
 - Latest-watering correction integration: the isolated Care timeline suite passed after the correction implementation; the normal APK rebuilt, installed, and relaunched successfully.
 - Protected correction coverage: older records remain read-only, later custom dates are preserved, failed deletion rolls back, and notification correction keeps one current request without an overdue burst.
 - Permission recovery coverage: enabled-but-denied reminders show an Android settings action, reminder time remains available, and permission state refreshes when Preferences resumes.
+- FAB/photo intake coverage: the labeled FAB menu exposes Search by name and Identify from a photo; image intake remains local and stops before identification results.
 
 The repeatable commands require Flutter, Android platform-tools, and the Android Studio JDK on `PATH`. The repository helper assumes those tools are available as `flutter` and `adb`; on this laptop use the pinned Flutter and Android Studio JDK paths when necessary.
 
@@ -31,8 +32,11 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Material 3 dynamic light/dark color schemes on supported Android versions, with a Bloom teal fallback.
 - Local garden JSON persistence under the app support directory.
 - First-run Add plant hint stored in `SharedPreferences`.
-- Four catalog plants: Snake Plant, Monstera, Rubber Plant, and Pothos.
+- Five catalog plants: Snake Plant, Monstera, Rubber Plant, Pothos, and Spider Plant.
+- Material 3-style labeled FAB menu with Search by name and Identify from a photo entry points.
+- Local photo intake screen with camera/gallery choice, preview, removal, and no-result-yet disclosure.
 - Type-based starting watering intervals.
+- Reviewed Spider Plant profile with bundled image and species-specific light guidance.
 - Optional last-watered date during setup.
 - Today, Upcoming, and Overdue schedule classification.
 - Home My plants collection and Activity Upcoming/Past sections.
@@ -56,6 +60,9 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Adjustable dry follow-up window; the current implementation uses three days.
 - Arbitrary custom/unlisted plant creation or schedule setup.
 - Exact delivery timing; Android may deliver inexact alarms within its allowed window.
+- Photo identification results/provider integration; the current photo flow intentionally stops after local intake and preview.
+- Supabase Auth, Google sign-in, remote garden sync, and PlantNet Edge Function integration are not configured yet.
+- Supabase Auth, Google sign-in, remote garden sync, and PlantNet Edge Function integration are not configured yet.
 - Cloud sync, accounts, analytics, environmental checks, diagnosis, nutrition, repotting, or other care domains.
 
 ## Reminder preferences and notification navigation — implemented on 15 November 2026

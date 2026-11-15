@@ -34,7 +34,7 @@ void main() {
           schedules: g.schedules,
         ),
       );
-      final species = PlantSpecies.catalog.last;
+      final species = PlantSpecies.catalog[3];
       final plant = Plant(
         id: 'device-plant',
         name: 'Reminder test Pothos',

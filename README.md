@@ -12,10 +12,11 @@ Supported catalog plants:
 - Monstera — *Monstera deliciosa*
 - Rubber Plant — *Ficus elastica*
 - Pothos — *Epipremnum aureum*
+- Spider Plant — *Chlorophytum comosum*
 
 The current app supports:
 
-- Adding one of the four catalog plants.
+- Adding one of the five reviewed catalog plants.
 - Optionally supplying a last-watered date during setup.
 - A plant-type starting check interval.
 - Home with **My plants** and **Activity → Upcoming / Past**.
@@ -29,6 +30,8 @@ The current app supports:
 - Notifications use best-effort inexact Android scheduling and never block app startup.
 - Denied notification permission is recoverable from Preferences through Android settings; in-app checks remain available.
 - Material 3 light/dark themes using Android dynamic colors when available, with Bloom teal as the fallback.
+- A labeled FAB menu for Search by name and Identify from a photo.
+- Local photo intake with camera/gallery selection and preview; identification results are not connected yet.
 - Species-specific light/placement advice during setup and on plant detail.
 - Optional saved acknowledgment that the user placed the plant as suggested; watering dates stay unchanged.
 - On-demand Soil health checks, including drainage, plus separate or combined nutrient/mix-refresh/repotting records.
@@ -96,6 +99,7 @@ The domain/widget suite covers watering, placement, reminder timing, soil health
 - [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) — completed work and the next engineering steps.
 - [`docs/AGENTS.md`](docs/AGENTS.md) — contribution and UX/engineering guidance.
 - [`docs/previews/README.md`](docs/previews/README.md) — explicitly historical iOS design references; not a specification for the Android UI.
+- [`docs/BACKEND_PLAN.md`](docs/BACKEND_PLAN.md) — Supabase, Google sign-in, PlantNet proxy, sync, privacy, and rollout plan.
 
 ## Product boundary
 

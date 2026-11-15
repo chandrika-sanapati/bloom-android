@@ -27,6 +27,7 @@ These guidelines apply to the Flutter Android app. They replace the former iOS/S
 - Use standard Android back navigation and Flutter `Navigator` behavior. Screen titles should identify the current context without repeating the plant name unnecessarily.
 - Do not preselect **Watered**. A save action must remain disabled or explain the missing outcome until the user chooses one.
 - Use confirmation dialogs for destructive actions and state exactly what will be removed.
+- Use a labeled FAB menu for related plant-entry choices. Keep **Search by name** and **Identify from a photo** explicit; do not rely on icon-only discovery.
 
 ## Layout and components
 

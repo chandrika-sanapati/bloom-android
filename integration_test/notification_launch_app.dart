@@ -24,7 +24,7 @@ Future<void> main() async {
   );
   var garden = await repository.load();
   if (garden.plants.isEmpty) {
-    final species = PlantSpecies.catalog.last;
+    final species = PlantSpecies.catalog[3];
     final now = DateTime.now();
     garden = Garden(
       plants: [

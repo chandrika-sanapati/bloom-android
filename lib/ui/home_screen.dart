@@ -9,6 +9,7 @@ import 'check_screen.dart';
 import 'check_route.dart';
 import 'plant_detail_screen.dart';
 import 'preferences_screen.dart';
+import 'photo_identification_screen.dart';
 import 'widgets.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -32,6 +33,7 @@ enum _Tab { upcoming, past }
 class _HomeScreenState extends State<HomeScreen> {
   _Tab _tab = _Tab.upcoming;
   bool _showHint = false;
+  bool _fabOpen = false;
 
   @override
   void initState() {
@@ -62,6 +64,13 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _showHint = false);
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => CatalogScreen(store: widget.store)),
+    );
+  }
+
+  void _openPhotoIdentification() {
+    setState(() => _fabOpen = false);
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const PhotoIdentificationScreen()),
     );
   }
 
@@ -111,25 +120,111 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (isEmpty && _showHint)
-            const Padding(
-              padding: EdgeInsets.only(bottom: 12),
-              child: Chip(label: Text('Tap to add a plant')),
-            ),
-          FloatingActionButton(
-            tooltip: 'Add plant',
-            onPressed: _openCatalog,
-            child: const Icon(Icons.add),
-          ),
-        ],
+      floatingActionButton: _AddPlantFabMenu(
+        open: _fabOpen,
+        showHint: isEmpty && _showHint,
+        onToggle: () => setState(() => _fabOpen = !_fabOpen),
+        onSearch: _openCatalog,
+        onIdentify: _openPhotoIdentification,
       ),
-      body: isEmpty ? const _EmptyHome() : _PopulatedHome(this),
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _fabOpen ? () => setState(() => _fabOpen = false) : null,
+        child: isEmpty ? const _EmptyHome() : _PopulatedHome(this),
+      ),
     );
   }
+}
+
+class _AddPlantFabMenu extends StatelessWidget {
+  const _AddPlantFabMenu({
+    required this.open,
+    required this.showHint,
+    required this.onToggle,
+    required this.onSearch,
+    required this.onIdentify,
+  });
+
+  final bool open;
+  final bool showHint;
+  final VoidCallback onToggle;
+  final VoidCallback onSearch;
+  final VoidCallback onIdentify;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        if (open) ...[
+          _FabMenuAction(
+            icon: Icons.camera_alt_outlined,
+            label: 'Identify from a photo',
+            onTap: onIdentify,
+          ),
+          const SizedBox(height: 12),
+          _FabMenuAction(
+            icon: Icons.search,
+            label: 'Search by name',
+            onTap: onSearch,
+          ),
+          const SizedBox(height: 16),
+        ] else if (showHint)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: Chip(label: Text('Tap to add a plant')),
+          ),
+        Semantics(
+          button: true,
+          label: open ? 'Close add plant menu' : 'Add plant',
+          hint: open ? null : 'Choose how to add a plant',
+          child: FloatingActionButton(
+            tooltip: open ? 'Close add plant menu' : 'Add plant',
+            onPressed: onToggle,
+            child: AnimatedRotation(
+              turns: open ? 0.125 : 0,
+              duration: const Duration(milliseconds: 180),
+              child: const Icon(Icons.add),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FabMenuAction extends StatelessWidget {
+  const _FabMenuAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: label,
+    child: Material(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(28),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(28),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [Icon(icon), const SizedBox(width: 12), Text(label)],
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 class _EmptyHome extends StatelessWidget {

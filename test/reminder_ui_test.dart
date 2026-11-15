@@ -13,7 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'support/fake_notifications.dart';
 
 void main() {
-  final species = PlantSpecies.catalog.last;
+  final species = PlantSpecies.catalog[3];
   final plant = Plant(
     id: 'p',
     name: 'Fern corner',

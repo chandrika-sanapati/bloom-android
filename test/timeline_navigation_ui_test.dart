@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final species = PlantSpecies.catalog.last;
+  final species = PlantSpecies.catalog[3];
   final plant = Plant(
     id: 'p',
     name: 'Window Pothos',

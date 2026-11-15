@@ -8,7 +8,7 @@ import 'support/fake_notifications.dart';
 
 void main() {
   final now = DateTime(2026, 11, 15, 10);
-  final species = PlantSpecies.catalog.last;
+  final species = PlantSpecies.catalog[3];
   final plant = Plant(
     id: 'p',
     name: 'Pothos',

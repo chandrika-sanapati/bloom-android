@@ -1,6 +1,6 @@
 # Bloom — Android product requirements
 
-**Status:** Watering, Light & placement, reminder preferences/navigation, Soil health, Care timeline, guarded Back, and dynamic theming implemented; verification evidence and remaining manual checks are in STATUS.md
+**Status:** Watering, Light & placement, reminder preferences/navigation, Soil health, Care timeline, guarded Back, dynamic theming, and local photo intake implemented; Supabase/PlantNet integration remains planned. Verification evidence and remaining manual checks are in STATUS.md
 **Product:** Bloom for Android, a local-first Flutter app
 **Owner:** Bloom product team
 **Last updated:** 15 November 2026
@@ -21,7 +21,7 @@ A date is a prompt to inspect the plant, not proof that the plant needs water. B
 - Garden data is stored locally on the device as JSON.
 - Notifications are optional and Android-specific in the current implementation.
 - There are no accounts, cloud sync, analytics service, live weather, device-location inference, sensors, or automatic watering hardware.
-- The four supported catalog plants are the only plants that receive an automatic watering schedule in the current product.
+- The five supported catalog plants are the only plants that receive an automatic watering schedule in the current product.
 - The historical iOS screenshots in `docs/previews/` are not current product behavior.
 
 ## 3. Current implementation baseline
@@ -29,7 +29,7 @@ A date is a prompt to inspect the plant, not proof that the plant needs water. B
 The following behavior exists in the current Android code:
 
 - Home shows **My plants** and **Activity → Upcoming / Past** after a plant is added.
-- The catalog contains Snake Plant, Monstera, Rubber Plant, and Pothos.
+- The catalog contains Snake Plant, Monstera, Rubber Plant, Pothos, and Spider Plant.
 - Setup may accept a past last-watered date; otherwise the first check is created today at the saved reminder time (09:00 initially).
 - Each supported plant receives one active schedule with a profile starting interval.
 - Upcoming tasks are classified as Today, Upcoming, or Overdue.
@@ -47,6 +47,7 @@ The following behavior exists in the current Android code:
 - Setting or clearing placement leaves watering state and existing reminders unchanged.
 - Plant details opens a dedicated Care timeline and provides compact Soil health checks and explicit combined care records.
 - Native page Back navigation protects dirty forms with Keep editing / Discard changes.
+- The Add plant FAB menu offers Search by name and Identify from a photo. Photo intake is local-only until the PlantNet/Supabase provider is configured.
 
 ## 4. Product goals
 
@@ -79,6 +80,7 @@ These are check-in profiles, not universal watering instructions. Actual needs v
 | Monstera | *Monstera deliciosa* | 7–14 days | 10 days |
 | Rubber Plant | *Ficus elastica* | 7–21 days | 14 days |
 | Pothos | *Epipremnum aureum* | 7–21 days | 14 days |
+| Spider Plant | *Chlorophytum comosum* | 7–14 days | 10 days |
 
 The range and starting value are versioned product content. Updating profile content must not silently rewrite saved schedules, records, or recorded dates.
 
@@ -205,7 +207,7 @@ Only add a later capability after the watering loop is reliable and validated.
 
 1. **Verification hardening:** automated domain tests, Android build/emulator checks, notification timing, date entry, persistence recovery, and accessibility review.
 2. **Reminder control and navigation — implemented:** a global reminder-time preference and direct notification entry to the relevant watering check; see section 15. Latest-record correction remains separate future work.
-3. **More reviewed plant profiles:** add content one profile at a time with a range, starting value, cue, and source review.
+3. **More reviewed plant profiles — in progress:** Spider Plant is the first additional reviewed profile; continue one profile at a time with a range, starting value, cue, and source review.
 4. **Light & placement — implemented:** species-specific light suggestions during setup and on detail, with one optional saved acknowledgment and unchanged watering dates; see section 14. Adaptation and broader environmental checks remain deferred.
 5. **Soil health — implemented:** on-demand help for Adding nutrients, Refresh potting mix, and Repotting, with distinct actions and explicitly recorded overlap; see section 18. Drainage is an approved cross-cutting check, not a fourth care action. Symptom diagnosis remains separate future scope.
 6. **Sync and sharing:** only after local ownership, correction, and notification semantics are well understood.

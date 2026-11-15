@@ -1,6 +1,6 @@
 # Bloom Android implementation plan
 
-**Status:** Watering, Light & placement, reminder preferences/navigation, permission recovery, Soil health, Care timeline, guarded Back, dynamic theming, and latest-watering correction/Undo are implemented. Latest verification is recorded in STATUS.md; only manual OS/accessibility checks and broader historical editing remain.
+**Status:** Watering, Light & placement, reminder preferences/navigation, permission recovery, Soil health, Care timeline, guarded Back, dynamic theming, latest-watering correction/Undo, and local photo intake are implemented. Latest verification is recorded in STATUS.md; Supabase/PlantNet integration and manual OS/accessibility checks remain.
 **Platform:** Flutter Android.
 **Source of truth:** [`STATUS.md`](STATUS.md) for shipped behavior; [`PRD.md`](PRD.md) for product intent and scope.
 **Last updated:** 15 November 2026
@@ -37,6 +37,7 @@ Bloom should make the next watering check clearer, faster, and more trustworthy.
 - Check Watering uses a full-width outlined secondary Edit next check action below the scheduled date.
 - Local persistence with failed-save protection at the store boundary.
 - Optional future-only Android notifications, permission-denied behavior, inexact scheduling, and non-blocking startup.
+- Labeled FAB menu and local photo intake; external identification is intentionally behind the backend plan.
 
 ## 4. Next engineering steps
 

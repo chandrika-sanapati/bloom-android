@@ -26,7 +26,7 @@ void main() {
         garden: const Garden(),
         persist: repository.save,
       );
-      final species = PlantSpecies.catalog.last;
+      final species = PlantSpecies.catalog[3];
       final plant = Plant(
         id: 'timeline-plant',
         name: 'Timeline test Pothos',
@@ -149,7 +149,7 @@ void main() {
         persist: repository.save,
       );
       final now = DateTime(2026, 11, 15, 10);
-      final species = PlantSpecies.catalog.last;
+      final species = PlantSpecies.catalog[3];
       final plant = Plant(
         id: 'correction-plant',
         name: 'Correction test Pothos',

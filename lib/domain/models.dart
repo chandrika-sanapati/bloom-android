@@ -408,6 +408,22 @@ class PlantSpecies {
         sourceUrl: 'https://plants.ces.ncsu.edu/plants/epipremnum-aureum/',
       ),
     ),
+    PlantSpecies(
+      name: 'Spider Plant',
+      scientific: 'Chlorophytum comosum',
+      asset: 'assets/images/spider.jpg',
+      minDays: 7,
+      maxDays: 14,
+      startingIntervalDays: 10,
+      careCue: 'Keep the soil lightly moist, but let excess water drain away.',
+      light: PlantLightGuidance(
+        requirement: 'Medium, indirect daylight',
+        placement:
+            'Place in medium indirect light. Avoid strong direct sun; it '
+            'tolerates lower light and short dry periods.',
+        sourceUrl: 'https://plants.ces.ncsu.edu/plants/chlorophytum-comosum/',
+      ),
+    ),
   ];
 
   static PlantSpecies? forPlant(Plant plant) {

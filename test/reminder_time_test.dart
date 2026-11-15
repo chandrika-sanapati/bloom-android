@@ -9,7 +9,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 void main() {
   final now = DateTime(2026, 11, 15, 10);
-  final species = PlantSpecies.catalog.last;
+  final species = PlantSpecies.catalog[3];
   Plant plant(String id) => Plant(
     id: id,
     name: id,

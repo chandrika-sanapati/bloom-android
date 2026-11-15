@@ -160,7 +160,7 @@ void main() {
     if (await file.exists()) await file.delete();
     final repository = GardenRepository(file: file);
     final store = GardenStore(garden: const Garden(), persist: repository.save);
-    final species = PlantSpecies.catalog.last;
+    final species = PlantSpecies.catalog[3];
     await openSetup(tester, store, species);
     await revealCheckbox(tester);
     await tester.tap(find.text(label));
