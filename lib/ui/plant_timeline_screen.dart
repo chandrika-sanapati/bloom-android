@@ -171,7 +171,7 @@ Future<void> _confirmDeleteLatestWatering(
       content: const Text(
         'Delete this latest watering record? Last watered and the next check '
         'may change. A later custom next-check edit is preserved. Soil-care '
-        'records are not affected. This cannot be undone.',
+        'records are not affected.',
       ),
       actions: [
         TextButton(
@@ -187,7 +187,27 @@ Future<void> _confirmDeleteLatestWatering(
   );
   if (confirmed != true || !context.mounted) return;
   final deleted = await store.deleteLatestWateringRecord(plantId, record.id);
-  if (!context.mounted || deleted) return;
+  if (!context.mounted) return;
+  if (deleted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Watering record deleted.'),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () async {
+            final restored = await store.undoLatestWateringCorrection();
+            if (!context.mounted || restored) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('This correction is no longer available.'),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+    return;
+  }
   ScaffoldMessenger.of(context).showSnackBar(
     const SnackBar(content: Text("The record couldn't be deleted.")),
   );

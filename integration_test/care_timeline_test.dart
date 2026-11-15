@@ -223,6 +223,17 @@ void main() {
       expect(reloaded.records, hasLength(1));
       expect(reloaded.soilCare, hasLength(1));
       expect(reloaded.soilCare.single.id, 'correction-soil');
+
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(store.recordsFor(plant.id), hasLength(2));
+      expect(store.recordsFor(plant.id).first.id, latest!.id);
+      expect(store.lastWatered(plant.id), latest.recordedAt);
+      expect(
+        store.scheduleFor(plant.id)!.nextCheckAt,
+        DateTime(2026, 12, 15, 9),
+      );
+      expect((await repository.load()).records, hasLength(2));
       await file.delete();
     },
   );

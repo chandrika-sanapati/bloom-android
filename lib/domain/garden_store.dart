@@ -1,9 +1,24 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import 'models.dart';
 import 'soil_care.dart';
 import 'reminder_time.dart';
+
+class _WateringCorrectionReceipt {
+  const _WateringCorrectionReceipt({
+    required this.plantId,
+    required this.record,
+    required this.previousSchedule,
+    required this.gardenAfter,
+  });
+
+  final String plantId;
+  final WateringRecord record;
+  final WateringSchedule previousSchedule;
+  final String gardenAfter;
+}
 
 /// Holds the garden and applies watering transitions in one persistence boundary.
 class GardenStore extends ChangeNotifier {
@@ -49,6 +64,7 @@ class GardenStore extends ChangeNotifier {
   // Serialize whole transitions, including snapshot construction, so a second
   // screen cannot overwrite a preference or plant while a save is in flight.
   Future<void> _tail = Future.value();
+  _WateringCorrectionReceipt? _lastWateringCorrection;
   Future<T> _serial<T>(Future<T> Function() action) {
     final work = _tail.then((_) => action());
     _tail = work.then<void>((_) {}, onError: (Object _, StackTrace _) {});
@@ -69,6 +85,8 @@ class GardenStore extends ChangeNotifier {
     String recordId, {
     DateTime? now,
   }) => _serial(() => _deleteLatestWateringRecord(plantId, recordId, now: now));
+  Future<bool> undoLatestWateringCorrection() =>
+      _serial(_undoLatestWateringCorrection);
   Future<bool> editNextCheck(String id, DateTime value, {DateTime? now}) =>
       _serial(() => _editNextCheck(id, value, now: now));
   Future<WateringRecord?> completeWateringCheck({
@@ -288,7 +306,7 @@ class GardenStore extends ChangeNotifier {
             timeSource: CheckTimeSource.preference,
           );
 
-    return _commit(
+    final saved = await _commit(
       _garden.copyWith(
         records: remaining,
         schedules: [
@@ -297,7 +315,39 @@ class GardenStore extends ChangeNotifier {
         ],
       ),
     );
+    if (saved) {
+      _lastWateringCorrection = _WateringCorrectionReceipt(
+        plantId: plantId,
+        record: records.first,
+        previousSchedule: schedule,
+        gardenAfter: _fingerprint(_garden),
+      );
+    }
+    return saved;
   }
+
+  Future<bool> _undoLatestWateringCorrection() async {
+    final receipt = _lastWateringCorrection;
+    if (receipt == null || _fingerprint(_garden) != receipt.gardenAfter) {
+      _lastWateringCorrection = null;
+      return false;
+    }
+    final restored = _garden.copyWith(
+      records: [receipt.record, ..._garden.records],
+      schedules: [
+        for (final schedule in _garden.schedules)
+          if (schedule.plantId == receipt.plantId)
+            receipt.previousSchedule
+          else
+            schedule,
+      ],
+    );
+    final saved = await _commit(restored);
+    if (saved) _lastWateringCorrection = null;
+    return saved;
+  }
+
+  String _fingerprint(Garden garden) => jsonEncode(garden.toJson());
 
   Future<bool> _editNextCheck(String plantId, DateTime date, {DateTime? now}) {
     final current = now ?? DateTime.now();

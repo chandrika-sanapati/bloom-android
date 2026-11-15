@@ -11,10 +11,10 @@ This is the short, current implementation record. If it conflicts with an older 
 Latest pulled `main` was verified on the local Android 36 emulator (`emulator-5554`):
 
 - `flutter analyze`: passed with zero issues.
-- `flutter test`: **79 tests passed**, including latest-watering correction/recalculation, older-record protection, failed-save rollback, later custom-date preservation, and notification no-burst safety.
+- `flutter test`: **80 tests passed**, including latest-watering correction/recalculation, older-record protection, failed-save rollback, later custom-date preservation, notification no-burst safety, and Undo invalidation.
 - Normal debug APK: built, installed, and launched as `com.chandrika.bloom`.
 - `integration_test/light_placement_test.dart`: **2 tests passed** using the isolated integration package.
-- `integration_test/care_timeline_test.dart`: **2 tests passed** using the isolated integration package, including latest watering-record deletion from the timeline.
+- `integration_test/care_timeline_test.dart`: **2 tests passed** using the isolated integration package, including latest watering-record deletion and Snackbar Undo from the timeline.
 - `integration_test/reminders_test.dart`: **1 test passed**, including foreground/background notification intents and stale/deleted fallbacks.
 - `tool/check_notification_launch.py`: **4 native cold-launch drawer-tap cases passed** for current, legacy, malformed, and deleted payloads; no garden records were created.
 - Dynamic color was detected from the emulator's Android system core palette.
@@ -50,7 +50,7 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 
 ## Not implemented
 
-- Immediate Undo for watering-record correction remains unimplemented. Latest watering-record deletion/correction is implemented from the Care timeline.
+- Latest watering-record deletion/correction and immediate Undo are implemented from the Care timeline. Undo is valid until another saved garden change occurs.
 - Adjustable dry follow-up window; the current implementation uses three days.
 - Arbitrary custom/unlisted plant creation or schedule setup.
 - Exact delivery timing; Android may deliver inexact alarms within its allowed window.
@@ -160,7 +160,7 @@ The full tradeoff history recovered from the original Bloom product work is main
 
 1. Review long-idle/OEM notification delivery and the real permission-denial/re-enable interaction. Notification routing has automated Android evidence above.
 2. Review TalkBack labels, selected states, large Android font sizes, narrow layouts, dark theme behavior, and system animation settings.
-3. Consider record-level watering correction/Undo as separate future scope; reminder time, notification navigation, light placement, soil health, timeline, and guarded Back are implemented.
+3. Consider broader historical editing/search as future scope; latest watering correction/Undo, reminder time, notification navigation, light placement, soil health, timeline, and guarded Back are implemented.
 
 ## Soil health, Care timeline, and guarded Back — implemented and verified on 15 November 2026
 

@@ -307,6 +307,54 @@ void main() {
     );
   });
 
+  test(
+    'undoes the latest watering correction while the garden is unchanged',
+    () async {
+      final store = await storeWithPlant();
+      final record = await store.completeWateringCheck(
+        plantId: 'plant-1',
+        outcome: WateringOutcome.watered,
+        soil: Soil.damp,
+        now: DateTime(2026, 11, 16, 14),
+      );
+      final before = store.scheduleFor('plant-1')!.toJson();
+      expect(
+        await store.deleteLatestWateringRecord('plant-1', record!.id),
+        isTrue,
+      );
+
+      expect(await store.undoLatestWateringCorrection(), isTrue);
+      expect(store.garden.records, hasLength(1));
+      expect(store.garden.records.single.id, record.id);
+      expect(store.scheduleFor('plant-1')?.toJson(), before);
+    },
+  );
+
+  test('undo is invalidated by a later saved change', () async {
+    final store = await storeWithPlant();
+    final record = await store.completeWateringCheck(
+      plantId: 'plant-1',
+      outcome: WateringOutcome.watered,
+      soil: Soil.damp,
+      now: DateTime(2026, 11, 16, 14),
+    );
+    expect(
+      await store.deleteLatestWateringRecord('plant-1', record!.id),
+      isTrue,
+    );
+    expect(
+      await store.editNextCheck(
+        'plant-1',
+        DateTime(2026, 12, 15, 9),
+        now: DateTime(2026, 11, 17),
+      ),
+      isTrue,
+    );
+
+    expect(await store.undoLatestWateringCorrection(), isFalse);
+    expect(store.garden.records, isEmpty);
+  });
+
   group('persistence boundary', () {
     test('failed saves leave the garden unchanged', () async {
       var attempts = 0;
