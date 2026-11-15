@@ -6,6 +6,8 @@ import 'check_screen.dart';
 import 'check_route.dart';
 import 'light_placement_section.dart';
 import 'widgets.dart';
+import 'plant_timeline_screen.dart';
+import 'soil_health_section.dart';
 
 class PlantDetailScreen extends StatelessWidget {
   const PlantDetailScreen({
@@ -113,7 +115,6 @@ class _BodyState extends State<_Body> {
             ),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(
-                fullscreenDialog: true,
                 settings: wateringCheckSettings(schedule),
                 builder: (_) => CheckScreen(store: store, plantId: plant.id),
               ),
@@ -172,6 +173,24 @@ class _BodyState extends State<_Body> {
               onChanged: _saveLightPlacement,
             ),
           ],
+          const SizedBox(height: 24),
+          SoilHealthSection(store: store, plantId: plant.id),
+          const SizedBox(height: 16),
+          Card(
+            margin: EdgeInsets.zero,
+            child: ListTile(
+              leading: const Icon(Icons.history),
+              title: const Text('Care timeline'),
+              subtitle: const Text('View recorded care for this plant'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      PlantTimelineScreen(store: store, plantId: plant.id),
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 24),
           Card(
             margin: EdgeInsets.zero,

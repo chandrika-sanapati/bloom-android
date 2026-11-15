@@ -78,7 +78,7 @@ void main() {
       await File(
         '${directory.path}/bloom-reminder-preferences.png',
       ).writeAsBytes(await binding.takeScreenshot('reminder-preferences'));
-      await tester.tap(find.text('Close'));
+      await tester.tap(find.byTooltip('Back'));
       await tester.pumpAndSettle();
 
       Future<void> postAndTap(String payload, {bool background = false}) async {
@@ -110,14 +110,14 @@ void main() {
       await postAndTap(payload);
       expect(find.byType(CheckScreen), findsOneWidget);
       expect(store.garden.records, isEmpty);
-      await tester.tap(find.text('Cancel'));
+      await tester.tap(find.byTooltip('Back'));
       await tester.pumpAndSettle();
       await postAndTap(payload, background: true);
       expect(find.byType(CheckScreen), findsOneWidget);
       await File(
         '${directory.path}/bloom-reminder-check.png',
       ).writeAsBytes(await binding.takeScreenshot('reminder-check'));
-      await tester.tap(find.text('Cancel'));
+      await tester.tap(find.byTooltip('Back'));
       await tester.pumpAndSettle();
       await store.editNextCheck(plant.id, now.add(const Duration(days: 3)));
       await postAndTap(payload);

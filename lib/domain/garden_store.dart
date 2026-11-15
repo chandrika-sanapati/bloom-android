@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'models.dart';
+import 'soil_care.dart';
 import 'reminder_time.dart';
 
 /// Holds the garden and applies watering transitions in one persistence boundary.
@@ -82,6 +83,82 @@ class GardenStore extends ChangeNotifier {
       _serial(() => _setTaskNotifications(enabled));
   Future<bool> setReminderTime(int hour, int minute, {DateTime? now}) =>
       _serial(() => _setReminderTime(hour, minute, now: now));
+
+  List<SoilCareEvent> soilCareFor(String plantId) =>
+      _garden.soilCare.where((e) => e.plantId == plantId).toList()
+        ..sort((a, b) {
+          final date = b.occurredOn.compareTo(a.occurredOn);
+          return date != 0 ? date : b.recordedAt.compareTo(a.recordedAt);
+        });
+
+  Future<bool> saveSoilCare(
+    SoilCareEvent event, {
+    bool updating = false,
+    DateTime? now,
+  }) => _serial(() async {
+    if (plant(event.plantId) == null ||
+        event.id.trim().isEmpty ||
+        (event.product?.length ?? 0) > 120 ||
+        (event.notes?.length ?? 0) > 500 ||
+        event.actions.isEmpty ||
+        calendarDay(
+          event.occurredOn,
+        ).isAfter(calendarDay(now ?? DateTime.now()))) {
+      return false;
+    }
+    final matching = _garden.soilCare.where((e) => e.id == event.id);
+    final original = matching.isEmpty ? null : matching.first;
+    if ((updating && original == null) ||
+        (original != null && original.plantId != event.plantId)) {
+      return false;
+    }
+    if (original?.sameContentAs(event) == true) return true;
+    final normalized = SoilCareEvent(
+      id: event.id,
+      plantId: event.plantId,
+      occurredOn: DateTime(
+        event.occurredOn.year,
+        event.occurredOn.month,
+        event.occurredOn.day,
+      ),
+      recordedAt: original?.recordedAt ?? event.recordedAt,
+      actions: event.actions,
+      product: event.actions.contains(SoilCareAction.nutrientsAdded)
+          ? event.product
+          : null,
+      mixContainsFeed: event.actions.contains(SoilCareAction.mixRefreshed)
+          ? event.mixContainsFeed
+          : null,
+      notes: event.notes,
+    );
+    return _commit(
+      _garden.copyWith(
+        soilCare: [
+          for (final e in _garden.soilCare)
+            if (e.id != event.id) e,
+          normalized,
+        ],
+      ),
+      syncNotifications: false,
+    );
+  });
+
+  Future<bool> removeSoilCare(String plantId, String eventId) =>
+      _serial(() async {
+        if (!_garden.soilCare.any(
+          (e) => e.id == eventId && e.plantId == plantId,
+        )) {
+          return false;
+        }
+        return _commit(
+          _garden.copyWith(
+            soilCare: _garden.soilCare
+                .where((e) => !(e.id == eventId && e.plantId == plantId))
+                .toList(),
+          ),
+          syncNotifications: false,
+        );
+      });
 
   /// Adds a plant and schedules its first check, as in `BloomStore.addPlant`.
   Future<bool> _addPlant(
@@ -171,6 +248,7 @@ class GardenStore extends ChangeNotifier {
       plants: _garden.plants.where((p) => p.id != id).toList(),
       schedules: _garden.schedules.where((s) => s.plantId != id).toList(),
       records: _garden.records.where((r) => r.plantId != id).toList(),
+      soilCare: _garden.soilCare.where((e) => e.plantId != id).toList(),
     ),
   );
 

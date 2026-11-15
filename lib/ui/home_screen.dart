@@ -89,7 +89,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void _openCheck(Plant plant) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        fullscreenDialog: true,
         settings: wateringCheckSettings(widget.store.scheduleFor(plant.id)!),
         builder: (_) => CheckScreen(store: widget.store, plantId: plant.id),
       ),

@@ -144,11 +144,22 @@ The full tradeoff history recovered from the original Bloom product work is main
 2. Review TalkBack labels, selected states, large Android font sizes, narrow layouts, dark theme behavior, and system animation settings.
 3. Consider record-level correction/Undo as separate future scope; the configurable reminder time is now implemented.
 
-## Next product discussion — occasional care
+## Soil health, Care timeline, and guarded Back — implemented and verified on 15 November 2026
 
-The user confirmed **Adding nutrients** as the label and assessment-first, on-demand help for nutrient needs and Pot & soil, progressively disclosed so watering stays primary. The sunlight presentation refinement was subsequently implemented under D44; see its implementation record below. Adding nutrients, then Pot & soil, follow as requirements work. Requirements and assessment rules remain under discussion in PRD section 16 / decision D41; these features are not implemented and no implementation is authorized by this discussion.
+The user requested timeline and navigation implementation, followed by Soil health, and explicitly confirmed drainage inside the checks while retaining the three actions (D48–D49 / PRD 18–20). This supersedes the earlier documentation-only stage. Soil health provides on-demand advice, explicit combined action records, optional date/context, and edit/remove through the timeline. It leaves watering/light/reminders unchanged.
 
-The user also clarified that Light & placement is occasional after initial setup (D42). Existing light guidance/acknowledgment remains implemented as before, with no recurring light reminders. The compact detail presentation is implemented under D44; new navigation/grouping beyond that scope remains discussion only.
+Care timeline opens as a separate page from plant details and reads actual watering outcomes, combined soil events, and the current saved light confirmation. Existing light storage is a current snapshot; earlier light changes are not recoverable. Toolbar back arrows replace Close/Cancel page controls. Dirty setup/check/soil/assessment drafts require Keep editing / Discard changes on toolbar or system Back; clean/read-only pages leave immediately.
+
+All six docs include scope, rationale, conservative assessment rules, navigation/discard behavior, and remaining limits. Current verification evidence follows; earlier release results below remain historical snapshots. No nutrition calendar, fourth drainage action, chemistry/health score, or pest/environmental feature is added.
+
+Verification for this release:
+
+- `flutter test --no-pub`: **73 tests passed**, including all seven non-empty action combinations, 81 complete assessment answer combinations, early/unknown exits, legacy JSON, future-date/ownership/failed-write checks, combined timeline events, nested routes, toolbar/system Back, keep/discard, successful-save exit, unavailable-reminder draft protection, soil edit/removal, and narrow 2x-text dark layouts.
+- `flutter analyze --no-pub`: **zero findings**. Host checks ran from an identical temporary checkout without parentheses; source/test hashes were compared with the repo.
+- `BLOOM_TEST_TARGET=integration_test/care_timeline_test.dart sh tool/test_android.sh -d emulator-5554`: **1 Android integration test passed**, exercising drainage's early result without a record, native Activity Back dispatch, preserved/discarded drafts, all three actions in one persisted event, disk reload, unchanged watering records/schedules, timeline editing, and return to the parent plant. The dedicated test package/cache file was used.
+- Normal debug APK: **built successfully**, checked to exclude IntegrationActivity, installed in place with `adb install -r`, and launched successfully. Four normal saved files matched the pre-test backup before installation. After launch, the user explicitly confirmed saving a watering check; verified existing plants/preferences/soil history and prior records remained intact, and the new record/schedule transition matched that action. Post-launch byte equality is therefore not claimed. The isolated test package was removed afterward.
+- Timeline Android fixture screenshot visually inspected. Full manual TalkBack and physical predictive-Back gesture audits remain outstanding; automated semantics/layout and native Activity Back coverage do not claim a complete manual accessibility audit.
+- Known boundary: the light row reflects only the currently saved placement confirmation. The old model does not contain earlier confirmations/moves, so no historical events are invented. Watering records remain read-only; edit/remove applies to soil records only.
 
 
 ## Compact light presentation — implemented and verified on 15 November 2026
@@ -162,4 +173,4 @@ The user authorized the detail-card refinement on 15 November 2026 (D44 / PRD se
 - Compact Android detail screenshot captured from an isolated cache fixture and visually reviewed. A full manual TalkBack audit remains outstanding; Material expansion semantics are retained.
 - Normal saved data backed up before device tests: all **4 saved files** matched before the normal update, and the **garden JSON stayed byte-for-byte identical after launch**. The separate `.integration` test package was removed afterward.
 
- Adding nutrients and Pot & soil remain requirements discussion only.
+Soil health is now implemented under D49 / PRD section 18; current evidence is recorded above.

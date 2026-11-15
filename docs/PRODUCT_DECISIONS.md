@@ -333,7 +333,7 @@ Environmental checks should distinguish light, airflow, humidity, drafts, and te
 
 ### D11 — Nutrition must distinguish materials and avoid universal remedies
 
-**Status:** Planned / Deferred
+**Status:** Soil health requirements drafted in PRD section 18 / D45–D47; not implemented.
 
 #### Product reasoning
 
@@ -351,11 +351,11 @@ A future nutrition experience must distinguish **changed growing medium** from *
 
 #### Safe outcomes
 
-Potential outcomes are **Fed**, **Changed growing medium**, **Checked — no amendment**, and **Not sure — inspect first**. A follow-up must not imply that the symptom is resolved.
+Earlier exploration considered Fed, Changed growing medium, Checked — no amendment, and Not sure — inspect first. These are historical candidate outcomes, not the current event taxonomy. D45 / PRD section 18 define three distinct actions; advice and no-action/unknown assessment results must not imply treatment or symptom resolution.
 
 ### D12 — Repotting should be evidence-led, not routine
 
-**Status:** Planned / Deferred
+**Status:** Evidence-led direction retained in the Soil health draft (PRD section 18 / D45–D47); not implemented.
 
 #### Options considered
 
@@ -369,7 +369,7 @@ Use a guided inspection based on evidence such as circling roots, roots at drain
 
 #### Safe outcomes
 
-Potential outcomes are **Repotted**, **Inspected — not needed**, **Changed medium only**, and **Check later**. Repotting history must remain separate from watering and nutrition history, and aftercare must not imply guaranteed recovery.
+Earlier candidate outcomes included Repotted, Inspected — not needed, Changed medium only, and Check later. D45 now groups three distinct soil actions under Soil health with overlap possible. Repotting remains distinguishable from nutrient addition/mix refresh and separate from watering history, but one explicitly recorded event may contain multiple soil actions. No-action/inspection results are not completed treatment, and aftercare must not imply recovery.
 
 ### D13 — Symptoms require suggestive, conservative triage
 
@@ -764,3 +764,47 @@ Recommend reviewing and finishing this small presentation refinement before refi
 Implement the reviewed compact Light & placement section on plant detail, keeping setup fully visible and watering primary. New detail pages start collapsed in both pending and acknowledged states. Show the species requirement plus a neutral saved-state summary, with Material expansion revealing existing advice/checkbox. Use Not recorded · Optional, You've placed it as suggested, or Placement recorded for earlier advice; none implies measured adequacy.
 
 Expansion is temporary UI state and writes nothing. Preserve optional setup, persisted acknowledgment/time/version, immediate save and correction, failure/retry, and unchanged watering/notification behavior. No new reminders, automatic resets, assessment, or Other care navigation container. This is a small presentation refinement, not new sunlight logic. Define exact behavior in PRD section 17 and record verification in STATUS.md. The user reiterated that every implemented product feature must be captured in the PRD and related repo docs. The user subsequently requested committing and pushing the completed, verified work upstream.
+
+
+## 15. Soil health requirements decisions
+
+### D45 — One Soil health section, three distinct actions, overlap permitted
+
+**Status:** Explicit user direction on 15 November 2026; formalized in PRD section 18. Documentation only, not app implementation authorization.
+
+Group **Adding nutrients**, **Refresh potting mix**, and **Repotting** within a separate Soil health section. The user accepted the distinction between nutrient replenishment, renewing growing mix, and removing/replanting for pot/root-space needs. Refreshing mix does not necessarily require another pot; repotting does not always require a larger pot. Actions can overlap in one real-world job and must remain distinguishable.
+
+Keep watering primary and these features occasional, assessment-first, and progressively disclosed (D41). Replaces the earlier two-entry Adding nutrients / Pot & soil framing; Pot & soil remains useful explanatory language, not a fourth action. Earlier D11/D12 candidate outcomes are historical, not a competing record schema. The reason for distinguishing actions is to avoid confusing fertilizer, structural mix ingredients, and root-space work, while avoiding duplicate effort when one job includes several actions.
+
+### D46 — Draft assessment and combined-record behavior for review
+
+**Status:** Proposed requirements, not yet user-approved interaction or content rules.
+
+PRD 18 proposes on-demand focused checks, explicit no-action/unknown outcomes, and optional recording afterward. One event can contain one or more user-selected actions so a combined job need not be logged repeatedly. No action is automatically inferred from another, and nutrient-containing mix must not silently become a fertilizer application record. Missing historical facts stay unknown. Read-only checks and abandoned guidance create no treatment record.
+
+The proposed first release keeps watering/light/reminders unchanged, uses local atomic persistence, adds no automatic soil-care schedules or numeric health scores, and asks only useful information. Exact branches, combined-record UX/correction, minimum fields, and the unchanged-watering boundary require review before implementation. The user's request is to create the formal documents; it does not authorize coding or a new push.
+
+### D47 — Drainage belongs with Soil health checks — recommendation pending review
+
+**Status:** Initially recommended, then explicitly confirmed by the user on 15 November 2026: include drainage in the checks while retaining three actions. D49 records implementation authorization.
+
+Recommend integrating drainage as a cross-cutting optional check about pot, mix, and water context, rather than a fourth care action or another recurring task. A simple drainage correction may require none of the three actions; do not force repotting/mix refresh or invent an event to make it fit the taxonomy. A future drainage-adjustment action needs its own product decision.
+
+Aeration/compaction are closely related observations for consideration. Salt buildup/pH are later Soil health topics needing suitable evidence; temperature/humidity/airflow fit environmental care, and pest/disease triage remains separate. These are possible extensions, not an automatically approved backlog or release scope. PRD 18.5/18.10 retain the scope question and reviewed references.
+
+
+### D48 — Authorize a dedicated plant timeline and guarded Back navigation
+
+**Status:** Explicitly requested, implemented, and verified on 15 November 2026.
+
+Open Care timeline as a nested page from plant details, rather than expanding detail into a long feed. Combine existing watering outcomes and future/current soil-care records in one read projection per plant; a combined soil job stays one entry. Show the existing light acknowledgment only as an honestly labelled current confirmation snapshot, not a fabricated movement/history log. Historical light changes are unavailable under current storage.
+
+The user requested back arrows instead of Close, then explicitly required confirmation before leaving a partially filled form. Apply one shared discard guard to toolbar/system Back on editable setup/check/soil/assessment pages. Keep editing preserves state; Discard changes leaves without writing. Clean pages return immediately; committed saves exit without prompting. Do not turn a save in flight into a false promise to discard it. Preserve dirty forms if an unavailable reminder would otherwise pop the stack. PRD sections 19–20 hold acceptance criteria.
+
+### D49 — Authorize Soil health after timeline/navigation; include drainage
+
+**Status:** Implemented and verified after the user requested Soil health following timeline/navigation and explicitly selected integrated drainage on 15 November 2026. Supersedes documentation-only gates in D45/D46 and the pending drainage scope in D47 for this release.
+
+Adopt the documented compact Soil health section, focused advisory checks, three explicit action types with one combined record, optional actual-date/context recording, and correction/removal of soil events through the timeline. Keep watering, placement, and reminders unchanged; add no automatic schedules. Version-1 rules are conservative observations for the existing four foliage profiles, not a diagnosis or product recommendation engine; PRD 18.11 specifies early exits and unknown handling.
+
+Implementation defaults resolve the previous recording questions: date-only actual care date plus UTC recording timestamp; optional product/mix/notes fields; edit and confirmed removal for soil records only. No universal feed dose/interval, health score, fourth drainage action, pH/salt treatment, environmental assessment, or pest diagnosis is included. Future content can expand after separate review. The prior upstream push covered reminder/light work. After this release was completed and verified, the user explicitly requested committing and pushing it upstream.

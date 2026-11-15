@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
 import 'widgets.dart';
+import 'discard_changes_guard.dart';
 
 class CheckScreen extends StatefulWidget {
   const CheckScreen({super.key, required this.store, required this.plantId});
@@ -19,6 +20,7 @@ class _CheckScreenState extends State<CheckScreen> {
   Soil _soil = Soil.unknown;
   String? _error;
   bool _saving = false;
+  bool _saved = false;
 
   Future<void> _save() async {
     if (_saving) return;
@@ -41,7 +43,9 @@ class _CheckScreenState extends State<CheckScreen> {
       );
       return;
     }
-    Navigator.of(context).pop();
+    setState(() => _saved = true);
+    await WidgetsBinding.instance.endOfFrame;
+    if (mounted) Navigator.of(context).pop();
   }
 
   @override
@@ -66,89 +70,92 @@ class _CheckScreenState extends State<CheckScreen> {
         final theme = Theme.of(context);
         final species = PlantSpecies.forPlant(plant);
 
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Check watering'),
-            leading: TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            leadingWidth: 96,
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: FilledButton(
-                  onPressed: _outcome == null || _saving ? null : _save,
-                  child: Text(_saving ? 'Saving…' : 'Save'),
+        return DiscardChangesGuard(
+          hasChanges: !_saved && (_outcome != null || _soil != Soil.unknown),
+          saving: _saving,
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Check watering'),
+              leading: const BackButton(),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: FilledButton(
+                    onPressed: _outcome == null || _saving ? null : _save,
+                    child: Text(_saving ? 'Saving…' : 'Save'),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          body: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              Text(plant.name, style: theme.textTheme.headlineSmall),
-              if (species != null) ...[
+              ],
+            ),
+            body: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                Text(plant.name, style: theme.textTheme.headlineSmall),
+                if (species != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    species.careCue,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Text(
-                  species.careCue,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                  'Scheduled check: ${formatDateTime(schedule.nextCheckAt)}',
+                  style: theme.textTheme.bodySmall,
                 ),
-              ],
-              const SizedBox(height: 4),
-              Text(
-                'Scheduled check: ${formatDateTime(schedule.nextCheckAt)}',
-                style: theme.textTheme.bodySmall,
-              ),
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                  alignment: Alignment.centerLeft,
-                ),
-                onPressed: () =>
-                    pickNextCheck(context, widget.store, widget.plantId),
-                icon: const Icon(Icons.calendar_today),
-                label: const Text('Edit next check'),
-              ),
-              const SizedBox(height: 24),
-              Text('What did you find?', style: theme.textTheme.titleSmall),
-              const SizedBox(height: 8),
-              SegmentedButton<Soil>(
-                segments: [
-                  for (final soil in Soil.values)
-                    ButtonSegment(value: soil, label: Text(soil.label)),
-                ],
-                selected: {_soil},
-                onSelectionChanged: (selection) =>
-                    setState(() => _soil = selection.first),
-              ),
-              const SizedBox(height: 24),
-              Text('What did you do?', style: theme.textTheme.titleSmall),
-              const SizedBox(height: 8),
-              Card(
-                margin: EdgeInsets.zero,
-                child: RadioGroup<WateringOutcome>(
-                  groupValue: _outcome,
-                  onChanged: (chosen) => setState(() => _outcome = chosen),
-                  child: Column(
-                    children: [
-                      for (final value in WateringOutcome.values)
-                        RadioListTile<WateringOutcome>(
-                          title: Text(value.label),
-                          value: value,
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              if (_error != null) ...[
                 const SizedBox(height: 16),
-                Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                    alignment: Alignment.centerLeft,
+                  ),
+                  onPressed: () =>
+                      pickNextCheck(context, widget.store, widget.plantId),
+                  icon: const Icon(Icons.calendar_today),
+                  label: const Text('Edit next check'),
+                ),
+                const SizedBox(height: 24),
+                Text('What did you find?', style: theme.textTheme.titleSmall),
+                const SizedBox(height: 8),
+                SegmentedButton<Soil>(
+                  segments: [
+                    for (final soil in Soil.values)
+                      ButtonSegment(value: soil, label: Text(soil.label)),
+                  ],
+                  selected: {_soil},
+                  onSelectionChanged: (selection) =>
+                      setState(() => _soil = selection.first),
+                ),
+                const SizedBox(height: 24),
+                Text('What did you do?', style: theme.textTheme.titleSmall),
+                const SizedBox(height: 8),
+                Card(
+                  margin: EdgeInsets.zero,
+                  child: RadioGroup<WateringOutcome>(
+                    groupValue: _outcome,
+                    onChanged: (chosen) => setState(() => _outcome = chosen),
+                    child: Column(
+                      children: [
+                        for (final value in WateringOutcome.values)
+                          RadioListTile<WateringOutcome>(
+                            title: Text(value.label),
+                            value: value,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    _error!,
+                    style: TextStyle(color: theme.colorScheme.error),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         );
       },

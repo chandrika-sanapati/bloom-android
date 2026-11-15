@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'soil_care.dart';
 
 enum Soil {
   dry('Dry'),
@@ -250,23 +251,27 @@ class Garden {
     this.plants = const [],
     this.schedules = const [],
     this.records = const [],
+    this.soilCare = const [],
     this.preferences = const AppPreferences(),
   });
 
   final List<Plant> plants;
   final List<WateringSchedule> schedules;
   final List<WateringRecord> records;
+  final List<SoilCareEvent> soilCare;
   final AppPreferences preferences;
 
   Garden copyWith({
     List<Plant>? plants,
     List<WateringSchedule>? schedules,
     List<WateringRecord>? records,
+    List<SoilCareEvent>? soilCare,
     AppPreferences? preferences,
   }) => Garden(
     plants: plants ?? this.plants,
     schedules: schedules ?? this.schedules,
     records: records ?? this.records,
+    soilCare: soilCare ?? this.soilCare,
     preferences: preferences ?? this.preferences,
   );
 
@@ -274,6 +279,7 @@ class Garden {
     'plants': plants.map((p) => p.toJson()).toList(),
     'schedules': schedules.map((s) => s.toJson()).toList(),
     'records': records.map((r) => r.toJson()).toList(),
+    'soilCare': soilCare.map((r) => r.toJson()).toList(),
     'preferences': preferences.toJson(),
   };
 
@@ -287,6 +293,12 @@ class Garden {
     records: (json['records'] as List? ?? [])
         .map((r) => WateringRecord.fromJson(r as Map<String, dynamic>))
         .toList(),
+    soilCare: json['soilCare'] is List
+        ? (json['soilCare'] as List)
+              .map(SoilCareEvent.tryFromJson)
+              .whereType<SoilCareEvent>()
+              .toList()
+        : const [],
     preferences: json['preferences'] == null
         ? const AppPreferences()
         : AppPreferences.fromJson(json['preferences'] as Map<String, dynamic>),

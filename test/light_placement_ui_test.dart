@@ -114,7 +114,9 @@ void main() {
     await revealAcknowledgment(tester);
     await tester.tap(find.text(acknowledgmentLabel));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Cancel'));
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Discard changes'));
     await tester.pumpAndSettle();
     expect(store.garden.plants, isEmpty);
     expect(writes, 0);

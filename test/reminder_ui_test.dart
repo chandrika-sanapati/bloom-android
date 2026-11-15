@@ -169,7 +169,7 @@ void main() {
   }
 
   testWidgets(
-    'cold reminder opens current check once; Cancel returns Home without writes',
+    'cold reminder opens current check once; Back returns Home without writes',
     (tester) async {
       final client = FakeNotificationClient()
         ..startupPayload = WateringNotificationTarget.encode(schedule, 'UTC')
@@ -190,7 +190,7 @@ void main() {
       );
       client.tap!(client.startupPayload);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Cancel'));
+      await tester.tap(find.byTooltip('Back'));
       await tester.pumpAndSettle();
       expect(find.byType(CheckScreen), findsNothing);
       expect(find.text('My plants'), findsOneWidget);
@@ -233,7 +233,7 @@ void main() {
       client.tap!(WateringNotificationTarget.encode(schedule, 'UTC'));
       await tester.pumpAndSettle();
       expect(find.byType(CheckScreen), findsOneWidget);
-      await tester.tap(find.text('Cancel'));
+      await tester.tap(find.byTooltip('Back'));
       await tester.pumpAndSettle();
       expect(find.byType(PreferencesScreen), findsOneWidget);
       client.tap!('bloom-watering-p');
@@ -253,6 +253,34 @@ void main() {
       );
     },
   );
+  testWidgets(
+    'unavailable reminder preserves a dirty care form and its discard guard',
+    (tester) async {
+      final client = FakeNotificationClient();
+      final state = store();
+      await app(tester, state, notifications(client));
+      await tester.tap(find.text('Check watering').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Checked — not watered'));
+      await tester.pumpAndSettle();
+      client.tap!('malformed');
+      await tester.pumpAndSettle();
+      expect(find.byType(CheckScreen), findsOneWidget);
+      expect(state.garden.records, isEmpty);
+      await tester.tap(find.byTooltip('Back'));
+      await tester.pumpAndSettle();
+      expect(find.text('Discard changes?'), findsOneWidget);
+      await tester.tap(find.text('Keep editing'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Save'))
+            .onPressed,
+        isNotNull,
+      );
+    },
+  );
+
   testWidgets('target deletion while open retains Home recovery', (
     tester,
   ) async {

@@ -209,7 +209,7 @@ The user authorized one global preference, automatic-only updates after today, c
 
 ## 9. Occasional care — requirements refinement only
 
-Follow PRD section 16 and decisions D41–D43. The compact/expandable sunlight presentation is implemented and verified in section 10; existing light functionality remains its foundation. After that, refine **Adding nutrients** before Pot & soil: start from the user's need to decide whether an action is warranted, with progressive disclosure and watering kept primary. Review the smallest useful inputs and evidence-supported result/uncertainty handling before specifying records or reminders. Exact flows and implementation remain unapproved; do not add care schedules or code from these discussion notes.
+Follow PRD sections 16/18 and decisions D41–D47. The compact/expandable sunlight presentation is implemented and verified in section 10; existing light functionality remains its foundation. The next domain is a separate **Soil health** section with three actions (Adding nutrients, Refresh potting mix, Repotting); refine the nutrient rules first, then the linked mix/root-space checks: start from the user's need to decide whether an action is warranted, with progressive disclosure and watering kept primary. Review the smallest useful inputs and evidence-supported result/uncertainty handling before specifying records or reminders. Exact flows and implementation remain unapproved; do not add care schedules or code from these discussion notes.
 
 Apply D42 to the hierarchy discussion: Light & placement is setup/occasional review, not another recurring care task. Do not add expiry, automatic acknowledgment resets, or light reminders. Preserve setup, acknowledgment behavior, and saved placement data. D44 / section 10 authorize compact summaries and expandable advice on detail; relocation under Other care remains outside scope.
 
@@ -221,3 +221,54 @@ D44 / PRD section 17 authorize this refinement. Add an opt-in compact presentati
 Verify pending/acknowledged collapse/expand without writes, existing save/failure/correction, setup skip/acknowledgment, and narrow 2x-text dark layout. Update the isolated Android placement test to expand explicitly and assert initial compact state; capture a compact preview. Run host tests from a path without parentheses, analysis, isolated Android regression, and normal APK build. Back up and compare saved normal-app data; install normal APK with -r. Record actual results in STATUS.md and keep the six main docs aligned.
 
 Validation: 55 host tests and both isolated Android placement tests passed, analysis returned zero findings, and the normal APK built/installed in place. Compact Android preview visually reviewed. Source hashes matched the tested checkout; four normal saved files matched the pre-test backup before update and the garden JSON remained identical after launch. Full manual TalkBack review remains separate. See STATUS.md.
+
+
+## 11. Soil health — documentation and implementation plan for review
+
+**Stage:** Subsequently authorized under D48–D49, including integrated drainage. Implementation and verification complete; evidence in STATUS.md. [PRD section 18](PRD.md#18-soil-health--release-requirements) defines confirmed scope, proposed SH-01–12 requirements, content references, acceptance criteria, and three open decisions. D45–D47 retain rationale and the unconfirmed drainage recommendation.
+
+### S0 — Adopted release contract
+
+D49 / PRD 18.10–18.11 resolve the release defaults: 1–3 focused questions with early stops, explicit unknown/no-action guidance, drainage within mix/root checks, and editable/removable combined soil events. Existing watering/placement evidence is not verification of Soil health. No nutrient/mix/root-space rules or schedule changes may be invented during implementation.
+
+### S1 — Content and interaction contract
+
+Create reviewed, versioned question/result content for nutrient needs, mix condition, and pot/root space. Map each question to a guidance-changing branch, optional/unknown handling, source, and catalog coverage. Reuse known history without treating it as a measurement. Show no universal fertilizer dose/interval or chemistry diagnosis. For the accepted drainage check, add only relevant pot/mix questions and support a simple correction/no-action result without expanding the three action types automatically.
+
+### S2 — Additive event model
+
+Use a separate per-plant SoilCareEvent containing identity, the actual care date, recorded timestamp, and a non-empty set of distinct performed actions. Action names/enums are implementation details to review; keep nutrients/mix/repotting distinguishable. One event represents combined work; derive latest per-action dates from explicit selections rather than writing duplicate history entries. Product/mix context and notes may be optional. Missing old data loads as no recorded history, not evidence that care never occurred.
+
+Use date-only occurredOn, UTC recordedAt, explicit action set, optional product/notes/mixContainsFeed, and edit/remove support. Represent any mix nutrient information separately from an inferred performed action. Do not repurpose WateringRecord or add a Soil health score. Keep questions/transient disclosure out of persisted care history unless separately agreed.
+
+### S3 — Atomic state and persistence
+
+Keep transitions in the store/repository boundary; preserve existing serialized mutations. Save multi-action events atomically, validate date/action sets, prevent duplicate in-flight submissions, and publish only persisted state. Cancel or write failure retains prior data and allows retry. Round-trip old/new JSON without changing plants, watering schedules/records/preferences, placement, or pending reminders. For correction, recompute affected per-action history from the corrected event.
+
+### S4 — Progressive UI
+
+Under D49, add the separate Soil health detail section with on-demand checks, short results, and optional actual-care recording. Keep setup/Home/watering primary and the implemented light section intact. Propose one confirmation for a combined event, no forced three-part questionnaire, no default completed action, and no mandatory product/sensor/photo form. Secondary already-done recording and soil-event correction/removal are included under D49.
+
+### S5 — Verification tied to PRD acceptance
+
+- SH-01–06: review branch fixtures for all supported plants, unknown history, recent care/feed-containing mix, no-action results, and source/content version coverage; verify disclosure and cancel/re-entry without treatment records.
+- SH-07–09: each action alone and all seven non-empty combinations of three actions; explicit selections only; one event displayed once; latest dates reflect selected actions only; past/today validation, cancellation, failure/retry, and duplicate submission.
+- SH-10–12: migration/round trip, atomic/concurrent saves, unchanged watering/Last watered/custom timestamps/light/reminder requests, and absence of new automatic notifications/tasks. Test correction and confirmed removal for soil records.
+- For included drainage, test simple pot/saucer correction and uncertainty without forcing treatment, a water test, or a fourth action.
+- Widget/accessibility checks for compact/expanded content, narrow/large-text/dark layouts, labeled multi-selection/results, and Back behavior. Android tests must use the separate integration package/cache files, preserve normal data, and verify actual history persistence.
+
+After authorization and implementation, run relevant tests, analysis, and normal APK build; document real results in STATUS.md. The previous 55-test result remains historical evidence; record new host/Android/build evidence after this release is verified.
+
+
+## 12. Timeline and Back implementation
+
+D48 / PRD 19–20 authorize a dedicated PlantTimelineScreen from plant detail plus native page back arrows. PlantActivity.forPlant projects watering records, current placement acknowledgment, and soil events without copying or mutating them. Filter by plant ID; use actual event dates; list all events lazily; link only soil events to their correction screen. Do not invent unsupported historical light events.
+
+Use one DiscardChangesGuard based on PopScope for setup, Check watering, SoilCareScreen, and partial SoilAssessmentScreen answers. Track draft equality and pending save state; permit programmatic success exit after the guard rebuilds. Keep the safe choice focused, deduplicate dialogs, and preserve draft values on Keep editing/dismiss. Root reminder fallback respects any protected route in the stack. Preferences/catalog are ordinary nested routes; Check watering no longer uses fullscreen-dialog navigation.
+
+SoilCareEvent is additive garden JSON; absent/invalid optional soil entries must not discard valid plants/watering data. Store serialized mutations validate action/date/identity and ownership; edits preserve the original recording timestamp. Soil writes skip notification sync. Plant deletion also removes its soil events. SoilHealthSection shows latest per-action dates; full history appears once in the dedicated timeline.
+
+Validation: existing regression plus all seven non-empty soil action combinations, all 81 complete assessment answer combinations, early exits, unknown/history/migration/failure, no watering/light/reminder effects, nested routes, keep/discard/system Back, successful save exit, correction/removal, and large text/dark layout. Android cache-file tests exercise native Activity Back dispatch and real disk reload; preserve the normal package with backup/hash verification and use only the isolated test package. New evidence belongs in STATUS.md.
+
+
+Current release validation (15 November 2026): 73 host tests passed; static analysis found no issues; the isolated care-timeline Android test passed end to end, including native Activity Back dispatch, Keep editing/Discard changes, combined event persistence/reload, unchanged watering, and nested return to plant details. Normal APK built and installed with -r; integration-only activity excluded. All four normal saved files matched the backup before update. The user subsequently confirmed saving a watering check; the new record and expected schedule change were verified while retaining plants/preferences/soil history and prior records. Post-launch binary equality is not claimed. Timeline fixture screenshot visually reviewed. Source hashes match the tested checkout. Full manual TalkBack and physical predictive-Back gesture audit remain separate checks. Details in STATUS.md.

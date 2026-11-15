@@ -29,6 +29,10 @@ class IntegrationActivity : FlutterActivity() {
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "tapNotification" -> result.success(tapOwnNotification(this, call.argument<Int>("id")!!))
+                    "pressBack" -> {
+                        onBackPressed()
+                        result.success(null)
+                    }
                     "backgroundApp" -> result.success(moveTaskToBack(true))
                     else -> result.notImplemented()
                 }

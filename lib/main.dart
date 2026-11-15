@@ -52,21 +52,23 @@ class BloomApp extends StatefulWidget {
 }
 
 class _TopRouteObserver extends NavigatorObserver {
-  Route<dynamic>? top;
+  final List<Route<dynamic>> _routes = [];
+  Route<dynamic>? get top => _routes.isEmpty ? null : _routes.last;
+  bool get protectsDraft =>
+      _routes.any((r) => r.popDisposition == RoutePopDisposition.doNotPop);
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) =>
-      top = route;
+      _routes.add(route);
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) =>
-      top = previousRoute;
+      _routes.remove(route);
   @override
-  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (top == route) top = previousRoute;
-  }
-
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      _routes.remove(route);
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
-    if (top == oldRoute) top = newRoute;
+    final index = _routes.indexOf(oldRoute!);
+    if (index >= 0 && newRoute != null) _routes[index] = newRoute;
   }
 }
 
@@ -136,7 +138,7 @@ class _BloomAppState extends State<BloomApp> with WidgetsBindingObserver {
         navigator.push(
           MaterialPageRoute<void>(
             settings: settings,
-            fullscreenDialog: true,
+
             builder: (_) =>
                 CheckScreen(store: widget.store, plantId: target.plantId!),
           ),
@@ -156,7 +158,9 @@ class _BloomAppState extends State<BloomApp> with WidgetsBindingObserver {
         }
         _feedback('This reminder is out of date. Here is the current plan.');
       case ReminderDestination.home:
-        navigator.popUntil((route) => route.isFirst);
+        if (!_observer.protectsDraft) {
+          navigator.popUntil((route) => route.isFirst);
+        }
         _feedback('This watering reminder is no longer available.');
     }
   }

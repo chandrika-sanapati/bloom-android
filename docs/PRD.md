@@ -5,7 +5,7 @@
 **Owner:** Bloom product team
 **Last updated:** 15 November 2026
 
-The full product decision record—including alternatives, tradeoffs, future care-domain boundaries, and decision-revisit triggers—is in [`PRODUCT_DECISIONS.md`](PRODUCT_DECISIONS.md). Sections 1–13 describe the watering baseline. Section 14 specifies the approved Light & placement release, now implemented with watering dates unchanged. Verification evidence and remaining checks are in STATUS.md. Section 15 specifies the reviewed reminder-preference and notification-navigation scope, authorized and implemented on 15 November 2026.
+The full product decision record—including alternatives, tradeoffs, future care-domain boundaries, and decision-revisit triggers—is in [`PRODUCT_DECISIONS.md`](PRODUCT_DECISIONS.md). Sections 1–13 describe the watering baseline. Section 14 specifies the approved Light & placement release, now implemented with watering dates unchanged. Verification evidence and remaining checks are in STATUS.md. Section 15 specifies the reviewed reminder-preference and notification-navigation scope, authorized and implemented on 15 November 2026. Section 18 defines the Soil health release; sections 19–20 define the plant timeline and guarded Back navigation. The user subsequently authorized all three and confirmed integrated drainage. Current verification is recorded in STATUS.md.
 
 ## 1. Product summary
 
@@ -45,6 +45,8 @@ The following behavior exists in the current Android code:
 - Plant setup and detail share species-specific light suggestions and one optional action acknowledgment.
 - Acknowledgment persists per plant with its timestamp and guidance version; existing plants default to unacknowledged.
 - Setting or clearing placement leaves watering state and existing reminders unchanged.
+- Plant details opens a dedicated Care timeline and provides compact Soil health checks and explicit combined care records.
+- Native page Back navigation protects dirty forms with Keep editing / Discard changes.
 
 ## 4. Product goals
 
@@ -63,9 +65,9 @@ The following behavior exists in the current Android code:
 - Automatic schedules for arbitrary custom or unlisted plants.
 - Per-plant interval editing, pause/resume, seasonal logic, or silent adaptive changes.
 - Deferred/Check later outcomes.
-- Nutrition, fertilizer, compost, soil amendments, repotting, pruning, or symptom-treatment flows.
+- Automatic nutrient/repotting schedules, chemistry treatment, pruning, or disease-treatment flows. Explicit on-demand Soil health is included in section 18.
 - Accounts, cloud sync, sharing, social features, analytics, or community schedules.
-- A separate watering-history destination or watering-specific search/filter system.
+- Watering-specific search/filters and global history correction. The per-plant Care timeline is explicitly authorized in section 19.
 
 ## 6. Supported profiles
 
@@ -168,6 +170,12 @@ WateringRecord
 - outcome: watered | checkedNotWatered
 - soil: dry | damp | unknown
 
+SoilCareEvent
+- id / plantId
+- occurredOn (actual local care date) / recordedAt (UTC)
+- actions: one or more of nutrientsAdded | mixRefreshed | repotted
+- optional product / notes / mixContainsFeed
+
 AppPreferences
 - reminderHour / reminderMinute (editable in Preferences; initially 09:00)
 - taskNotifications
@@ -196,10 +204,10 @@ Keep schedule transitions in `GardenStore`. Do not make screens mutate records, 
 Only add a later capability after the watering loop is reliable and validated.
 
 1. **Verification hardening:** automated domain tests, Android build/emulator checks, notification timing, date entry, persistence recovery, and accessibility review.
-2. **Reminder control and navigation — requirements selected:** a global reminder-time preference and direct notification entry to the relevant watering check; see section 15. Latest-record correction remains separate future work.
+2. **Reminder control and navigation — implemented:** a global reminder-time preference and direct notification entry to the relevant watering check; see section 15. Latest-record correction remains separate future work.
 3. **More reviewed plant profiles:** add content one profile at a time with a range, starting value, cue, and source review.
 4. **Light & placement — implemented:** species-specific light suggestions during setup and on detail, with one optional saved acknowledgment and unchanged watering dates; see section 14. Adaptation and broader environmental checks remain deferred.
-5. **Additional care domains:** nutrition, repotting, and conservative symptom observations as separate, reviewed records.
+5. **Soil health — implemented:** on-demand help for Adding nutrients, Refresh potting mix, and Repotting, with distinct actions and explicitly recorded overlap; see section 18. Drainage is an approved cross-cutting check, not a fourth care action. Symptom diagnosis remains separate future scope.
 6. **Sync and sharing:** only after local ownership, correction, and notification semantics are well understood.
 
 ## 13. Product principles
@@ -458,11 +466,11 @@ Reviewed on 15 November 2026; implementation must use the versions pinned by the
 - [Android — Schedule alarms](https://developer.android.com/develop/background-work/services/alarms): inexact delivery has platform and battery constraints; do not promise an exact minute.
 - [flutter_local_notifications 23.0.2](https://pub.dev/packages/flutter_local_notifications/versions/23.0.2): separate response callbacks and notification-launch details, zoned scheduling, and pending-request management. The installed package documentation was also inspected.
 
-## 16. Occasional care — direction under discussion
+## 16. Occasional care — product direction
 
-**State:** Adding nutrients and Pot & soil are product discussion only, not implemented or authorized for implementation. The separate light presentation refinement is implemented under section 17 / D44.
+**State:** Light presentation is implemented under section 17 / D44. The three Soil health actions are defined in the release requirements in section 18 / D45–D49; the user subsequently authorized implementation and confirmed integrated drainage.
 
-The user confirmed the label **Adding nutrients** and requested assessment-first, on-demand help for both nutrient needs and Pot & soil. Watering stays primary. Progressively disclose these infrequent capabilities rather than adding default recurring schedules or prominent everyday obligations. The sunlight-first refinement recommended in D43 is now implemented under D44 / section 17. Next refine Adding nutrients, then Pot & soil. Exact navigation, minimal questions, evidence/content rules, uncertainty handling, action records, and any future reminder policy need review before implementation. Prior proposals to expose only advice and action logging are insufficient on their own.
+Watering remains the primary frequent journey. Light and Soil health are progressively disclosed, occasional care. The earlier separate Adding nutrients / Pot & soil exploration is consolidated into one **Soil health** section with three distinct, potentially overlapping actions: **Adding nutrients**, **Refresh potting mix**, and **Repotting**. The adopted interaction and advisory rules, including integrated drainage, are specified in section 18. The sunlight-first refinement is complete; version-1 nutrient/mix/root-space checks are now implemented, with further content changes requiring review.
 
 ### 16.1 Light placement is also occasional
 
@@ -484,3 +492,141 @@ Watering is the frequent recurring task. Light placement is setup and occasional
 - No recurring light reminders, acknowledgment expiry/reset, relocation nudges, measurement, new assessment, or automatic watering changes. Adding nutrients and Pot & soil remain separate requirements work.
 
 Acceptance: both saved/pending summaries start compact; expanding reveals full advice and the correct checkbox; collapse/review performs no write; setup remains fully visible/skippable; success/failure/correction and reload preserve existing data semantics; large-text/dark layouts remain usable. Run focused/relevant host checks, isolated placement Android regression, analysis, and the normal APK build. Preserve and verify the normal emulator garden during update.
+
+
+## 18. Soil health — release requirements
+
+**Documented:** 15 November 2026. **Stage:** Implementation explicitly authorized after the initial documentation-only pass. The user also confirmed drainage inside the checks while retaining three actions. D49 records the release defaults adopted under that authorization; implementation and verification are complete as recorded in STATUS.md.
+
+### 18.1 Problem, goals, and agreement boundary
+
+Users need help deciding whether an occasional soil-related action is warranted. Keep everyday watering direct and provide assessment-first help on demand. A date, generic symptom, or acknowledgment cannot establish nutrient sufficiency or the need to repot.
+
+The user confirmed a separate **Soil health** section, three distinct actions with overlap, plain language, progressive disclosure, and integrated drainage checks. The implemented interaction follows the documented minimal approach: focused guidance, optional explicit multi-action recording, and local history. Soil-care correction/removal, unchanged watering, and conservative version-1 rules are the implementation defaults in D49; they do not add a fourth action, a diagnosis, or a feeding schedule.
+
+### 18.2 Three actions and their meanings
+
+| Action label | Meaning in Bloom | Distinction and overlap |
+| --- | --- | --- |
+| Adding nutrients | Deliberately applying a nutrient source, such as a suitable fertilizer or nutrient amendment. | Different from changing mix structure. Do not classify coco coir alone as a complete plant food or infer this action from a product name. |
+| Refresh potting mix | Replacing some or all of the existing growing mix with suitable fresh mix. | Can be done while retaining the same pot. Adding fertilizer alone is not a mix refresh. |
+| Repotting | Removing and replanting the plant to address pot/root-space needs or another supported reason. | May use the same or another suitable pot; does not always mean a larger pot. May overlap with a mix refresh and/or deliberate nutrient addition. |
+
+These are action categories, not three diagnoses or three mandatory tasks. The name Soil health is a navigation/grouping label, not a measured health score. Plant-specific advice requires reviewed content for the current catalog; do not invent recommendations for unsupported plants.
+
+### 18.3 Progressive disclosure and entry
+
+- **SH-01:** Add a compact, initially collapsed **Soil health** section on plant detail, below existing watering/light content. Keep watering visually primary. Do not move Light & placement into Soil health.
+- **SH-02:** Opening Soil health reveals on-demand checks for nutrient needs, potting mix, and pot/root space, with brief explanations linking them to the three actions. No new Home task, required Add plant field, auto-opening questionnaire, or attention badge.
+- **SH-03:** Start with the concern the user chooses. Ask one relevant question at a time; reuse saved facts when useful, allow correction, and offer **I don't know** where needed. Ask only questions that can change the guidance. Do not require all three checks or a root inspection to use the app.
+- **SH-04:** Return a short result with a reason and a useful next step. Draft result meanings: **No action suggested now**, **This action may help**, or **Inspect this first / more information needed**. No-action and uncertainty are valid stopping points. Do not force treatment or an extended questionnaire to finish.
+- Reading, expanding, answering, abandoning a check, or receiving advice creates no completed-care record. No outcome is preselected as performed. A recommendation never asserts measured nutrient sufficiency, a definitive deficiency, or guaranteed recovery.
+
+### 18.4 Assessment inputs and content contract
+
+The table defines relevant evidence, not a diagnosis or a mandatory full questionnaire. Version-1 branches are specified in 18.11. They use the same conservative condition checks for the current four foliage-plant profiles and do not prescribe species-specific fertilizer formulations or infer measured conditions.
+
+| Check | Relevant facts to consider when they affect guidance | Required limits |
+| --- | --- | --- |
+| Nutrient needs | Recent nutrient application and product directions; recent mix refresh/repotting; whether that mix already contains feed; reported active growth and relevant growing conditions. | Do not prescribe universal doses/intervals or diagnose deficiency from yellow leaves alone. Saved placement acknowledgment is not measured light. Product/feed uncertainty must not produce an automatic add-more recommendation. |
+| Potting mix | Observable mix condition and wetting/draining behavior, recent mix changes, and possible overlap with watering or root-space issues. | Mix age or one symptom alone does not prove that replacement is needed. Do not prescribe one universal mix recipe or treat mix refresh as an infection cure. |
+| Pot/root space | User-observed root crowding, pot/drainage context, and changes in plant/mix behavior that warrant inspection. | Plant height, time since purchase, or a root at a drainage hole alone must not trigger an automatic bigger-pot instruction. Do not force unpotting or assume larger is always better. |
+
+- **SH-05:** Use source-backed, versioned guidance suited to the supported species and the available evidence. Missing history means **unknown**, not never fed/refreshed/repotted. Do not infer seasons from month alone or diagnose symptoms using a calendar rule.
+- **SH-06:** Recognize overlapping concerns without routing users through every branch. Recent nutrient-containing mix can affect nutrient advice, but it does not establish a new fertilizer dose or prove that nutrient addition is needed. Show limitations plainly and link to only the next relevant check when helpful.
+- Excessively wet mix, root distress, and unexplained decline must not be converted directly into a fertilizer recommendation. Detailed disease/pest diagnosis is outside this feature. Keep any limited inspection guidance within reviewed content.
+
+### 18.5 Integrated drainage and adjacent topics
+
+**Confirmed by the user:** include drainage as a cross-cutting condition within the checks, while retaining three care actions and no drainage schedule. The pot, growing mix, and watering context interact; a drainage concern does not automatically mean refresh the mix or repot. Roots need air as well as water; compaction and waterlogging can reduce air in the growing medium. [RHS growing-media guidance](https://www.rhs.org.uk/plants/types/houseplants/growing-media-houseplants)
+
+The relevant check asks whether excess water can escape, whether the inner pot is standing in collected water, and how the mix behaves. Ask only when relevant; do not instruct a user to water an already-wet plant simply to run a test. A simple pot/saucer correction may be enough and must not fabricate any of the three care actions. A possible fourth action such as drainage adjustment, or recording inspection-only outcomes, needs a separate product decision before adding event types.
+
+Adjacent-topic boundaries:
+
+| Topic | Recommended place / boundary |
+| --- | --- |
+| Aeration and compaction | Compaction is an observation in the mix check; no separate aeration task or treatment is introduced. |
+| Salt/mineral buildup and pH | Later Soil health guidance; reliable treatment needs appropriate evidence and plant/product context. Do not infer exact chemistry from appearance or prescribe generic pH correction. |
+| Temperature, humidity, drafts/airflow | Separate environmental-care area alongside light, rather than soil-care actions. |
+| Pests and disease symptoms | Separate observation/triage scope; do not fold diagnosis/treatment into nutrient or repotting advice. |
+
+### 18.6 Recording performed care and overlap
+
+- **SH-07:** Keep three distinct action types while supporting **one care event with one or more explicitly selected actions**. A combined event is saved once, shown once, and contributes to the relevant per-action history. Users must not have to log the same job repeatedly.
+- Example: repotted and replaced mix → select **Repotted + Refreshed potting mix** in one event. If nutrients were deliberately added as part of that job, the user may also select **Added nutrients**. Each action can also be recorded on its own.
+- **SH-08:** Do not automatically select mix refresh when Repotted is selected, nutrient addition when fresh mix is used, or repotting when mix is refreshed. Briefly explain related actions so the user can select what actually happened. A mix's existing fertilizer content is contextual information, not an automatically performed action.
+- **SH-09:** The default path is check → guidance → optional **Record care**. Provide a secondary way to record work already done without forcing an assessment first. Minimum input: at least one action and the actual date, defaulting to today; optional product/mix context and notes. No mandatory pot measurements, exact fertilizer dose, photo, location, sensor, or shopping flow. Do not accept future-dated completed care.
+- Save before showing success. Cancel writes nothing; a failed save keeps the previous state and the user's draft for retry. Prevent duplicate in-flight submissions. Records represent what the user reports doing, not that the plant is now healthy.
+- Show the latest recorded date for each action inside Soil health, with **Not recorded** for missing history. Full events appear once in the per-plant Care timeline (section 19). Tap a soil-care event to edit it or remove it after confirmation. Correction/removal updates the affected action histories; it does not alter watering records.
+
+### 18.7 State, persistence, and boundaries
+
+- **SH-10:** Store soil-care events separately from watering records. Reuse the app's local-first, atomic persistence boundary. Old garden JSON must load with no soil-care history and all existing plant, schedule, preference, placement, and watering data intact.
+- **SH-11:** Recording any soil action must not silently mark Watered, change Last watered, clear a watering task, alter an interval or custom check time, reset light placement, or enable notifications. Liquid nutrient application does not automatically complete a watering check. Watering schedule adaptation is outside this release.
+- **SH-12:** No automatic recurring feeding, mix-refresh, repotting, drainage, or repeated assessment reminders. Opening/revisiting Soil health does not create obligations. No health score, sensor inference, automatic treatment, or new account/analytics requirement.
+- Product/mix details are optional during recording; guidance may later explain why missing details limit a recommendation. Do not require a product database or infer a formulation from free text.
+
+### 18.8 Acceptance criteria
+
+1. SH-01–04: watering stays primary; Soil health is separate and progressively disclosed; a user can perform one check, choose unknown, accept no action, or exit without new tasks or writes.
+2. SH-05–06: reviewed rules consider relevant recent care and avoid unsupported deficiency/repotting claims; missing data returns limited guidance rather than fabricated certainty. Version-1 advisory rules apply across the four current catalog plants, with explicit uncertainty and no universal dosage or interval.
+3. SH-07–09: each action alone and every combination of the three can be saved in one event; no action is inferred/preselected; cancellation/failure/duplicate-save behavior is correct. One event updates only its selected action histories.
+4. SH-10–11: old JSON and overlapping records round-trip; saves are atomic; concurrent changes survive; watering dates/history/Last watered, custom times, reminders, and light acknowledgment remain unchanged by soil care.
+5. SH-12: no default recurring task, notifications prompt, overdue Soil health badge, or apparent numeric health measurement is introduced.
+6. Large text, narrow/dark layouts, screen-reader action/result labels, expanded/collapsed semantics, and Back behavior keep all choices usable without mandatory setup.
+7. For integrated drainage, verify that optional checks can end with a simple correction/no action, without forcing repotting, fertilizer, a water test, or a fabricated care record.
+
+### 18.9 Evidence and content review
+
+Sources reviewed on 15 November 2026. These support content boundaries, not a finished Bloom recommendation algorithm. Species branches, inputs, and product instructions still need explicit review; do not transplant generic container/garden fertilizer schedules into this houseplant feature.
+
+- [Wisconsin Extension — Houseplant care](https://hort.extension.wisc.edu/articles/houseplant-care/): feeding depends on growth/product instructions; inspect root crowding before repotting; an oversized pot may keep roots too wet.
+- [RHS — Growing media for houseplants](https://www.rhs.org.uk/plants/types/houseplants/growing-media-houseplants): mix components serve different structural, water, air, and nutrient roles; roots need air. Coco coir is a growing-medium component, not a complete feeding plan.
+- [University of Minnesota Extension — Fertilizing and watering container plants](https://extension.umn.edu/garden-and-home/yard-and-garden/gardening-in-minnesota/fertilizing-and-watering-container-plants): nutrient-containing mixes, product types, and label instructions matter. This is broader container guidance, not a houseplant-specific schedule for adoption.
+- [University of Maryland Extension — Mineral and fertilizer deposits](https://extension.umd.edu/resource/mineral-and-fertilizer-salt-deposits-indoor-plants): mineral/salt buildup is distinct from insufficient feeding and can affect nutrient uptake; consider as later scope, not proof of deficiency.
+
+### 18.10 Adopted release decisions and limits
+
+The user authorized Soil health after timeline/navigation and confirmed drainage in the checks. Adopt the combined-event record, secondary already-done recording, edit/remove support for soil events, and unchanged-watering boundary described above. Broader chemistry, pest diagnosis, automatic intervals, and environmental care remain deferred. The original documentation-only state and open questions are retained as decision history in D45–D47; D49 supersedes those gates for this release.
+
+A record requires the actual date (today initially) and one or more actions. Optional fields: fertilizer/amendment name (120 characters), notes (500 characters), and whether fresh mix contains fertilizer (Yes/No/Not sure). Store care date separately from the UTC recording timestamp; do not invent a time for date-only soil work. These inputs are user-reported context, not chemical measurements.
+
+### 18.11 Version-1 advisory rules
+
+At most three relevant questions are shown, one at a time; finish early when an answer determines the result. Yes/No/Not sure are explicit choices. Partial checks are protected by the discard policy in section 20. Completed guidance creates no care event and can be left without confirmation.
+
+| Check | Questions / early exit | Result boundaries |
+| --- | --- | --- |
+| Adding nutrients | Active growth? If No/Not sure, stop with no action/inspect growth. Is a feed or fertilized mix still supplying nutrients? If Yes/Not sure, stop and ask the user to consult its label. Otherwise ask whether watering, actual light, and drainage have been checked. | Only active growth + no current nutrient supply + checked conditions yields **Adding nutrients may help**. Follow a suitable houseplant product's label; no deficiency diagnosis, dose, interval, or automatic reminder. Reuse recorded nutrient/mix dates and optional context as a memory aid, never as proof of duration. |
+| Refresh potting mix | Can excess water escape? If No/Not sure, stop at **Check drainage first**. Otherwise ask about compaction/ongoing uneven wetting and observed dense roots with little mix. | Observed crowding can suggest repotting; mix problems can suggest refresh; both can be relevant. Unknown/no evidence yields inspect-first/no action. A drainage correction need not become any recorded action. |
+| Repotting | Same drainage early exit; otherwise ask about observed root crowding and ongoing mix wetting/drying problems. | Crowding can suggest repotting; a mix problem without crowding can suggest refresh instead. Do not infer pot size from plant height or a single root. No required unpotting to complete the check. |
+
+The result explains why an action may help and offers optional **Record soil care**. All recorded action selections start empty, even when guidance suggests an action. A user can record actual work without an assessment; showing a recommendation does not establish that the work was done. Sources are in 18.9; the rule version lives separately from persistence and can be reviewed without adding a diagnosis system.
+
+## 19. Per-plant Care timeline
+
+**State:** Explicitly requested, implemented, and verified on 15 November 2026; evidence in STATUS.md. D48 records scope.
+
+- **TL-01:** Add a **Care timeline** entry to plant details, opening a dedicated page for that plant. Keep detail compact; do not embed the full feed or add a global navigation tab. Back returns to the same plant page.
+- **TL-02:** Show all available records for that plant, newest first, in a lazy list. Show a real date, a clear action/outcome, and available context. Watering uses actual recorded/completed time, not due time. Soil events show the actual care date without inventing a clock time; within-day ties use recording time then identity for stability and do not imply a known time of soil work.
+- **TL-03:** Include Watered and Checked — not watered as distinct outcomes with soil observations. A combined soil event appears once with all selected actions and optional product/mix/notes context. Tapping a soil event opens its edit/remove flow; existing watering records stay read-only.
+- **TL-04:** The saved light acknowledgment can appear as **Light placement acknowledged**, dated by its confirmation timestamp and explicitly labelled the current saved confirmation. This is not a plant-movement time or an immutable log of light changes. Existing storage has only the current acknowledgment: clearing it removes that snapshot; earlier confirmations cannot be reconstructed and are not invented.
+- **TL-05:** Empty state: **No care recorded yet**, with brief explanatory copy. No overdue warning, fabricated Plant added milestone, scheduled reminder, or unfinished check appears as completed care. Home's existing Past list remains unchanged.
+- **TL-06:** Reading timeline never creates or changes care, schedules, notifications, or preferences. Deleted targets retain Back/Home recovery. Existing stored watering records are immediately usable; no duplicate history store or speculative migration is needed for them.
+- **TL-07:** Support long combined labels/notes, large text, narrow/dark layouts, device-formatted local dates/times, and accessible action labels. Display only the selected plant; do not truncate history to Home's recent-five preview.
+
+Acceptance: correct plant filtering, ordering and real-date precision; combined jobs once; pending care excluded; current light confirmation honestly labelled; empty/deleted states; live updates after soil edits/removal; nested Back to the parent plant; no read-side writes. Persistence and care data sources remain distinct; the timeline is a read projection, not another care schedule.
+
+## 20. Back navigation and unsaved-form protection
+
+**State:** Explicit user request, implemented and verified on 15 November 2026; D48 defines the contract.
+
+- Use native Android **back arrows** for page navigation, replacing custom Close/Cancel toolbar labels in Preferences, catalog, setup, and Check watering, and using them on the new timeline/soil pages. Native dialogs/pickers retain their ordinary Cancel actions. Use normal nested routes rather than fullscreen-dialog treatment for Check watering.
+- **NAV-01:** Clean forms and read-only pages return immediately to their parent. Home remains the navigation root; successful Add still returns Home, and successful recorded checks return to the caller.
+- **NAV-02:** Toolbar Back and Android system Back from a dirty form show one dialog: **Discard changes?** with **Keep editing** and **Discard changes**. Dismissing the dialog also keeps the form. Keep editing preserves all draft selections/text/date. Discard exits without writing.
+- **NAV-03:** Dirty means a change to unsaved form values compared with their initial values. Covers plant setup's optional watering/placement inputs, Check watering soil/outcome, soil-care action/date/context/notes edits, and partial assessment answers. Returning all fields to their initial state is clean. Completed advisory guidance is not an unsaved care record.
+- **NAV-04:** An in-flight save is not a discardable draft: wait for it to finish, showing saving feedback if Back is attempted. A successful save releases the guard and exits without a spurious discard dialog; failure preserves the draft and allows retry or confirmed discard. Guard repeated Back presses against duplicate prompts.
+- **NAV-05:** The guard does not roll back actions already saved immediately, such as next-check edits, Preferences, or detail placement acknowledgment. New nested routes preserve unfinished work beneath them. An invalid reminder must not forcibly pop dirty forms; show unavailable feedback in place in that case.
+
+Acceptance: toolbar/system Back, keep/discard/dismiss, clean/reverted state, save success/failure/in-flight handling, nested page return, no duplicate prompt, preserved draft underneath reminder navigation, and no accidental care records from leaving. Android predictive Back may not preview a pop while a dirty form is guarded; manual TalkBack and physical-gesture audit remains separate from automated checks.

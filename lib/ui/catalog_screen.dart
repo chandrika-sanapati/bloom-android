@@ -4,6 +4,7 @@ import '../domain/garden_store.dart';
 import '../domain/models.dart';
 import 'light_placement_section.dart';
 import 'widgets.dart';
+import 'discard_changes_guard.dart';
 
 class CatalogScreen extends StatelessWidget {
   const CatalogScreen({super.key, required this.store});
@@ -15,11 +16,7 @@ class CatalogScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add a plant'),
-        leading: TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
-        ),
-        leadingWidth: 96,
+        leading: const BackButton(),
       ),
       body: ListView.separated(
         padding: const EdgeInsets.all(20),
@@ -78,6 +75,7 @@ class _PlantSetupScreenState extends State<PlantSetupScreen> {
   bool _knowsLastWatered = false;
   bool _lightPlaced = false;
   bool _saving = false;
+  bool _saved = false;
   DateTime _lastWatered = DateTime.now();
 
   Future<void> _add() async {
@@ -107,6 +105,12 @@ class _PlantSetupScreenState extends State<PlantSetupScreen> {
       );
       return;
     }
+    setState(() {
+      _saved = true;
+      _saving = false;
+    });
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
     // Close setup and the catalog so the user lands back on Home.
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
@@ -114,85 +118,85 @@ class _PlantSetupScreenState extends State<PlantSetupScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Add ${widget.species.name}'),
-        leading: TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        leadingWidth: 96,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilledButton(
-              onPressed: _saving ? null : _add,
-              child: Text(_saving ? 'Adding…' : 'Add'),
-            ),
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text(widget.species.name, style: theme.textTheme.headlineSmall),
-          Text(
-            widget.species.scientific,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              fontStyle: FontStyle.italic,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Bloom will suggest when to check the soil. You decide whether the plant needs water.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Wrap(
-            spacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text('Last watered', style: theme.textTheme.titleSmall),
-              Text(
-                'Optional',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+    return DiscardChangesGuard(
+      hasChanges: !_saved && (_knowsLastWatered || _lightPlaced),
+      saving: _saving,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Add ${widget.species.name}'),
+          leading: const BackButton(),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilledButton(
+                onPressed: _saving ? null : _add,
+                child: Text(_saving ? 'Adding…' : 'Add'),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Card(
-            margin: EdgeInsets.zero,
-            child: Column(
+            ),
+          ],
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Text(widget.species.name, style: theme.textTheme.headlineSmall),
+            Text(
+              widget.species.scientific,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontStyle: FontStyle.italic,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Bloom will suggest when to check the soil. You decide whether the plant needs water.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Wrap(
+              spacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                SwitchListTile(
-                  title: const Text('I know the last watered date'),
-                  value: _knowsLastWatered,
-                  onChanged: (value) =>
-                      setState(() => _knowsLastWatered = value),
-                ),
-                if (_knowsLastWatered)
-                  ListTile(
-                    title: const Text('Date'),
-                    trailing: Text(formatDate(_lastWatered)),
-                    onTap: _pickLastWatered,
+                Text('Last watered', style: theme.textTheme.titleSmall),
+                Text(
+                  'Optional',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
+                ),
               ],
             ),
-          ),
-          const SizedBox(height: 24),
-          LightPlacementSection(
-            guidance: widget.species.light,
-            acknowledged: _lightPlaced,
-            onChanged: _saving
-                ? null
-                : (value) => setState(() => _lightPlaced = value),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Card(
+              margin: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  SwitchListTile(
+                    title: const Text('I know the last watered date'),
+                    value: _knowsLastWatered,
+                    onChanged: (value) =>
+                        setState(() => _knowsLastWatered = value),
+                  ),
+                  if (_knowsLastWatered)
+                    ListTile(
+                      title: const Text('Date'),
+                      trailing: Text(formatDate(_lastWatered)),
+                      onTap: _pickLastWatered,
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            LightPlacementSection(
+              guidance: widget.species.light,
+              acknowledged: _lightPlaced,
+              onChanged: _saving
+                  ? null
+                  : (value) => setState(() => _lightPlaced = value),
+            ),
+          ],
+        ),
       ),
     );
   }

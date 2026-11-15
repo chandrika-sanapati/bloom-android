@@ -30,8 +30,11 @@ The current app supports:
 - Material 3 light/dark themes using Android dynamic colors when available, with Bloom teal as the fallback.
 - Species-specific light/placement advice during setup and on plant detail.
 - Optional saved acknowledgment that the user placed the plant as suggested; watering dates stay unchanged.
+- On-demand Soil health checks, including drainage, plus separate or combined nutrient/mix-refresh/repotting records.
+- A dedicated Care timeline from each plant page, with soil-care correction/removal.
+- Native back arrows and confirmation before discarding unsaved form changes.
 
-Current limitations are tracked in [`docs/STATUS.md`](docs/STATUS.md). In particular, record-level deletion and support for arbitrary custom plants are not yet implemented.
+Current limitations are tracked in [`docs/STATUS.md`](docs/STATUS.md). In particular, watering-history correction and support for arbitrary custom plants are not yet implemented.
 
 ## Light & placement
 
@@ -95,14 +98,13 @@ The domain/widget suite covers watering, placement, reminder timing, and notific
 
 ## Product boundary
 
-Bloom is an assistant for remembering and recording plant checks. It does not diagnose disease, guarantee plant health, or claim that a date proves a plant needs water. Broader environmental assessments, nutrition, repotting, symptom guidance, additional plant profiles, and cloud sync remain roadmap items.
+Bloom is an assistant for remembering and recording plant checks. It does not diagnose disease, guarantee plant health, or claim that a date proves a plant needs water. Broader environmental assessments, chemistry/diagnosis, additional plant profiles, and cloud sync remain roadmap items. Soil health supports the on-demand care described below.
 
-## Product discussion: occasional care
+## Soil health, plant timeline, and Back navigation
 
-The sunlight presentation refinement is implemented under D44. Next refine on-demand need checks for **Adding nutrients**, then **Pot & soil**, with watering kept primary (D43). These two new care domains remain requirements discussion, not implemented features or approved recurring schedules. See [PRD section 16](docs/PRD.md#16-occasional-care--direction-under-discussion) and decision D41 in the product decision record.
+The app includes a separate **Soil health** section with three distinct, overlapping actions: **Adding nutrients**, **Refresh potting mix**, and **Repotting**. On-demand checks help users decide whether to act; watering remains primary and no automatic recurring soil-care schedule is approved. One combined record supports jobs involving multiple actions, with edit/remove available through the timeline.
 
-Light & placement is also occasional care after initial setup, with voluntary review and no recurring light prompts (D42). Setup keeps its fully visible optional guidance; detail now uses the compact, expandable presentation described below.
-
+The user subsequently requested implementation of Soil health, a dedicated per-plant Care timeline, and back arrows with unsaved-form discard confirmation. Drainage is confirmed inside the checks while retaining three actions. These features are implemented and verified; evidence is in STATUS.md; PRD sections 18–20 and D48–D49 define the release. See [PRD section 18](docs/PRD.md#18-soil-health--release-requirements), [D45–D47](docs/PRODUCT_DECISIONS.md#15-soil-health-requirements-decisions), [implementation plan section 11](docs/IMPLEMENTATION_PLAN.md#11-soil-health--documentation-and-implementation-plan-for-review), and STATUS.md for boundaries and open decisions.
 
 ## Compact sunlight guidance
 

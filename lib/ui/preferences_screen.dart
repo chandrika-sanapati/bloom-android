@@ -92,11 +92,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Preferences'),
-          leading: TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
-          ),
-          leadingWidth: 96,
+          leading: const BackButton(),
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),

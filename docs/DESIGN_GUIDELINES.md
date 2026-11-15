@@ -100,7 +100,7 @@ Do not add custom plant intervals, diagnosis, environmental inference, live weat
 
 ## Occasional care — direction under discussion
 
-Adding nutrients and Pot & soil should offer on-demand need checks with progressive disclosure, keeping watering the primary frequent task (D41 / PRD section 16). Do not expose a large mandatory setup form or default recurring care obligations. Exact entry points and question flows remain proposals for review. Recommend finishing the light presentation pattern before Adding nutrients, followed by Pot & soil (D43). Reading guidance or answering a question must not automatically record treatment or imply proven nutrient sufficiency.
+The Soil health release groups Adding nutrients, Refresh potting mix, and Repotting as three distinct, potentially overlapping actions with on-demand checks and progressive disclosure, keeping watering primary (D41/D45 / PRD section 18). Do not expose a large mandatory setup form or default recurring care obligations. D49 / PRD 18.11 define the implemented version-1 questions and early exits; later content changes require review. Reading guidance or answering a question must not automatically record treatment or imply proven nutrient sufficiency.
 
 Light & placement is also occasional care (D42). Initial guidance should help the user settle the plant; subsequent access is for voluntary review, without repeated relocation/confirmation prompts. Keep watering visually primary. The compact saved-state summary with expandable guidance is approved under D44 / PRD section 17. Preserve existing setup and acknowledgment semantics. Acknowledgment must not be presented as verified adequate light.
 
@@ -108,3 +108,24 @@ Light & placement is also occasional care (D42). Initial guidance should help th
 ## Approved compact light presentation
 
 Implemented and verified under D44 / PRD section 17: a collapsed Light & placement card on detail, showing the species requirement and a neutral report summary. Pending uses **Not recorded · Optional**; saved uses **You've placed it as suggested**; older versions use **Placement recorded for earlier advice**. Expand to see advice and the optional acknowledgment/correction control; preserve Material expansion semantics and wrapping at large text sizes. Setup continues to show full guidance. No Other care container or recurring light obligation is introduced. Earlier presentation-review gates are superseded for this scope.
+
+
+## Soil health — design contract
+
+Follow [PRD section 18](PRD.md#18-soil-health--release-requirements) and decisions D45–D47. Confirmed direction: a separate Soil health section, three distinct actions, overlap allowed, assessment-first help, and occasional use. D48–D49 / PRD 18–20 record the adopted UI/assessment/correction details; implementation and verification are recorded in STATUS.md.
+
+- Hierarchy: a compact Soil health section on plant detail below watering/light; no new setup requirement, Home obligation, health score, or overdue badge.
+- Disclose only the selected concern's relevant questions. Allow unknown and exit; show a brief reason/next step, including valid no-action or inspect-first outcomes. Advice must not look like a diagnosis or a completed action.
+- Use Adding nutrients, Refresh potting mix, and Repotting consistently. Combined recording allows explicit multi-selection in one save; do not preselect related actions or make the user log one job several times. Record only what happened.
+- Distinguish no history from no need; distinguish user-reported work from verified soil health. Keep product context optional at recording time and explain later uncertainty without forcing a detailed setup form.
+- Preserve readable labels, native selection semantics, large-text wrapping, Back, cancellation, save/retry, and clear result states. Do not introduce universal fertilizer/mix recipes in UI copy.
+- Drainage is included as an integrated optional condition check, not a fourth action. Aeration/compaction are related observations; pH/salts, environmental care, and pest diagnosis remain separate review/future topics. A simple drainage correction must not require an invented completed-care selection.
+
+
+## Approved Soil health, timeline, and Back navigation
+
+D48–D49 / PRD 18–20 supersede the earlier proposal-only gates for these features. Soil health remains compact and occasional; expand to choose one check or record work already done. Ask one question at a time, finish early when possible, and show concise no-action/uncertain/may-help guidance without a numeric health score. Drainage is integrated, not a fourth action. Keep three record actions unselected until the user chooses them; permit overlap in one job, with optional context disclosed only when relevant.
+
+Open Care timeline on a separate page from the plant. Show the plant name, newest-first recorded events, real date precision, and wrapped labels/context. Combined jobs appear once. The current light acknowledgment is explicitly a saved confirmation snapshot; old changes must not appear invented. Soil rows open correction; other records remain read-only. Full history does not crowd plant details.
+
+Use native back arrows for pages and normal nested routes. Dirty forms ask Discard changes? with Keep editing / Discard changes; dismiss keeps work. Do not pre-focus the destructive action. Native picker/dialog cancellation stays conventional. A pending save shows waiting feedback and cannot be discarded as though nothing committed. Success exits without another prompt. Preserve readable/announced states, touch targets, large-text wrapping, dark themes, and the parent navigation context.
