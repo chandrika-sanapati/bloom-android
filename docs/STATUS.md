@@ -11,7 +11,7 @@ This is the short, current implementation record. If it conflicts with an older 
 Latest pulled `main` was verified on the local Android 36 emulator (`emulator-5554`):
 
 - `flutter analyze`: passed with zero issues.
-- `flutter test`: **78 tests passed**, including latest-watering correction/recalculation, older-record protection, failed-save rollback, and later custom-date preservation.
+- `flutter test`: **79 tests passed**, including latest-watering correction/recalculation, older-record protection, failed-save rollback, later custom-date preservation, and notification no-burst safety.
 - Normal debug APK: built, installed, and launched as `com.chandrika.bloom`.
 - `integration_test/light_placement_test.dart`: **2 tests passed** using the isolated integration package.
 - `integration_test/care_timeline_test.dart`: **2 tests passed** using the isolated integration package, including latest watering-record deletion from the timeline.
@@ -20,6 +20,7 @@ Latest pulled `main` was verified on the local Android 36 emulator (`emulator-55
 - Dynamic color was detected from the emulator's Android system core palette.
 - The normal app was relaunched after testing; the working tree remained clean.
 - Latest-watering correction integration: the isolated Care timeline suite passed after the correction implementation; the normal APK rebuilt, installed, and relaunched successfully.
+- Protected correction coverage: older records remain read-only, later custom dates are preserved, failed deletion rolls back, and notification correction keeps one current request without an overdue burst.
 
 The repeatable commands require Flutter, Android platform-tools, and the Android Studio JDK on `PATH`. The repository helper assumes those tools are available as `flutter` and `adb`; on this laptop use the pinned Flutter and Android Studio JDK paths when necessary.
 

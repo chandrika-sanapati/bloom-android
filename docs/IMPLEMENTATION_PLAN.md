@@ -85,7 +85,7 @@ Do not add these to the watering baseline without a new product decision:
 
 ## 6. Definition of done for the next milestone
 
-- Focused automated domain/widget tests exist and pass. **Complete: 78 tests with latest-watering correction coverage.**
+- Focused automated domain/widget tests exist and pass. **Complete: 79 tests with correction and notification-safety coverage.**
 - The debug APK builds and launches on the supported Android emulator. **Complete.**
 - The core add → check → edit → relaunch journey is manually verified on Android. **Complete.**
 - Persistence failures do not replace the saved garden with an uncommitted state.

@@ -326,4 +326,69 @@ void main() {
       expect(notifications.status.value, contains('saved'));
     },
   );
+
+  test(
+    'latest watering correction keeps one current notification without a burst',
+    () async {
+      final client = FakeNotificationClient()..granted = true;
+      final notifications = WateringNotifications(
+        client: client,
+        timezone: () async => 'UTC',
+      );
+      final store = GardenStore(
+        garden: const Garden(),
+        persist: (_) async {},
+        onChanged: (next) => notifications.sync(
+          enabled: next.preferences.taskNotifications,
+          plants: next.plants,
+          schedules: next.schedules,
+          now: now,
+        ),
+      );
+      await store.addPlant(plant, now: now);
+      await store.setTaskNotifications(true);
+      await store.editNextCheck(plant.id, DateTime(2026, 11, 17, 9), now: now);
+      Future<void> syncCurrent() => notifications.sync(
+        enabled: true,
+        plants: store.garden.plants,
+        schedules: store.garden.schedules,
+        now: now,
+      );
+      await syncCurrent();
+      final record = await store.completeWateringCheck(
+        plantId: plant.id,
+        outcome: WateringOutcome.watered,
+        soil: Soil.damp,
+        now: DateTime(2026, 11, 16, 14),
+      );
+      final latest = await store.completeWateringCheck(
+        plantId: plant.id,
+        outcome: WateringOutcome.watered,
+        soil: Soil.damp,
+        now: DateTime(2026, 11, 20, 14),
+      );
+      expect(record, isNotNull);
+      expect(latest, isNotNull);
+      await syncCurrent();
+      expect(client.requests, hasLength(1));
+
+      final deleted = await store.deleteLatestWateringRecord(
+        plant.id,
+        latest!.id,
+        now: DateTime(2026, 11, 17, 10),
+      );
+
+      expect(deleted, isTrue);
+      await syncCurrent();
+      expect(client.requests, hasLength(1));
+      final payload = client.requests.values.single.payload;
+      final target = WateringNotificationTarget.parse(payload);
+      expect(target?.plantId, plant.id);
+      expect(target?.due, store.scheduleFor(plant.id)!.nextCheckAt.toUtc());
+      expect(
+        client.requests.values.where((r) => r.payload == payload),
+        hasLength(1),
+      );
+    },
+  );
 }

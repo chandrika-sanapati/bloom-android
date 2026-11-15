@@ -193,6 +193,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Watered'), findsNWidgets(2));
       expect(find.text('Refreshed potting mix'), findsOneWidget);
+      // Only the newest watering row exposes the correction affordance.
+      expect(
+        find.textContaining('Tap to delete this latest watering record'),
+        findsOneWidget,
+      );
 
       await tester.tap(
         find.textContaining('Tap to delete this latest watering record'),
