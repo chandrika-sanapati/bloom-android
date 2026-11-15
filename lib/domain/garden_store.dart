@@ -7,7 +7,11 @@ class GardenStore extends ChangeNotifier {
   GardenStore({
     required Garden garden,
     required this.persist,
+    this.onChanged,
   }) : _garden = garden;
+
+  /// Runs after each saved change, so reminders stay in step with the garden.
+  final Future<void> Function(Garden garden)? onChanged;
 
   Garden _garden;
   final Future<void> Function(Garden garden) persist;
@@ -173,6 +177,7 @@ class GardenStore extends ChangeNotifier {
     }
     _garden = next;
     notifyListeners();
+    await onChanged?.call(next);
     return true;
   }
 }

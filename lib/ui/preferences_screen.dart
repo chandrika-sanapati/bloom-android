@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 
+import '../data/watering_notifications.dart';
 import '../domain/garden_store.dart';
 
 class PreferencesScreen extends StatefulWidget {
-  const PreferencesScreen({super.key, required this.store});
+  const PreferencesScreen({
+    super.key,
+    required this.store,
+    required this.notifications,
+  });
 
   final GardenStore store;
+  final WateringNotifications notifications;
 
   @override
   State<PreferencesScreen> createState() => _PreferencesScreenState();
@@ -20,6 +26,15 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       _busy = true;
       _message = null;
     });
+    if (enabled && !await widget.notifications.requestPermission()) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _message =
+            'Notifications are off in Android settings. Your tasks stay in Bloom.';
+      });
+      return;
+    }
     final saved = await widget.store.setTaskNotifications(enabled);
     if (!mounted) return;
     setState(() {

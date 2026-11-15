@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/garden_repository.dart';
+import '../data/watering_notifications.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
 import 'catalog_screen.dart';
@@ -10,10 +11,16 @@ import 'preferences_screen.dart';
 import 'widgets.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.store, required this.flags});
+  const HomeScreen({
+    super.key,
+    required this.store,
+    required this.flags,
+    required this.notifications,
+  });
 
   final GardenStore store;
   final FirstRunFlags flags;
+  final WateringNotifications notifications;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -59,7 +66,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _openPreferences() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => PreferencesScreen(store: widget.store)),
+      MaterialPageRoute(
+        builder: (_) => PreferencesScreen(
+          store: widget.store,
+          notifications: widget.notifications,
+        ),
+      ),
     );
   }
 
