@@ -80,8 +80,10 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _fabOpen = false);
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            PhotoIdentificationScreen(identifier: widget.identifier),
+        builder: (_) => PhotoIdentificationScreen(
+          store: widget.store,
+          identifier: widget.identifier,
+        ),
       ),
     );
   }
