@@ -14,10 +14,7 @@ void main() {
   );
 
   GardenStore storeWith({Future<void> Function(Garden)? persist}) =>
-      GardenStore(
-        garden: const Garden(),
-        persist: persist ?? (_) async {},
-      );
+      GardenStore(garden: const Garden(), persist: persist ?? (_) async {});
 
   Future<GardenStore> storeWithPlant({
     Future<void> Function(Garden)? persist,

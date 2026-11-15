@@ -9,7 +9,7 @@ import '../domain/models.dart';
 /// Schedules one future reminder per plant: only future checks, never overdue bursts.
 class WateringNotifications {
   WateringNotifications({FlutterLocalNotificationsPlugin? plugin})
-      : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+    : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
   static const _channelId = 'watering_checks';
   static const _channelName = 'Watering checks';
@@ -34,16 +34,20 @@ class WateringNotifications {
   /// Asks for permission. Returns false if the user declines.
   Future<bool> requestPermission() async {
     await init();
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     final granted = await android?.requestNotificationsPermission() ?? false;
     return granted;
   }
 
   Future<bool> hasPermission() async {
     await init();
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     return await android?.areNotificationsEnabled() ?? false;
   }
 
@@ -54,40 +58,49 @@ class WateringNotifications {
     required List<WateringSchedule> schedules,
     DateTime? now,
   }) async {
-    await init();
-    final current = now ?? DateTime.now();
+    try {
+      await init();
+      final current = now ?? DateTime.now();
 
-    final pending = await _plugin.pendingNotificationRequests();
-    for (final request in pending) {
-      if (request.payload?.startsWith(_idPrefix) ?? false) {
-        await _plugin.cancel(id: request.id);
+      final pending = await _plugin.pendingNotificationRequests();
+      for (final request in pending) {
+        if (request.payload?.startsWith(_idPrefix) ?? false) {
+          await _plugin.cancel(id: request.id);
+        }
       }
-    }
-    if (!enabled) return;
+      if (!enabled) return;
 
-    final names = {for (final p in plants) p.id: p.name};
-    for (final schedule in schedules) {
-      if (!schedule.nextCheckAt.isAfter(current)) continue;
-      final name = names[schedule.plantId];
-      if (name == null) continue;
+      final names = {for (final p in plants) p.id: p.name};
+      for (final schedule in schedules) {
+        if (!schedule.nextCheckAt.isAfter(current)) continue;
+        final name = names[schedule.plantId];
+        if (name == null) continue;
 
-      await _plugin.zonedSchedule(
-        id: _notificationId(schedule.plantId),
-        title: 'Check watering',
-        body: "Check $name's soil before deciding whether to water.",
-        scheduledDate: tz.TZDateTime.from(schedule.nextCheckAt, tz.local),
-        notificationDetails: const NotificationDetails(
-          android: AndroidNotificationDetails(
-            _channelId,
-            _channelName,
-            channelDescription: 'Reminders when a plant is due for a soil check',
-            importance: Importance.high,
-            priority: Priority.high,
+        await _plugin.zonedSchedule(
+          id: _notificationId(schedule.plantId),
+          title: 'Check watering',
+          body: "Check $name's soil before deciding whether to water.",
+          scheduledDate: tz.TZDateTime.from(schedule.nextCheckAt, tz.local),
+          notificationDetails: const NotificationDetails(
+            android: AndroidNotificationDetails(
+              _channelId,
+              _channelName,
+              channelDescription:
+                  'Reminders when a plant is due for a soil check',
+              importance: Importance.high,
+              priority: Priority.high,
+            ),
           ),
-        ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        payload: '$_idPrefix${schedule.plantId}',
-      );
+          // Exact alarms require a special Android permission. Inexact alarms
+          // keep notifications optional and avoid blocking the core app when
+          // that permission is unavailable.
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          payload: '$_idPrefix${schedule.plantId}',
+        );
+      }
+    } catch (_) {
+      // Notification delivery is best effort. Garden changes and in-app
+      // watering tasks must remain available when Android rejects scheduling.
     }
   }
 

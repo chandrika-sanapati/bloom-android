@@ -24,6 +24,7 @@ This is the short, current implementation record. If it conflicts with an older 
 - Future next-check date/time editing.
 - Plant removal with schedule and record cleanup.
 - Optional future-only Android notifications and permission-denied messaging.
+- Notification setup and scheduling are best effort and cannot block app startup.
 - Focused domain tests for profiles, timing, watering transitions, editing, and failed persistence.
 
 ## Not implemented
@@ -33,6 +34,7 @@ This is the short, current implementation record. If it conflicts with an older 
 - A user-facing default reminder-time editor; the current default is 09:00.
 - Arbitrary custom/unlisted plant creation or schedule setup.
 - Notification tap deep-link routing to a specific check screen.
+- Exact delivery timing; Android may deliver inexact alarms within its allowed window.
 - Cloud sync, accounts, analytics, environmental checks, diagnosis, nutrition, repotting, or other care domains.
 
 ## Verification snapshot
@@ -44,6 +46,8 @@ This is the short, current implementation record. If it conflicts with an older 
 - `flutter test`: passed; 12 focused tests.
 - `flutter doctor -v`: Android toolchain, Android SDK, emulator, and network resources are available. Xcode/CocoaPods warnings are irrelevant to this Android target.
 - Android debug APK build: passed using Android Studio's JDK; output is `build/app/outputs/flutter-apk/app-debug.apk`.
+- Emulator smoke check: initial launch exposed exact-alarm permission failure; notification scheduling was changed to inexact, best-effort delivery so the app can start without special-alarm access.
+- Clean emulator smoke flow passed: empty Home → add Snake Plant → Watered → verify Last watered/next check → edit next check to December 15 → force-stop/relaunch → verify the edited date persisted.
 
 ## Current source map
 

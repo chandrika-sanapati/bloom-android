@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'data/garden_repository.dart';
@@ -19,12 +21,20 @@ Future<void> main() async {
       schedules: next.schedules,
     ),
   );
-  await notifications.sync(
-    enabled: garden.preferences.taskNotifications,
-    plants: garden.plants,
-    schedules: garden.schedules,
+  runApp(
+    BloomApp(
+      store: store,
+      flags: FirstRunFlags(),
+      notifications: notifications,
+    ),
   );
-  runApp(BloomApp(store: store, flags: FirstRunFlags(), notifications: notifications));
+  unawaited(
+    notifications.sync(
+      enabled: garden.preferences.taskNotifications,
+      plants: garden.plants,
+      schedules: garden.schedules,
+    ),
+  );
 }
 
 class BloomApp extends StatelessWidget {
@@ -48,7 +58,11 @@ class BloomApp extends StatelessWidget {
         colorSchemeSeed: const Color(0xFF007A73),
         useMaterial3: true,
       ),
-      home: HomeScreen(store: store, flags: flags, notifications: notifications),
+      home: HomeScreen(
+        store: store,
+        flags: flags,
+        notifications: notifications,
+      ),
     );
   }
 }
