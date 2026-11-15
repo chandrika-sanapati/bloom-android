@@ -28,7 +28,8 @@ class GardenRepository {
     final file = await _resolveFile();
     if (!await file.exists()) return const Garden();
     try {
-      final json = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      final json =
+          jsonDecode(await file.readAsString()) as Map<String, dynamic>;
       return Garden.fromJson(json);
     } catch (_) {
       return const Garden();

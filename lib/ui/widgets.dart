@@ -25,7 +25,9 @@ class BloomTitle extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           'Bloom',
-          style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ],
     );
@@ -93,7 +95,9 @@ class PlantCard extends StatelessWidget {
     if (current == null) {
       return Text(
         'Schedule unavailable',
-        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
       );
     }
     final timing = CareTaskTiming.classify(current.nextCheckAt);
@@ -105,7 +109,9 @@ class PlantCard extends StatelessWidget {
       text,
       style: theme.textTheme.labelMedium?.copyWith(
         fontWeight: FontWeight.w600,
-        color: overdue ? Colors.orange.shade800 : theme.colorScheme.onSurfaceVariant,
+        color: overdue
+            ? Colors.orange.shade800
+            : theme.colorScheme.onSurfaceVariant,
       ),
     );
   }
@@ -146,7 +152,9 @@ class TaskRow extends StatelessWidget {
             Text(
               formatMonthDay(schedule.nextCheckAt),
               style: theme.textTheme.labelLarge?.copyWith(
-                color: overdue ? Colors.orange.shade800 : theme.colorScheme.onSurfaceVariant,
+                color: overdue
+                    ? Colors.orange.shade800
+                    : theme.colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(width: 4),
@@ -172,7 +180,9 @@ class HistoryRow extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
       leading: Icon(
         watered ? Icons.water_drop : Icons.visibility_outlined,
-        color: watered ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+        color: watered
+            ? theme.colorScheme.primary
+            : theme.colorScheme.onSurfaceVariant,
       ),
       title: Text(record.outcome.label),
       subtitle: Text(
@@ -192,7 +202,11 @@ class HistoryRow extends StatelessWidget {
 }
 
 class EmptyActivityCard extends StatelessWidget {
-  const EmptyActivityCard({super.key, required this.title, required this.detail});
+  const EmptyActivityCard({
+    super.key,
+    required this.title,
+    required this.detail,
+  });
 
   final String title;
   final String detail;
@@ -232,7 +246,9 @@ Future<void> pickNextCheck(
   if (schedule == null) return;
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
-  final current = schedule.nextCheckAt.isBefore(now) ? now : schedule.nextCheckAt;
+  final current = schedule.nextCheckAt.isBefore(now)
+      ? now
+      : schedule.nextCheckAt;
 
   final date = await showDatePicker(
     context: context,
@@ -248,7 +264,13 @@ Future<void> pickNextCheck(
   );
   if (time == null || !context.mounted) return;
 
-  final chosen = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+  final chosen = DateTime(
+    date.year,
+    date.month,
+    date.day,
+    time.hour,
+    time.minute,
+  );
   final saved = await store.editNextCheck(plantId, chosen);
   if (!saved && context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(

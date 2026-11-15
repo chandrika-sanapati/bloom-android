@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../domain/plant_identification.dart';
 
@@ -25,8 +26,8 @@ class PlantIdentificationException implements Exception {
 class SupabasePlantIdentifier implements PlantIdentifier {
   // Keep the public endpoint parameter while retaining a private client seam.
   SupabasePlantIdentifier({required Uri endpoint, http.Client? client})
-      // ignore: prefer_initializing_formals
-      : _endpoint = endpoint,
+    // ignore: prefer_initializing_formals
+    : _endpoint = endpoint,
       _client = client ?? http.Client();
 
   final Uri _endpoint;
@@ -44,8 +45,9 @@ class SupabasePlantIdentifier implements PlantIdentifier {
     }
 
     final request = http.MultipartRequest('POST', _endpoint);
-    if (accessToken != null && accessToken.isNotEmpty) {
-      request.headers['Authorization'] = 'Bearer $accessToken';
+    final token = accessToken ?? _currentAccessToken();
+    if (token != null && token.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $token';
     }
     for (final photo in photos) {
       request.files.add(
@@ -103,6 +105,14 @@ class SupabasePlantIdentifier implements PlantIdentifier {
       gbifId: gbif is Map ? gbif['id']?.toString() : null,
       powoId: powo is Map ? powo['id']?.toString() : null,
     );
+  }
+
+  String? _currentAccessToken() {
+    try {
+      return Supabase.instance.client.auth.currentSession?.accessToken;
+    } catch (_) {
+      return null;
+    }
   }
 }
 
