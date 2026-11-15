@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:bloom/data/garden_repository.dart';
 import 'package:bloom/domain/garden_store.dart';
 import 'package:bloom/domain/models.dart';
+import 'package:bloom/domain/soil_care.dart';
 import 'package:bloom/ui/plant_detail_screen.dart';
 import 'package:bloom/ui/plant_timeline_screen.dart';
 import 'package:bloom/ui/soil_care_screen.dart';
@@ -132,6 +133,91 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(PlantDetailScreen), findsOneWidget);
       expect(store.garden.records, hasLength(1));
+      await file.delete();
+    },
+  );
+
+  testWidgets(
+    'deletes only the latest watering record and preserves soil care',
+    (tester) async {
+      final directory = await getTemporaryDirectory();
+      final file = File('${directory.path}/bloom-watering-correction.json');
+      if (await file.exists()) await file.delete();
+      final repository = GardenRepository(file: file);
+      final store = GardenStore(
+        garden: const Garden(),
+        persist: repository.save,
+      );
+      final now = DateTime(2026, 11, 15, 10);
+      final species = PlantSpecies.catalog.last;
+      final plant = Plant(
+        id: 'correction-plant',
+        name: 'Correction test Pothos',
+        species: species.scientific,
+        asset: species.asset,
+      );
+      await store.addPlant(plant, now: now);
+      final first = await store.completeWateringCheck(
+        plantId: plant.id,
+        outcome: WateringOutcome.watered,
+        soil: Soil.damp,
+        now: DateTime(2026, 11, 16, 14),
+      );
+      final latest = await store.completeWateringCheck(
+        plantId: plant.id,
+        outcome: WateringOutcome.watered,
+        soil: Soil.damp,
+        now: DateTime(2026, 12, 1, 14),
+      );
+      expect(first, isNotNull);
+      expect(latest, isNotNull);
+      await store.saveSoilCare(
+        SoilCareEvent(
+          id: 'correction-soil',
+          plantId: plant.id,
+          occurredOn: DateTime(2026, 11, 14),
+          recordedAt: DateTime(2026, 11, 14, 12),
+          actions: {SoilCareAction.mixRefreshed},
+        ),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(
+            colorSchemeSeed: const Color(0xFF007A73),
+            useMaterial3: true,
+          ),
+          home: PlantTimelineScreen(store: store, plantId: plant.id),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Watered'), findsNWidgets(2));
+      expect(find.text('Refreshed potting mix'), findsOneWidget);
+
+      await tester.tap(
+        find.textContaining('Tap to delete this latest watering record'),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('Delete this latest watering record?'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Delete record'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Watered'), findsOneWidget);
+      expect(find.text('Refreshed potting mix'), findsOneWidget);
+      expect(store.recordsFor(plant.id), hasLength(1));
+      expect(store.recordsFor(plant.id).single.id, first!.id);
+      expect(store.lastWatered(plant.id), first.recordedAt);
+      expect(
+        store.scheduleFor(plant.id)!.nextCheckAt,
+        DateTime(2026, 11, 30, 9),
+      );
+      final reloaded = await repository.load();
+      expect(reloaded.records, hasLength(1));
+      expect(reloaded.soilCare, hasLength(1));
+      expect(reloaded.soilCare.single.id, 'correction-soil');
       await file.delete();
     },
   );

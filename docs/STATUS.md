@@ -14,7 +14,7 @@ Latest pulled `main` was verified on the local Android 36 emulator (`emulator-55
 - `flutter test`: **78 tests passed**, including latest-watering correction/recalculation, older-record protection, failed-save rollback, and later custom-date preservation.
 - Normal debug APK: built, installed, and launched as `com.chandrika.bloom`.
 - `integration_test/light_placement_test.dart`: **2 tests passed** using the isolated integration package.
-- `integration_test/care_timeline_test.dart`: **1 test passed** using the isolated integration package.
+- `integration_test/care_timeline_test.dart`: **2 tests passed** using the isolated integration package, including latest watering-record deletion from the timeline.
 - `integration_test/reminders_test.dart`: **1 test passed**, including foreground/background notification intents and stale/deleted fallbacks.
 - `tool/check_notification_launch.py`: **4 native cold-launch drawer-tap cases passed** for current, legacy, malformed, and deleted payloads; no garden records were created.
 - Dynamic color was detected from the emulator's Android system core palette.
