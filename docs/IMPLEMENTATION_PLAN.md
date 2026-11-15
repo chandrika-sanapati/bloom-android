@@ -1,6 +1,6 @@
 # Bloom Android implementation plan
 
-**Status:** Watering, Light & placement, reminder preferences/navigation, Soil health, Care timeline, guarded Back, and dynamic theming are implemented. Latest verification is recorded in STATUS.md; only manual OS/accessibility checks and future correction scope remain.
+**Status:** Watering, Light & placement, reminder preferences/navigation, Soil health, Care timeline, guarded Back, dynamic theming, and latest-watering correction are implemented. Latest verification is recorded in STATUS.md; only manual OS/accessibility checks and future Undo scope remain.
 **Platform:** Flutter Android.
 **Source of truth:** [`STATUS.md`](STATUS.md) for shipped behavior; [`PRD.md`](PRD.md) for product intent and scope.
 **Last updated:** 15 November 2026
@@ -71,7 +71,7 @@ Bloom should make the next watering check clearer, faster, and more trustworthy.
 - Review TalkBack labels, selected states, disabled Save, errors, destructive confirmation, and the new Edit next check action.
 - Review large Android font sizes, narrow widths, dark theme behavior, and system animation settings.
 - Verify long-idle/OEM notification delivery and permission re-enable behavior.
-- Decide whether record-level deletion/Undo belongs in the next release; it is not currently implemented despite older product notes mentioning it.
+- Immediate Undo for the latest watering correction remains future scope; arbitrary historical deletion remains out of scope.
 
 ## 5. Deliberately deferred
 
@@ -85,7 +85,7 @@ Do not add these to the watering baseline without a new product decision:
 
 ## 6. Definition of done for the next milestone
 
-- Focused automated domain/widget tests exist and pass. **Complete: 74 tests on latest pulled main.**
+- Focused automated domain/widget tests exist and pass. **Complete: 78 tests with latest-watering correction coverage.**
 - The debug APK builds and launches on the supported Android emulator. **Complete.**
 - The core add → check → edit → relaunch journey is manually verified on Android. **Complete.**
 - Persistence failures do not replace the saved garden with an uncommitted state.

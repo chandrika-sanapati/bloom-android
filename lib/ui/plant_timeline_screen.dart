@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../domain/garden_store.dart';
+import '../domain/models.dart';
 import '../domain/plant_activity.dart';
 import 'soil_care_screen.dart';
 import 'widgets.dart';
@@ -18,6 +19,10 @@ class PlantTimelineScreen extends StatelessWidget {
     builder: (context, _) {
       final plant = store.plant(plantId);
       final entries = PlantActivity.forPlant(store.garden, plantId);
+      final wateringRecords = store.recordsFor(plantId);
+      final latestWateringId = wateringRecords.isEmpty
+          ? null
+          : wateringRecords.first.id;
       return Scaffold(
         appBar: AppBar(title: const Text('Care timeline')),
         body: plant == null
@@ -58,6 +63,8 @@ class PlantTimelineScreen extends StatelessWidget {
                     );
                   }
                   final entry = entries[index - 1];
+                  final isLatestWatering =
+                      entry.watering?.id == latestWateringId;
                   final (title, detail, icon) = switch (entry.kind) {
                     PlantActivityKind.watered => (
                       'Watered',
@@ -116,13 +123,16 @@ class PlantTimelineScreen extends StatelessWidget {
                                   : '$date · $time',
                             ),
                             const SizedBox(height: 8),
-                            Text(detail),
+                            Text(
+                              entry.watering != null && isLatestWatering
+                                  ? '$detail\nTap to delete this latest watering record.'
+                                  : detail,
+                            ),
                           ],
                         ),
                       ),
-                      onTap: entry.soilCare == null
-                          ? null
-                          : () => Navigator.of(context).push(
+                      onTap: entry.soilCare != null
+                          ? () => Navigator.of(context).push(
                               MaterialPageRoute<void>(
                                 builder: (_) => SoilCareScreen(
                                   store: store,
@@ -130,12 +140,55 @@ class PlantTimelineScreen extends StatelessWidget {
                                   event: entry.soilCare,
                                 ),
                               ),
-                            ),
+                            )
+                          : entry.watering?.id == latestWateringId
+                          ? () => _confirmDeleteLatestWatering(
+                              context,
+                              store,
+                              plantId,
+                              entry.watering!,
+                            )
+                          : null,
                     ),
                   );
                 },
               ),
       );
     },
+  );
+}
+
+Future<void> _confirmDeleteLatestWatering(
+  BuildContext context,
+  GardenStore store,
+  String plantId,
+  WateringRecord record,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text('${record.outcome.label} record'),
+      content: const Text(
+        'Delete this latest watering record? Last watered and the next check '
+        'may change. A later custom next-check edit is preserved. Soil-care '
+        'records are not affected. This cannot be undone.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: const Text('Delete record'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+  final deleted = await store.deleteLatestWateringRecord(plantId, record.id);
+  if (!context.mounted || deleted) return;
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text("The record couldn't be deleted.")),
   );
 }

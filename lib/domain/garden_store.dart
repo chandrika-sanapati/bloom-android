@@ -64,6 +64,11 @@ class GardenStore extends ChangeNotifier {
     DateTime? now,
   }) => _serial(() => _setLightPlacementAcknowledged(id, value, now: now));
   Future<bool> deletePlant(String id) => _serial(() => _deletePlant(id));
+  Future<bool> deleteLatestWateringRecord(
+    String plantId,
+    String recordId, {
+    DateTime? now,
+  }) => _serial(() => _deleteLatestWateringRecord(plantId, recordId, now: now));
   Future<bool> editNextCheck(String id, DateTime value, {DateTime? now}) =>
       _serial(() => _editNextCheck(id, value, now: now));
   Future<WateringRecord?> completeWateringCheck({
@@ -252,6 +257,48 @@ class GardenStore extends ChangeNotifier {
     ),
   );
 
+  Future<bool> _deleteLatestWateringRecord(
+    String plantId,
+    String recordId, {
+    DateTime? now,
+  }) async {
+    final schedule = scheduleFor(plantId);
+    final records = recordsFor(plantId);
+    if (schedule == null || records.isEmpty || records.first.id != recordId) {
+      return false;
+    }
+
+    // A later explicit next-check edit is a separate user decision. Do not
+    // silently replace it while correcting an older watering record.
+    final preserveLaterEdit =
+        schedule.timeSource == CheckTimeSource.custom &&
+        schedule.updatedAt.isAfter(records.first.recordedAt);
+    final remaining = _garden.records
+        .where((record) => record.id != recordId)
+        .toList();
+    final nextSchedule = preserveLaterEdit
+        ? schedule
+        : schedule.copyWith(
+            nextCheckAt: _nextCheckAfterWateringRecord(
+              remaining.where((record) => record.plantId == plantId).toList()
+                ..sort((a, b) => b.recordedAt.compareTo(a.recordedAt)),
+              schedule,
+            ),
+            updatedAt: now ?? DateTime.now(),
+            timeSource: CheckTimeSource.preference,
+          );
+
+    return _commit(
+      _garden.copyWith(
+        records: remaining,
+        schedules: [
+          for (final item in _garden.schedules)
+            if (item.plantId == plantId) nextSchedule else item,
+        ],
+      ),
+    );
+  }
+
   Future<bool> _editNextCheck(String plantId, DateTime date, {DateTime? now}) {
     final current = now ?? DateTime.now();
     final schedule = scheduleFor(plantId);
@@ -393,6 +440,34 @@ class GardenStore extends ChangeNotifier {
       );
     }
     return reminderOnDay(now, hour, minute);
+  }
+
+  DateTime _nextCheckAfterWateringRecord(
+    List<WateringRecord> records,
+    WateringSchedule schedule,
+  ) {
+    if (records.isEmpty) {
+      return reminderOnDay(
+        schedule.createdAt,
+        _garden.preferences.reminderHour,
+        _garden.preferences.reminderMinute,
+      );
+    }
+    final record = records.first;
+    final followUpDays =
+        record.outcome == WateringOutcome.checkedNotWatered &&
+            record.soil == Soil.dry
+        ? WateringFollowUp.defaultDays
+        : schedule.intervalDays;
+    return reminderOnDay(
+      DateTime.utc(
+        record.recordedAt.year,
+        record.recordedAt.month,
+        record.recordedAt.day + followUpDays,
+      ),
+      _garden.preferences.reminderHour,
+      _garden.preferences.reminderMinute,
+    );
   }
 
   Future<bool> _commit(Garden next, {bool syncNotifications = true}) async {

@@ -183,6 +183,128 @@ void main() {
       expect(saved, isFalse);
       expect(store.scheduleFor('plant-1')?.nextCheckAt, original);
     });
+
+    test(
+      'deletes only the latest watering record and recalculates state',
+      () async {
+        final store = await storeWithPlant();
+        final first = await store.completeWateringCheck(
+          plantId: 'plant-1',
+          outcome: WateringOutcome.watered,
+          soil: Soil.damp,
+          now: DateTime(2026, 11, 16, 14),
+        );
+        final second = await store.completeWateringCheck(
+          plantId: 'plant-1',
+          outcome: WateringOutcome.checkedNotWatered,
+          soil: Soil.dry,
+          now: DateTime(2026, 11, 20, 14),
+        );
+
+        expect(first, isNotNull);
+        expect(second, isNotNull);
+        final deleted = await store.deleteLatestWateringRecord(
+          'plant-1',
+          second!.id,
+          now: DateTime(2026, 11, 21, 10),
+        );
+
+        expect(deleted, isTrue);
+        expect(store.recordsFor('plant-1'), hasLength(1));
+        expect(store.recordsFor('plant-1').single.id, first!.id);
+        expect(store.lastWatered('plant-1'), first.recordedAt);
+        expect(
+          store.scheduleFor('plant-1')?.nextCheckAt,
+          DateTime(2026, 11, 30, 9),
+        );
+      },
+    );
+
+    test('refuses to delete an older watering record', () async {
+      final store = await storeWithPlant();
+      final first = await store.completeWateringCheck(
+        plantId: 'plant-1',
+        outcome: WateringOutcome.watered,
+        soil: Soil.damp,
+        now: DateTime(2026, 11, 16, 14),
+      );
+      await store.completeWateringCheck(
+        plantId: 'plant-1',
+        outcome: WateringOutcome.watered,
+        soil: Soil.damp,
+        now: DateTime(2026, 11, 20, 14),
+      );
+      final before = store.garden.toJson();
+
+      final deleted = await store.deleteLatestWateringRecord(
+        'plant-1',
+        first!.id,
+      );
+
+      expect(deleted, isFalse);
+      expect(store.garden.toJson(), before);
+    });
+
+    test(
+      'failed watering-record deletion leaves the garden unchanged',
+      () async {
+        var shouldFail = false;
+        final store = await storeWithPlant(
+          persist: (_) async {
+            if (shouldFail) throw StateError('disk full');
+          },
+        );
+        final record = await store.completeWateringCheck(
+          plantId: 'plant-1',
+          outcome: WateringOutcome.watered,
+          soil: Soil.damp,
+          now: DateTime(2026, 11, 16, 14),
+        );
+        final before = store.garden.toJson();
+        shouldFail = true;
+
+        final deleted = await store.deleteLatestWateringRecord(
+          'plant-1',
+          record!.id,
+        );
+
+        expect(deleted, isFalse);
+        expect(store.garden.toJson(), before);
+      },
+    );
+
+    test(
+      'watering-record correction preserves a later custom next check',
+      () async {
+        final store = await storeWithPlant();
+        final record = await store.completeWateringCheck(
+          plantId: 'plant-1',
+          outcome: WateringOutcome.watered,
+          soil: Soil.damp,
+          now: DateTime(2026, 11, 16, 14),
+        );
+        final custom = DateTime(2026, 12, 15, 16, 30);
+        await store.editNextCheck(
+          'plant-1',
+          custom,
+          now: DateTime(2026, 11, 17),
+        );
+
+        final deleted = await store.deleteLatestWateringRecord(
+          'plant-1',
+          record!.id,
+          now: DateTime(2026, 11, 18),
+        );
+
+        expect(deleted, isTrue);
+        expect(store.garden.records, isEmpty);
+        expect(store.scheduleFor('plant-1')?.nextCheckAt, custom);
+        expect(
+          store.scheduleFor('plant-1')?.timeSource,
+          CheckTimeSource.custom,
+        );
+      },
+    );
   });
 
   group('persistence boundary', () {
