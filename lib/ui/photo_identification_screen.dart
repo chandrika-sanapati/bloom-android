@@ -4,12 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../data/plant_identifier.dart';
+import '../domain/garden_store.dart';
 import '../domain/plant_identification.dart';
+import '../domain/models.dart';
+import 'catalog_screen.dart';
 
 class PhotoIdentificationScreen extends StatefulWidget {
-  const PhotoIdentificationScreen({super.key, this.identifier});
+  const PhotoIdentificationScreen({
+    super.key,
+    required this.store,
+    this.identifier,
+  });
 
   final PlantIdentifier? identifier;
+  final GardenStore store;
 
   @override
   State<PhotoIdentificationScreen> createState() =>
@@ -20,6 +28,7 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
   final _picker = ImagePicker();
   XFile? _photo;
   PlantIdentificationResult? _result;
+  PlantCandidate? _selected;
   bool _identifying = false;
   String? _message;
 
@@ -34,6 +43,7 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
       setState(() {
         _photo = photo;
         _result = null;
+        _selected = null;
         _message = null;
       });
     } catch (_) {
@@ -180,11 +190,20 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
                   Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
+                      selected: identical(candidate, _selected),
+                      onTap: () => setState(() => _selected = candidate),
                       title: Text(candidate.displayName),
                       subtitle: Text(candidate.scientificName),
                       trailing: Text('${(candidate.score * 100).round()}%'),
                     ),
                   ),
+              if (_selected case final selected?) ...[
+                const SizedBox(height: 12),
+                FilledButton(
+                  onPressed: () => _useCandidate(context, selected),
+                  child: const Text('Use this plant'),
+                ),
+              ],
               Text(
                 'These are possible matches, not a diagnosis. Confirm a plant before adding it.',
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -219,6 +238,37 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _useCandidate(BuildContext context, PlantCandidate candidate) {
+    final species = PlantSpecies.forScientificName(candidate.scientificName);
+    if (species == null) {
+      showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Profile not reviewed yet'),
+          content: Text(
+            '${candidate.displayName} can be saved as an identity, but Bloom '
+            'does not have reviewed watering guidance for it yet.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PlantSetupScreen(
+          store: widget.store,
+          species: species,
+        ),
       ),
     );
   }

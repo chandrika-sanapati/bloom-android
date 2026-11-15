@@ -438,6 +438,14 @@ class PlantSpecies {
     }
     return null;
   }
+
+  static PlantSpecies? forScientificName(String scientific) {
+    final normalized = scientific.trim().toLowerCase();
+    for (final species in catalog) {
+      if (species.scientific.toLowerCase() == normalized) return species;
+    }
+    return null;
+  }
 }
 
 /// Dry-soil follow-up window used by the current watering baseline.
