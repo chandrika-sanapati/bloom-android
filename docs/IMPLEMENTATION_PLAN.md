@@ -1,6 +1,6 @@
 # Bloom Android implementation plan
 
-**Status:** Watering, Light & placement, reminder preferences/navigation, Soil health, Care timeline, guarded Back, dynamic theming, and latest-watering correction/Undo are implemented. Latest verification is recorded in STATUS.md; only manual OS/accessibility checks and broader historical editing remain.
+**Status:** Watering, Light & placement, reminder preferences/navigation, permission recovery, Soil health, Care timeline, guarded Back, dynamic theming, and latest-watering correction/Undo are implemented. Latest verification is recorded in STATUS.md; only manual OS/accessibility checks and broader historical editing remain.
 **Platform:** Flutter Android.
 **Source of truth:** [`STATUS.md`](STATUS.md) for shipped behavior; [`PRD.md`](PRD.md) for product intent and scope.
 **Last updated:** 15 November 2026
@@ -85,7 +85,7 @@ Do not add these to the watering baseline without a new product decision:
 
 ## 6. Definition of done for the next milestone
 
-- Focused automated domain/widget tests exist and pass. **Complete: 80 tests with correction, Undo, and notification-safety coverage.**
+- Focused automated domain/widget tests exist and pass. **Complete: 81 tests with correction, Undo, notification-safety, and permission-recovery coverage.**
 - The debug APK builds and launches on the supported Android emulator. **Complete.**
 - The core add → check → edit → relaunch journey is manually verified on Android. **Complete.**
 - Persistence failures do not replace the saved garden with an uncommitted state.

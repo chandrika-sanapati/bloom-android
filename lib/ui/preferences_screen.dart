@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../data/watering_notifications.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
@@ -15,9 +18,30 @@ class PreferencesScreen extends StatefulWidget {
   State<PreferencesScreen> createState() => _PreferencesScreenState();
 }
 
-class _PreferencesScreenState extends State<PreferencesScreen> {
+class _PreferencesScreenState extends State<PreferencesScreen>
+    with WidgetsBindingObserver {
   bool _busy = false;
   String? _message;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(widget.notifications.refreshPermission());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(widget.notifications.refreshPermission());
+    }
+  }
 
   Future<void> _update(bool enabled) async {
     setState(() {
@@ -67,6 +91,16 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
           ? null
           : "Your reminder time couldn't be saved. Try again.";
     });
+  }
+
+  Future<void> _openNotificationSettings() async {
+    final opened = await launchUrl(Uri.parse('app-settings:'));
+    if (!opened && mounted) {
+      setState(() {
+        _message =
+            "Android settings couldn't be opened. You can enable notifications in the app's system settings.";
+      });
+    }
   }
 
   @override
@@ -142,6 +176,36 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
               const SizedBox(height: 8),
               const Text(
                 'Turn on watering notifications to receive reminders.',
+              ),
+            ],
+            if (preferences.taskNotifications &&
+                widget.notifications.permissionGranted.value == false) ...[
+              const SizedBox(height: 16),
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Android notifications are off',
+                        style: theme.textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Your watering checks remain available in Bloom. '
+                        'Allow notifications in Android settings to receive reminders.',
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: _busy ? null : _openNotificationSettings,
+                        icon: const Icon(Icons.settings_outlined),
+                        label: const Text('Open Android settings'),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
             if (_message ?? widget.notifications.status.value

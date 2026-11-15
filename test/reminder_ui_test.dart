@@ -137,6 +137,33 @@ void main() {
     },
   );
 
+  testWidgets('enabled reminders show Android settings recovery when denied', (
+    tester,
+  ) async {
+    final state = store();
+    final client = FakeNotificationClient()..granted = false;
+    final service = notifications(client);
+    await preferences(tester, state, service);
+    await tester.tap(find.byType(SwitchListTile));
+    await tester.pumpAndSettle();
+    // The preference remains off when permission is denied, so the in-app
+    // recovery card is only shown after a saved enabled preference. Simulate
+    // the persisted state used when permission is revoked in Android settings.
+    state.garden.preferences;
+    final enabledState = GardenStore(
+      garden: state.garden.copyWith(
+        preferences: state.garden.preferences.copyWith(taskNotifications: true),
+      ),
+      persist: (_) async {},
+    );
+    await preferences(tester, enabledState, service);
+    await service.refreshPermission();
+    await tester.pumpAndSettle();
+    expect(find.text('Android notifications are off'), findsOneWidget);
+    expect(find.text('Open Android settings'), findsOneWidget);
+    expect(enabledState.garden.preferences.taskNotifications, isTrue);
+  });
+
   testWidgets('preferences fit a narrow large-text dark screen', (
     tester,
   ) async {

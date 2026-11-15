@@ -11,7 +11,7 @@ This is the short, current implementation record. If it conflicts with an older 
 Latest pulled `main` was verified on the local Android 36 emulator (`emulator-5554`):
 
 - `flutter analyze`: passed with zero issues.
-- `flutter test`: **80 tests passed**, including latest-watering correction/recalculation, older-record protection, failed-save rollback, later custom-date preservation, notification no-burst safety, and Undo invalidation.
+- `flutter test`: **81 tests passed**, including latest-watering correction/recalculation, older-record protection, failed-save rollback, later custom-date preservation, notification no-burst safety, Undo invalidation, and denied-permission recovery UI.
 - Normal debug APK: built, installed, and launched as `com.chandrika.bloom`.
 - `integration_test/light_placement_test.dart`: **2 tests passed** using the isolated integration package.
 - `integration_test/care_timeline_test.dart`: **2 tests passed** using the isolated integration package, including latest watering-record deletion and Snackbar Undo from the timeline.
@@ -21,6 +21,7 @@ Latest pulled `main` was verified on the local Android 36 emulator (`emulator-55
 - The normal app was relaunched after testing; the working tree remained clean.
 - Latest-watering correction integration: the isolated Care timeline suite passed after the correction implementation; the normal APK rebuilt, installed, and relaunched successfully.
 - Protected correction coverage: older records remain read-only, later custom dates are preserved, failed deletion rolls back, and notification correction keeps one current request without an overdue burst.
+- Permission recovery coverage: enabled-but-denied reminders show an Android settings action, reminder time remains available, and permission state refreshes when Preferences resumes.
 
 The repeatable commands require Flutter, Android platform-tools, and the Android Studio JDK on `PATH`. The repository helper assumes those tools are available as `flutter` and `adb`; on this laptop use the pinned Flutter and Android Studio JDK paths when necessary.
 
@@ -51,6 +52,7 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 ## Not implemented
 
 - Latest watering-record deletion/correction and immediate Undo are implemented from the Care timeline. Undo is valid until another saved garden change occurs.
+- Notification permission recovery is implemented: Preferences shows an Android settings action for an enabled-but-denied state and refreshes permission when returning from settings.
 - Adjustable dry follow-up window; the current implementation uses three days.
 - Arbitrary custom/unlisted plant creation or schedule setup.
 - Exact delivery timing; Android may deliver inexact alarms within its allowed window.

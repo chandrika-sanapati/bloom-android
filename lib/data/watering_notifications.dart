@@ -154,6 +154,7 @@ class WateringNotifications {
 
   Future<bool> requestPermission() => _permission(request: true);
   Future<bool> hasPermission() => _permission();
+  Future<bool> refreshPermission() => hasPermission();
   Future<bool> _permission({bool request = false}) async {
     await init();
     try {

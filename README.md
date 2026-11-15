@@ -27,6 +27,7 @@ The current app supports:
 - Local JSON persistence and optional future-check notifications.
 - Android notification permission handling that leaves in-app tasks available when permission is denied.
 - Notifications use best-effort inexact Android scheduling and never block app startup.
+- Denied notification permission is recoverable from Preferences through Android settings; in-app checks remain available.
 - Material 3 light/dark themes using Android dynamic colors when available, with Bloom teal as the fallback.
 - Species-specific light/placement advice during setup and on plant detail.
 - Optional saved acknowledgment that the user placed the plant as suggested; watering dates stay unchanged.
