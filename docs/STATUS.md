@@ -27,7 +27,8 @@ This is the short, current implementation record. If it conflicts with an older 
 - Plant removal with schedule and record cleanup.
 - Optional future-only Android notifications and permission-denied messaging.
 - Notification setup and scheduling are best effort and cannot block app startup.
-- Focused domain tests for profiles, timing, watering transitions, editing, and failed persistence.
+- Domain/widget tests for watering plus placement persistence, unchanged scheduling, failure handling, setup/detail, and large-text layout.
+- Shared species-specific Light & placement advice and optional persisted action acknowledgment in setup/detail.
 
 ## Not implemented
 
@@ -39,7 +40,42 @@ This is the short, current implementation record. If it conflicts with an older 
 - Exact delivery timing; Android may deliver inexact alarms within its allowed window.
 - Cloud sync, accounts, analytics, environmental checks, diagnosis, nutrition, repotting, or other care domains.
 
-## Verification snapshot
+## Light & placement — implemented and verified on 15 November 2026
+
+The user replaced the concern-picker draft with a species suggestion and one optional saved acknowledgment, then explicitly authorized implementation with watering dates unchanged.
+
+- The same reviewed species guidance and **I've placed it as suggested** checkbox appear in setup and on plant detail near Watering.
+- Both Last watered and Light & placement setup headings show matching Optional labels; both inputs remain skippable. Follow-up verification: static analysis passed, the debug APK rebuilt successfully, and the normal package was updated in place and relaunched.
+- Setup can skip it; Add commits the selected acknowledgment with the plant and normal first schedule. Cancelling setup writes nothing.
+- Detail acknowledgment saves immediately, can be cleared, and restores from JSON with timestamp/guidance version. Loading/error feedback prevents a falsely saved state.
+- Old JSON defaults to unacknowledged; invalid optional acknowledgment data does not discard a valid plant. Earlier guidance versions remain recorded until explicit correction.
+- Placement-only writes change no schedules, intervals, Last watered, watering history, preferences, or reminders, and do not invoke notification synchronization. Adaptation is deferred.
+- No extra placement inputs, light reminders, or activity records. Existing watering transitions remain covered by the original tests.
+- Large-text verification exposed an existing trailing-date layout failure in plant detail; information rows now stack when needed.
+
+Verification:
+
+- `flutter analyze --no-pub`: zero findings.
+- `flutter test --no-pub`: **30 tests passed** (12 existing watering tests plus 18 placement/domain/UI tests), run against identical source from a temporary path without parentheses.
+- `sh tool/test_android.sh -d emulator-5554`: **2 integration tests passed**, covering setup skip/acknowledge, later acknowledgment, disk reload, correction, and unchanged watering state. Both normal and `.integration` packages were confirmed installed separately.
+- Android setup and saved-detail screenshots were captured from isolated test fixtures and visually inspected.
+- Normal `flutter build apk --debug --no-pub`: passed after test-package isolation was added. Output is `build/app/outputs/flutter-apk/app-debug.apk`.
+- Final normal app installed and relaunched successfully with no Flutter startup errors; empty Home visually confirmed after the documented data-loss incident. The isolated test package was removed.
+- Full manual TalkBack, notification delivery/denial, and system font/dark-mode setting audits remain separate checks; automated narrow/dark/2x-text detail layout passed.
+
+### Device-test incident and corrected procedure
+
+The first Android integration run used the normal `com.chandrika.bloom` package. Flutter 3.44.8 defaults to uninstalling its test app after completion, which removed Bloom and cleared the emulator's existing local garden. No pre-test backup was taken, and those prior entries/history have not been restored. This was a verification mistake, not a plant-data migration. Do not claim that the user's emulator garden was preserved.
+
+The corrected `tool/test_android.sh` prebuilds an isolated APK using a test-only Gradle property, assigns `com.chandrika.bloom.integration`, and disables uninstall cleanup with `--no-uninstall`. Tests also use their own cache-file repositories. The corrected run verified package separation and passed both tests. The normal app is rebuilt/reinstalled afterward; the isolated test package can be removed explicitly. Use this runner for repeatable Android checks rather than a raw test invocation against the normal installation.
+
+### Host-test environment limitation
+
+Flutter 3.44.8's macOS native-assets `otool` parser crashes when the project path contains parentheses, as in `Codes (VS)`. Host tests were run from a temporary checkout without parentheses; implementation/test file hashes were checked against the local repository. The SDK was not modified. Android builds/device tests are unaffected. Run host tests from a path without parentheses until the SDK issue is resolved.
+
+See [PRD section 14](PRD.md#14-light--placement--release-requirements), [decisions D28–D31](PRODUCT_DECISIONS.md#13-light--placement-release-decisions), and [implementation plan section 7](IMPLEMENTATION_PLAN.md#7-light--placement--implementation-sequence).
+
+## Watering baseline verification snapshot (prior evidence)
 
 - Flutter SDK available locally: 3.44.8.
 - Dart SDK: 3.12.2.
@@ -64,6 +100,9 @@ This is the short, current implementation record. If it conflicts with an older 
 - `lib/ui/check_screen.dart` — watering check and outcome flow.
 - `lib/ui/plant_detail_screen.dart` — schedule details and removal.
 - `lib/ui/preferences_screen.dart` — notification preference.
+- `lib/ui/light_placement_section.dart` — shared advice and optional checkbox.
+- `integration_test/light_placement_test.dart` — on-device setup/detail/persistence checks with cache-file fixtures.
+- `tool/test_android.sh` — isolated Android test runner; see the incident/procedure above.
 
 ## Product decision record
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
+import 'light_placement_section.dart';
 import 'widgets.dart';
 
 class CatalogScreen extends StatelessWidget {
@@ -47,7 +48,8 @@ class CatalogScreen extends StatelessWidget {
               ),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => PlantSetupScreen(store: store, species: species),
+                  builder: (_) =>
+                      PlantSetupScreen(store: store, species: species),
                 ),
               ),
             ),
@@ -59,7 +61,11 @@ class CatalogScreen extends StatelessWidget {
 }
 
 class PlantSetupScreen extends StatefulWidget {
-  const PlantSetupScreen({super.key, required this.store, required this.species});
+  const PlantSetupScreen({
+    super.key,
+    required this.store,
+    required this.species,
+  });
 
   final GardenStore store;
   final PlantSpecies species;
@@ -70,20 +76,37 @@ class PlantSetupScreen extends StatefulWidget {
 
 class _PlantSetupScreenState extends State<PlantSetupScreen> {
   bool _knowsLastWatered = false;
+  bool _lightPlaced = false;
+  bool _saving = false;
   DateTime _lastWatered = DateTime.now();
 
   Future<void> _add() async {
+    if (_saving) return;
+    setState(() => _saving = true);
     final plant = Plant(
       id: newId(),
       name: widget.species.name,
       species: widget.species.scientific,
       asset: widget.species.asset,
+      lightPlacement: _lightPlaced
+          ? LightPlacementAcknowledgment(
+              acknowledgedAt: DateTime.now(),
+              guidanceVersion: widget.species.light.version,
+            )
+          : null,
     );
     final saved = await widget.store.addPlant(
       plant,
       lastWatered: _knowsLastWatered ? _lastWatered : null,
     );
-    if (!mounted || !saved) return;
+    if (!mounted) return;
+    if (!saved) {
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't add the plant. Try again.")),
+      );
+      return;
+    }
     // Close setup and the catalog so the user lands back on Home.
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
@@ -102,7 +125,10 @@ class _PlantSetupScreenState extends State<PlantSetupScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: FilledButton(onPressed: _add, child: const Text('Add')),
+            child: FilledButton(
+              onPressed: _saving ? null : _add,
+              child: Text(_saving ? 'Adding…' : 'Add'),
+            ),
           ),
         ],
       ),
@@ -125,7 +151,19 @@ class _PlantSetupScreenState extends State<PlantSetupScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          Text('Last watered', style: theme.textTheme.titleSmall),
+          Wrap(
+            spacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text('Last watered', style: theme.textTheme.titleSmall),
+              Text(
+                'Optional',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
           Card(
             margin: EdgeInsets.zero,
@@ -134,7 +172,8 @@ class _PlantSetupScreenState extends State<PlantSetupScreen> {
                 SwitchListTile(
                   title: const Text('I know the last watered date'),
                   value: _knowsLastWatered,
-                  onChanged: (value) => setState(() => _knowsLastWatered = value),
+                  onChanged: (value) =>
+                      setState(() => _knowsLastWatered = value),
                 ),
                 if (_knowsLastWatered)
                   ListTile(
@@ -144,6 +183,14 @@ class _PlantSetupScreenState extends State<PlantSetupScreen> {
                   ),
               ],
             ),
+          ),
+          const SizedBox(height: 24),
+          LightPlacementSection(
+            guidance: widget.species.light,
+            acknowledged: _lightPlaced,
+            onChanged: _saving
+                ? null
+                : (value) => setState(() => _lightPlaced = value),
           ),
         ],
       ),

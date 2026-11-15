@@ -5,11 +5,8 @@ import 'models.dart';
 /// Holds the garden and applies watering transitions in one persistence boundary.
 class GardenStore extends ChangeNotifier {
   // `garden` remains public while `_garden` stays private state.
-  GardenStore({
-    required Garden garden,
-    required this.persist,
-    this.onChanged,
-  }) : _garden = garden; // ignore: prefer_initializing_formals
+  GardenStore({required Garden garden, required this.persist, this.onChanged})
+    : _garden = garden; // ignore: prefer_initializing_formals
 
   /// Runs after each saved change, so reminders stay in step with the garden.
   final Future<void> Function(Garden garden)? onChanged;
@@ -47,7 +44,11 @@ class GardenStore extends ChangeNotifier {
   }
 
   /// Adds a plant and schedules its first check, as in `BloomStore.addPlant`.
-  Future<bool> addPlant(Plant plant, {DateTime? lastWatered, DateTime? now}) async {
+  Future<bool> addPlant(
+    Plant plant, {
+    DateTime? lastWatered,
+    DateTime? now,
+  }) async {
     if (plant.name.trim().isEmpty) return false;
     final species = PlantSpecies.forPlant(plant);
     final current = now ?? DateTime.now();
@@ -89,25 +90,64 @@ class GardenStore extends ChangeNotifier {
     return _commit(_garden.copyWith(plants: plants));
   }
 
+  /// Saves placement independently of watering and notification scheduling.
+  Future<bool> setLightPlacementAcknowledged(
+    String plantId,
+    bool acknowledged, {
+    DateTime? now,
+  }) {
+    final current = plant(plantId);
+    if (current == null) return Future.value(false);
+    final guidance = PlantSpecies.forPlant(current)?.light;
+    if (guidance == null) return Future.value(false);
+    // Preserve the recorded time/version until the user explicitly clears it.
+    if (acknowledged == (current.lightPlacement != null)) {
+      return Future.value(true);
+    }
+    final updated = current.copyWith(
+      lightPlacement: acknowledged
+          ? LightPlacementAcknowledgment(
+              acknowledgedAt: now ?? DateTime.now(),
+              guidanceVersion: guidance.version,
+            )
+          : null,
+      clearLightPlacement: !acknowledged,
+    );
+    return _commit(
+      _garden.copyWith(
+        plants: [
+          for (final p in _garden.plants)
+            if (p.id == plantId) updated else p,
+        ],
+      ),
+      syncNotifications: false,
+    );
+  }
+
   /// Removes a plant with its schedule and history, as `deletePlant` does.
   Future<bool> deletePlant(String id) => _commit(
-        _garden.copyWith(
-          plants: _garden.plants.where((p) => p.id != id).toList(),
-          schedules: _garden.schedules.where((s) => s.plantId != id).toList(),
-          records: _garden.records.where((r) => r.plantId != id).toList(),
-        ),
-      );
+    _garden.copyWith(
+      plants: _garden.plants.where((p) => p.id != id).toList(),
+      schedules: _garden.schedules.where((s) => s.plantId != id).toList(),
+      records: _garden.records.where((r) => r.plantId != id).toList(),
+    ),
+  );
 
   Future<bool> editNextCheck(String plantId, DateTime date, {DateTime? now}) {
     final current = now ?? DateTime.now();
     final schedule = scheduleFor(plantId);
     if (schedule == null || date.isBefore(current)) return Future.value(false);
-    return _commit(_garden.copyWith(
-      schedules: [
-        for (final s in _garden.schedules)
-          if (s.plantId == plantId) s.copyWith(nextCheckAt: date, updatedAt: current) else s,
-      ],
-    ));
+    return _commit(
+      _garden.copyWith(
+        schedules: [
+          for (final s in _garden.schedules)
+            if (s.plantId == plantId)
+              s.copyWith(nextCheckAt: date, updatedAt: current)
+            else
+              s,
+        ],
+      ),
+    );
   }
 
   /// Records a check and moves the next one, including the dry-soil follow-up.
@@ -122,7 +162,8 @@ class GardenStore extends ChangeNotifier {
     if (schedule == null || plantValue == null) return null;
 
     final current = now ?? DateTime.now();
-    final followUpDays = outcome == WateringOutcome.checkedNotWatered && soil == Soil.dry
+    final followUpDays =
+        outcome == WateringOutcome.checkedNotWatered && soil == Soil.dry
         ? WateringFollowUp.defaultDays
         : null;
     final intervalDays = outcome == WateringOutcome.watered
@@ -139,21 +180,26 @@ class GardenStore extends ChangeNotifier {
       soil: soil,
     );
 
-    final saved = await _commit(_garden.copyWith(
-      records: [record, ..._garden.records],
-      schedules: [
-        for (final s in _garden.schedules)
-          if (s.plantId == plantId) s.copyWith(nextCheckAt: next, updatedAt: current) else s,
-      ],
-    ));
+    final saved = await _commit(
+      _garden.copyWith(
+        records: [record, ..._garden.records],
+        schedules: [
+          for (final s in _garden.schedules)
+            if (s.plantId == plantId)
+              s.copyWith(nextCheckAt: next, updatedAt: current)
+            else
+              s,
+        ],
+      ),
+    );
     return saved ? record : null;
   }
 
   Future<bool> setTaskNotifications(bool enabled) => _commit(
-        _garden.copyWith(
-          preferences: _garden.preferences.copyWith(taskNotifications: enabled),
-        ),
-      );
+    _garden.copyWith(
+      preferences: _garden.preferences.copyWith(taskNotifications: enabled),
+    ),
+  );
 
   /// First check: the reminder time on the day of the last watering plus the
   /// starting interval, or today at the reminder time when never watered.
@@ -171,7 +217,7 @@ class GardenStore extends ChangeNotifier {
     return DateTime(now.year, now.month, now.day, hour, minute);
   }
 
-  Future<bool> _commit(Garden next) async {
+  Future<bool> _commit(Garden next, {bool syncNotifications = true}) async {
     try {
       await persist(next);
     } catch (_) {
@@ -179,7 +225,7 @@ class GardenStore extends ChangeNotifier {
     }
     _garden = next;
     notifyListeners();
-    await onChanged?.call(next);
+    if (syncNotifications) await onChanged?.call(next);
     return true;
   }
 }

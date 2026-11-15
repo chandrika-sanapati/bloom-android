@@ -4,6 +4,10 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// tool/test_android.sh scopes this flag to test builds, with a separate app ID.
+val integrationTestTarget = providers.gradleProperty("bloomIntegrationTest")
+    .orNull == "true"
+
 android {
     namespace = "com.chandrika.bloom"
     // flutter_local_notifications requires API 37; keep it explicit.
@@ -18,7 +22,11 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.chandrika.bloom"
+        applicationId = if (integrationTestTarget) {
+            "com.chandrika.bloom.integration"
+        } else {
+            "com.chandrika.bloom"
+        }
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

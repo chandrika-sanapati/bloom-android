@@ -28,8 +28,16 @@ The current app supports:
 - Android notification permission handling that leaves in-app tasks available when permission is denied.
 - Notifications use best-effort inexact Android scheduling and never block app startup.
 - Material 3 light/dark themes using Android dynamic colors when available, with Bloom teal as the fallback.
+- Species-specific light/placement advice during setup and on plant detail.
+- Optional saved acknowledgment that the user placed the plant as suggested; watering dates stay unchanged.
 
 Current limitations are tracked in [`docs/STATUS.md`](docs/STATUS.md). In particular, record-level deletion, a configurable reminder time screen, notification tap routing, and support for arbitrary custom plants are not yet implemented.
+
+## Light & placement
+
+Bloom shows a species-specific Light & placement suggestion during Add a plant and on plant detail. Users can optionally acknowledge acting on it during setup or later, and the app stores that state per plant. This replaces the earlier dim/bright concern-picker proposal. Placement acknowledgment adds no recurring light reminders.
+
+The user confirmed that placement acknowledgment will leave watering schedules unchanged in this release; adaptation will be handled separately later. Review [PRD section 14](docs/PRD.md#14-light--placement--release-requirements), [current decisions D28–D31](docs/PRODUCT_DECISIONS.md#13-light--placement-release-decisions), and [the implementation plan](docs/IMPLEMENTATION_PLAN.md#7-light--placement--implementation-sequence). The flow was implemented and verified on 15 November 2026. See [STATUS.md](docs/STATUS.md) for verification evidence, remaining checks, and the emulator-data incident.
 
 ## Requirements
 
@@ -60,7 +68,7 @@ flutter analyze
 flutter test
 ```
 
-The focused domain suite currently contains 12 tests. See the verification notes in [`docs/STATUS.md`](docs/STATUS.md).
+The domain/widget suite contains 30 tests. Two Android integration tests cover the light-placement flow; run them with `sh tool/test_android.sh -d emulator-5554` to use the separate test package and disable uninstall cleanup. See [`docs/STATUS.md`](docs/STATUS.md) for the macOS path limitation and verification notes.
 
 ## Project layout
 
@@ -83,4 +91,4 @@ The focused domain suite currently contains 12 tests. See the verification notes
 
 ## Product boundary
 
-Bloom is an assistant for remembering and recording plant checks. It does not diagnose disease, guarantee plant health, or claim that a date proves a plant needs water. Future environmental checks, nutrition, repotting, symptom guidance, additional plant profiles, and cloud sync are roadmap items, not current behavior.
+Bloom is an assistant for remembering and recording plant checks. It does not diagnose disease, guarantee plant health, or claim that a date proves a plant needs water. Broader environmental assessments, nutrition, repotting, symptom guidance, additional plant profiles, and cloud sync remain roadmap items.

@@ -3,10 +3,15 @@ import 'package:flutter/material.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
 import 'check_screen.dart';
+import 'light_placement_section.dart';
 import 'widgets.dart';
 
 class PlantDetailScreen extends StatelessWidget {
-  const PlantDetailScreen({super.key, required this.store, required this.plantId});
+  const PlantDetailScreen({
+    super.key,
+    required this.store,
+    required this.plantId,
+  });
 
   final GardenStore store;
   final String plantId;
@@ -19,9 +24,7 @@ class PlantDetailScreen extends StatelessWidget {
         final plant = store.plant(plantId);
         final schedule = store.scheduleFor(plantId);
         if (plant == null || schedule == null) {
-          return const Scaffold(
-            body: Center(child: Text('Plant unavailable')),
-          );
+          return const Scaffold(body: Center(child: Text('Plant unavailable')));
         }
         return _Body(store: store, plant: plant, schedule: schedule);
       },
@@ -29,12 +32,40 @@ class PlantDetailScreen extends StatelessWidget {
   }
 }
 
-class _Body extends StatelessWidget {
-  const _Body({required this.store, required this.plant, required this.schedule});
+class _Body extends StatefulWidget {
+  const _Body({
+    required this.store,
+    required this.plant,
+    required this.schedule,
+  });
 
   final GardenStore store;
   final Plant plant;
   final WateringSchedule schedule;
+
+  @override
+  State<_Body> createState() => _BodyState();
+}
+
+class _BodyState extends State<_Body> {
+  bool _savingLight = false;
+
+  GardenStore get store => widget.store;
+  Plant get plant => widget.plant;
+  WateringSchedule get schedule => widget.schedule;
+
+  Future<void> _saveLightPlacement(bool value) async {
+    if (_savingLight) return;
+    setState(() => _savingLight = true);
+    final saved = await store.setLightPlacementAcknowledged(plant.id, value);
+    if (!mounted) return;
+    setState(() => _savingLight = false);
+    if (!saved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't save placement. Try again.")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +98,9 @@ class _Body extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           FilledButton.icon(
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(50),
+            ),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(
                 fullscreenDialog: true,
@@ -95,7 +128,9 @@ class _Body extends StatelessWidget {
                 ),
                 _InfoRow(
                   label: 'Last watered',
-                  value: lastWatered == null ? 'Not recorded' : formatDate(lastWatered),
+                  value: lastWatered == null
+                      ? 'Not recorded'
+                      : formatDate(lastWatered),
                 ),
                 ListTile(
                   leading: const Icon(Icons.calendar_today),
@@ -113,12 +148,26 @@ class _Body extends StatelessWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
+            const SizedBox(height: 24),
+            LightPlacementSection(
+              guidance: species.light,
+              acknowledged: plant.lightPlacement != null,
+              saving: _savingLight,
+              earlierGuidance:
+                  plant.lightPlacement != null &&
+                  plant.lightPlacement!.guidanceVersion !=
+                      species.light.version,
+              onChanged: _saveLightPlacement,
+            ),
           ],
           const SizedBox(height: 24),
           Card(
             margin: EdgeInsets.zero,
             child: ListTile(
-              leading: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+              leading: Icon(
+                Icons.delete_outline,
+                color: theme.colorScheme.error,
+              ),
               title: Text(
                 'Remove plant',
                 style: TextStyle(color: theme.colorScheme.error),
@@ -146,7 +195,9 @@ class _Body extends StatelessWidget {
             onPressed: () => Navigator.of(dialogContext).pop(true),
             child: Text(
               'Remove plant',
-              style: TextStyle(color: Theme.of(dialogContext).colorScheme.error),
+              style: TextStyle(
+                color: Theme.of(dialogContext).colorScheme.error,
+              ),
             ),
           ),
         ],
@@ -166,12 +217,21 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(label),
-      trailing: Text(
-        value,
-        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-      ),
+    final valueText = Text(
+      value,
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final stack =
+            constraints.maxWidth < 320 ||
+            MediaQuery.textScalerOf(context).scale(14) > 18;
+        return ListTile(
+          title: Text(label),
+          subtitle: stack ? valueText : null,
+          trailing: stack ? null : valueText,
+        );
+      },
     );
   }
 }

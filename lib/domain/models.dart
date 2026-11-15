@@ -28,7 +28,9 @@ enum CareTaskTiming {
   static CareTaskTiming classify(DateTime date, {DateTime? now}) {
     final current = now ?? DateTime.now();
     if (date.isBefore(current)) return CareTaskTiming.overdue;
-    return _isSameDay(date, current) ? CareTaskTiming.today : CareTaskTiming.upcoming;
+    return _isSameDay(date, current)
+        ? CareTaskTiming.today
+        : CareTaskTiming.upcoming;
   }
 }
 
@@ -41,33 +43,78 @@ class Plant {
     required this.name,
     required this.species,
     required this.asset,
+    this.lightPlacement,
   });
 
   final String id;
   final String name;
   final String species;
   final String asset;
+  final LightPlacementAcknowledgment? lightPlacement;
 
-  Plant copyWith({String? name, String? species, String? asset}) => Plant(
-        id: id,
-        name: name ?? this.name,
-        species: species ?? this.species,
-        asset: asset ?? this.asset,
-      );
+  Plant copyWith({
+    String? name,
+    String? species,
+    String? asset,
+    LightPlacementAcknowledgment? lightPlacement,
+    bool clearLightPlacement = false,
+  }) => Plant(
+    id: id,
+    name: name ?? this.name,
+    species: species ?? this.species,
+    asset: asset ?? this.asset,
+    lightPlacement: clearLightPlacement
+        ? null
+        : lightPlacement ?? this.lightPlacement,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'species': species,
-        'asset': asset,
-      };
+    'id': id,
+    'name': name,
+    'species': species,
+    'asset': asset,
+    if (lightPlacement != null) 'lightPlacement': lightPlacement!.toJson(),
+  };
 
   factory Plant.fromJson(Map<String, dynamic> json) => Plant(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        species: json['species'] as String,
-        asset: json['asset'] as String,
-      );
+    id: json['id'] as String,
+    name: json['name'] as String,
+    species: json['species'] as String,
+    asset: json['asset'] as String,
+    lightPlacement: LightPlacementAcknowledgment.tryFromJson(
+      json['lightPlacement'],
+    ),
+  );
+}
+
+/// A user's acknowledgment of acting on a particular version of light guidance.
+/// This is independent of measured light and watering history.
+class LightPlacementAcknowledgment {
+  const LightPlacementAcknowledgment({
+    required this.acknowledgedAt,
+    required this.guidanceVersion,
+  });
+
+  final DateTime acknowledgedAt;
+  final int guidanceVersion;
+
+  Map<String, dynamic> toJson() => {
+    'acknowledgedAt': acknowledgedAt.toIso8601String(),
+    'guidanceVersion': guidanceVersion,
+  };
+
+  static LightPlacementAcknowledgment? tryFromJson(Object? value) {
+    if (value is! Map) return null;
+    final timestamp = value['acknowledgedAt'];
+    final version = value['guidanceVersion'];
+    if (timestamp is! String || version is! int || version < 1) return null;
+    final date = DateTime.tryParse(timestamp);
+    if (date == null) return null;
+    return LightPlacementAcknowledgment(
+      acknowledgedAt: date,
+      guidanceVersion: version,
+    );
+  }
 }
 
 class WateringRecord {
@@ -88,22 +135,22 @@ class WateringRecord {
   final Soil soil;
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'plantId': plantId,
-        'scheduledFor': scheduledFor.toIso8601String(),
-        'recordedAt': recordedAt.toIso8601String(),
-        'outcome': outcome.name,
-        'soil': soil.name,
-      };
+    'id': id,
+    'plantId': plantId,
+    'scheduledFor': scheduledFor.toIso8601String(),
+    'recordedAt': recordedAt.toIso8601String(),
+    'outcome': outcome.name,
+    'soil': soil.name,
+  };
 
   factory WateringRecord.fromJson(Map<String, dynamic> json) => WateringRecord(
-        id: json['id'] as String,
-        plantId: json['plantId'] as String,
-        scheduledFor: DateTime.parse(json['scheduledFor'] as String),
-        recordedAt: DateTime.parse(json['recordedAt'] as String),
-        outcome: WateringOutcome.values.byName(json['outcome'] as String),
-        soil: Soil.values.byName(json['soil'] as String),
-      );
+    id: json['id'] as String,
+    plantId: json['plantId'] as String,
+    scheduledFor: DateTime.parse(json['scheduledFor'] as String),
+    recordedAt: DateTime.parse(json['recordedAt'] as String),
+    outcome: WateringOutcome.values.byName(json['outcome'] as String),
+    soil: Soil.values.byName(json['soil'] as String),
+  );
 }
 
 class WateringSchedule {
@@ -131,14 +178,15 @@ class WateringSchedule {
       );
 
   Map<String, dynamic> toJson() => {
-        'plantId': plantId,
-        'intervalDays': intervalDays,
-        'nextCheckAt': nextCheckAt.toIso8601String(),
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
-      };
+    'plantId': plantId,
+    'intervalDays': intervalDays,
+    'nextCheckAt': nextCheckAt.toIso8601String(),
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+  };
 
-  factory WateringSchedule.fromJson(Map<String, dynamic> json) => WateringSchedule(
+  factory WateringSchedule.fromJson(Map<String, dynamic> json) =>
+      WateringSchedule(
         plantId: json['plantId'] as String,
         intervalDays: json['intervalDays'] as int,
         nextCheckAt: DateTime.parse(json['nextCheckAt'] as String),
@@ -159,22 +207,22 @@ class AppPreferences {
   final bool taskNotifications;
 
   AppPreferences copyWith({bool? taskNotifications}) => AppPreferences(
-        reminderHour: reminderHour,
-        reminderMinute: reminderMinute,
-        taskNotifications: taskNotifications ?? this.taskNotifications,
-      );
+    reminderHour: reminderHour,
+    reminderMinute: reminderMinute,
+    taskNotifications: taskNotifications ?? this.taskNotifications,
+  );
 
   Map<String, dynamic> toJson() => {
-        'reminderHour': reminderHour,
-        'reminderMinute': reminderMinute,
-        'taskNotifications': taskNotifications,
-      };
+    'reminderHour': reminderHour,
+    'reminderMinute': reminderMinute,
+    'taskNotifications': taskNotifications,
+  };
 
   factory AppPreferences.fromJson(Map<String, dynamic> json) => AppPreferences(
-        reminderHour: json['reminderHour'] as int? ?? 9,
-        reminderMinute: json['reminderMinute'] as int? ?? 0,
-        taskNotifications: json['taskNotifications'] as bool? ?? false,
-      );
+    reminderHour: json['reminderHour'] as int? ?? 9,
+    reminderMinute: json['reminderMinute'] as int? ?? 0,
+    taskNotifications: json['taskNotifications'] as bool? ?? false,
+  );
 }
 
 class Garden {
@@ -195,38 +243,52 @@ class Garden {
     List<WateringSchedule>? schedules,
     List<WateringRecord>? records,
     AppPreferences? preferences,
-  }) =>
-      Garden(
-        plants: plants ?? this.plants,
-        schedules: schedules ?? this.schedules,
-        records: records ?? this.records,
-        preferences: preferences ?? this.preferences,
-      );
+  }) => Garden(
+    plants: plants ?? this.plants,
+    schedules: schedules ?? this.schedules,
+    records: records ?? this.records,
+    preferences: preferences ?? this.preferences,
+  );
 
   Map<String, dynamic> toJson() => {
-        'plants': plants.map((p) => p.toJson()).toList(),
-        'schedules': schedules.map((s) => s.toJson()).toList(),
-        'records': records.map((r) => r.toJson()).toList(),
-        'preferences': preferences.toJson(),
-      };
+    'plants': plants.map((p) => p.toJson()).toList(),
+    'schedules': schedules.map((s) => s.toJson()).toList(),
+    'records': records.map((r) => r.toJson()).toList(),
+    'preferences': preferences.toJson(),
+  };
 
   factory Garden.fromJson(Map<String, dynamic> json) => Garden(
-        plants: (json['plants'] as List? ?? [])
-            .map((p) => Plant.fromJson(p as Map<String, dynamic>))
-            .toList(),
-        schedules: (json['schedules'] as List? ?? [])
-            .map((s) => WateringSchedule.fromJson(s as Map<String, dynamic>))
-            .toList(),
-        records: (json['records'] as List? ?? [])
-            .map((r) => WateringRecord.fromJson(r as Map<String, dynamic>))
-            .toList(),
-        preferences: json['preferences'] == null
-            ? const AppPreferences()
-            : AppPreferences.fromJson(json['preferences'] as Map<String, dynamic>),
-      );
+    plants: (json['plants'] as List? ?? [])
+        .map((p) => Plant.fromJson(p as Map<String, dynamic>))
+        .toList(),
+    schedules: (json['schedules'] as List? ?? [])
+        .map((s) => WateringSchedule.fromJson(s as Map<String, dynamic>))
+        .toList(),
+    records: (json['records'] as List? ?? [])
+        .map((r) => WateringRecord.fromJson(r as Map<String, dynamic>))
+        .toList(),
+    preferences: json['preferences'] == null
+        ? const AppPreferences()
+        : AppPreferences.fromJson(json['preferences'] as Map<String, dynamic>),
+  );
 }
 
-/// Supported species and watering profiles for the Android catalog.
+/// Reviewed species content shared by setup and plant detail.
+class PlantLightGuidance {
+  const PlantLightGuidance({
+    required this.requirement,
+    required this.placement,
+    required this.sourceUrl,
+    this.version = 1,
+  });
+
+  final String requirement;
+  final String placement;
+  final String sourceUrl;
+  final int version;
+}
+
+/// Supported species and care profiles for the Android catalog.
 class PlantSpecies {
   const PlantSpecies({
     required this.name,
@@ -236,6 +298,7 @@ class PlantSpecies {
     required this.maxDays,
     required this.startingIntervalDays,
     required this.careCue,
+    required this.light,
   });
 
   final String name;
@@ -245,6 +308,7 @@ class PlantSpecies {
   final int maxDays;
   final int startingIntervalDays;
   final String careCue;
+  final PlantLightGuidance light;
 
   static const catalog = [
     PlantSpecies(
@@ -255,6 +319,13 @@ class PlantSpecies {
       maxDays: 30,
       startingIntervalDays: 21,
       careCue: 'Let the growing medium dry substantially before watering.',
+      light: PlantLightGuidance(
+        requirement: 'Bright daylight',
+        placement:
+            'Place near a window with good daylight. Some direct sun is '
+            'fine; introduce stronger sun gradually.',
+        sourceUrl: 'https://plants.ces.ncsu.edu/plants/dracaena-trifasciata/',
+      ),
     ),
     PlantSpecies(
       name: 'Monstera',
@@ -264,6 +335,13 @@ class PlantSpecies {
       maxDays: 14,
       startingIntervalDays: 10,
       careCue: 'Check the top 1–2 inches of soil and avoid waterlogging.',
+      light: PlantLightGuidance(
+        requirement: 'Indirect daylight',
+        placement:
+            'Place near a bright window, away from strong sun shining '
+            'directly on the leaves.',
+        sourceUrl: 'https://plants.ces.ncsu.edu/plants/monstera-deliciosa/',
+      ),
     ),
     PlantSpecies(
       name: 'Rubber Plant',
@@ -273,6 +351,13 @@ class PlantSpecies {
       maxDays: 21,
       startingIntervalDays: 14,
       careCue: 'Use a free-draining medium and check before watering.',
+      light: PlantLightGuidance(
+        requirement: 'Bright, indirect light',
+        placement:
+            'Place near a bright window, sheltered from strong afternoon '
+            'sun. Daylight should reach the plant without harsh sun on its leaves.',
+        sourceUrl: 'https://plants.ces.ncsu.edu/plants/ficus-elastica/',
+      ),
     ),
     PlantSpecies(
       name: 'Pothos',
@@ -281,7 +366,15 @@ class PlantSpecies {
       minDays: 7,
       maxDays: 21,
       startingIntervalDays: 14,
-      careCue: 'Allow the soil to dry between checks; avoid keeping it constantly wet.',
+      careCue:
+          'Allow the soil to dry between checks; avoid keeping it constantly wet.',
+      light: PlantLightGuidance(
+        requirement: 'Bright, indirect light',
+        placement:
+            'Choose a bright spot out of strong direct sun. It tolerates '
+            'lower light, but grows best with plenty of indirect daylight.',
+        sourceUrl: 'https://plants.ces.ncsu.edu/plants/epipremnum-aureum/',
+      ),
     ),
   ];
 

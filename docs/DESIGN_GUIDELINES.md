@@ -32,6 +32,7 @@ These guidelines apply to the Flutter Android app. They replace the former iOS/S
 
 - Use the existing 20dp page inset and an 8dp spacing rhythm where practical.
 - Keep cards visually quiet with consistent padding and rounded corners. Do not turn every row into a competing card.
+- Label optional setup sections consistently: both **Last watered** and **Light & placement** show **Optional** beside the heading with matching secondary typography, spacing, and wrapping.
 - Use `ListTile`, `SegmentedButton`, `RadioListTile`, `SwitchListTile`, `FilledButton`, and native date/time pickers consistently with the existing app.
 - Keep plant identity, schedule state, and the primary check action near the top of plant details.
 - Home should prioritize **My plants** and **Activity → Upcoming / Past**. Upcoming tasks are action-first; Past contains completed records only.
@@ -66,3 +67,18 @@ These guidelines apply to the Flutter Android app. They replace the former iOS/S
 ## Product boundaries
 
 Do not add custom plant intervals, diagnosis, environmental inference, live weather, cloud sync, or additional recurring care domains to the watering flow without a documented product decision and updated status entry.
+
+## Light & placement
+
+**State:** Approved flow implemented on 15 November 2026; verification evidence and remaining checks in STATUS.md. Follow [PRD section 14](PRD.md#14-light--placement--release-requirements) and current decisions D28–D31. The earlier concern-picker flow is superseded. The user has reviewed the proposal and explicitly authorized this scope; adaptation is deferred.
+
+- Add the Light & placement section inside the existing Add a plant screen alongside Last watered, with no extra page. Show a short species light requirement and practical placement suggestion immediately.
+- Show the same suggestion near Watering on plant detail, including the current saved acknowledgment state.
+- Use one optional, initially unchecked control labelled **I've placed it as suggested**. It means acted rather than read. Adding a plant must remain possible without checking it; no separate Skip action is necessary.
+- A user who skipped setup can acknowledge on detail later. The control saves immediately, shows saving/error feedback, and supports correction through the same control. No separate placement-save page or required date edit.
+- Remove dim/bright choices, a third uncertainty route, concern-specific response branches, and location/light questionnaires. Additional inputs to resolve insufficient light data would add complexity; this release asks only about action on the species suggestion.
+- Treat absence of acknowledgment as unconfirmed, not unsuitable light. Do not claim measured/verified exposure, an exact movement date, or diagnose damage. Use source-reviewed copy with species-specific nuance around direct sun.
+- Checking/unchecking affects only placement acknowledgment. No watering-date effect, additional confirmation, or adaptation control in this release. Keep an old-version acknowledgment as earlier guidance with a quiet inline note; never expire it or prompt automatically.
+- Keep Watered, Checked — not watered, Last watered, and existing watering controls understandable. Placement acknowledgment is a different fact and must not appear as a watering completion.
+- No new recurring light reminders, light activity tasks, repeated acknowledgment nudges, or automatic onboarding prompts. A user can leave the input unacknowledged indefinitely.
+- Use 48dp targets, text with icons, dynamic light/dark themes, reflowing content, TalkBack selected/saving/error states, and ordinary Android back navigation.

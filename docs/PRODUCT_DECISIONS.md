@@ -1,6 +1,6 @@
 # Bloom product decisions and tradeoffs
 
-**Status:** Recovered from the original Bloom product work and aligned to the Flutter Android app
+**Status:** Watering baseline plus implemented Light & placement suggestion/acknowledgment; earlier concern-picker draft superseded; implementation authorized and verified on 15 November 2026; watering unchanged
 **Last reviewed:** 15 November 2026
 **Decision scope:** Product, UX, content safety, and roadmap choices
 
@@ -14,6 +14,8 @@ The source material was the earlier Bloom product repository. SwiftUI, Xcode, iO
 - **Deferred** — an intentional product cut; do not add it casually.
 - **Planned** — a future opportunity or validation task, not current behavior.
 - **Designed** — a reasoned product choice that still needs user evidence.
+- **Confirmed scope** — selected by the user in product discussion; this does not authorize implementation or establish usability evidence.
+- **Draft for review** — a proposed detail to review in the local documents before implementation.
 
 ## 1. North-star product tradeoff: narrow the problem
 
@@ -33,7 +35,7 @@ Start with one complete loop:
 
 > **Schedule a check → inspect the plant → record what happened → schedule the next useful check.**
 
-The Android MVP supports four reviewed catalog profiles, two explicit outcomes, local persistence, and optional notifications. Broader care domains are deferred until this loop is reliable and validated.
+The Android MVP supports four reviewed catalog profiles, two explicit outcomes, local persistence, and optional notifications. Broader care domains were deferred for the watering MVP. The user then selected bounded Light & placement work; section 13 records the approved implemented suggestion/acknowledgment flow with watering dates unchanged.
 
 ### Why
 
@@ -303,7 +305,7 @@ These decisions preserve the original product thinking without implying that the
 
 ### D10 — Environmental context should be descriptive, optional, and local
 
-**Status:** Planned / Deferred
+**Status:** Historical environmental proposal; current light scope is the optional action acknowledgment in D28–D31
 
 #### Options considered
 
@@ -313,13 +315,13 @@ These decisions preserve the original product thinking without implying that the
 
 #### Decision
 
-If environmental context is introduced, start with one optional field:
+The earlier proposal was to start with one optional field:
 
 - Outdoor
 - Indoor — direct light and airflow
 - Indoor — indirect light and airflow
 
-It should be descriptive, skippable, and used for on-demand checks—not silent watering recalculation or a new set of recurring reminders.
+This three-option input and the later concern-picker draft are historical alternatives. D28–D31 define the current proposal: show the species suggestion and optionally persist that the user acted on it. Broader environmental inputs remain deferred; any schedule effect requires an agreed, disclosed rule.
 
 #### Why
 
@@ -429,7 +431,7 @@ When evidence is insufficient, a symptom is outside reviewed guidance, or the pl
 
 ### D16 — Add environmental checks before high-risk treatment domains
 
-**Status:** Planned
+**Status:** Light & placement implemented after document review and explicit user authorization; watering remains the only recurring care system
 
 #### Options considered
 
@@ -453,7 +455,7 @@ Each later domain should reuse:
 
 > **Notice a signal → inspect context → choose a conservative next step → record what happened → schedule a useful follow-up.**
 
-New domains should be separate records with explicit outcomes. They must not be conflated with watering history or silently rewrite earlier care decisions.
+Future domains that record a care action must not be conflated with watering history or silently rewrite earlier care decisions. In the current light proposal, reading advice alone creates no state; acting on it can be acknowledged and stored per plant under D28–D31. This acknowledgment is not a watering record or a new recurring task.
 
 ## 9. Progressive disclosure decisions
 
@@ -546,3 +548,101 @@ Revisit these decisions only when there is evidence or a changed constraint:
 - Add adaptive scheduling only when the product can explain the signal, preserve user control, and measure whether complexity reduces effort.
 
 Do not turn a roadmap item into a requirement merely because it appears in this document.
+
+## 13. Light & placement release decisions
+
+Revised on 15 November 2026 after explicit user clarification. The current proposal is **D28–D31** and [PRD section 14](PRD.md#14-light--placement--release-requirements). D23–D26 are retained below only as superseded history; they must not guide implementation. D27's document-review workflow remains active. The user explicitly authorized implementation after confirming unchanged watering dates; see D31.
+
+### Superseded proposal history — D23–D26
+
+- **D23 — Learning and two placement concerns:** The earlier draft asked the user to select a dim spot or strong direct sun, then showed conditional advice. Superseded by D28: species advice appears immediately and the only input is whether the user acted on it.
+- **D24 — Exclude uncertain placement:** The user's primary rationale was data insufficiency: uncertain light needs more input to produce tailored advice, increasing complexity and user investment. Preserve this reasoning. The revised flow removes light classification altogether; an unchecked action acknowledgment is not an uncertain/dim/bright assessment.
+- **D25 — One optional concern with transient state:** The earlier draft deliberately did not store placement state. This is superseded by the explicit requirement to store an optional action acknowledgment per plant. Minimal inputs and no additional recurring reminders remain active principles.
+- **D26 — Advice plus manual next-date editing:** The earlier draft made the existing manual date editor the watering connection. That is superseded as the new flow: the saved acknowledgment should be available to watering logic, and its possible future schedule effect is deferred by D31. The existing watering editor remains part of the app.
+
+These alternatives and their tradeoffs remain documented so the reason for the scope change is visible, without retaining contradictory current requirements.
+
+### D28 — Show one species suggestion and ask only whether the user acted
+
+**Status:** User-supplied direction implemented and verified. The control is an optional checkbox labelled **I've placed it as suggested**.
+
+#### Decision
+
+During Add a plant, show a Light & placement section alongside the existing Last watered section. Give a short species-specific light requirement and position suggestion. The single optional input acknowledges that the user has acted on that suggestion. It starts unchecked and can be skipped by using the existing Add action.
+
+Show the same suggestion and acknowledgment on plant detail near Watering. A user who skipped it during setup can act and confirm later. Remove the dim/bright picker, branch-based assessment, separate placement workflow, and required date-edit step from the proposal.
+
+#### Rationale
+
+Bloom already knows the selected species, so it can provide useful placement guidance without asking users to judge light conditions. Asking only whether they acted is easier to follow, requires less input, and supports care at the time they are ready. Repeating the suggestion on detail supports later action without repeated prompts or reminders.
+
+#### Content boundary
+
+Use reviewed light requirements, not a rigid rule that all plants either require direct sun or must avoid it. Rubber Plant was an interaction example; reviewed guidance favors indoor indirect light with protection from strong afternoon sun. Keep a concise placement sentence in the UI and maintain the sources in PRD 14.9.
+
+### D29 — Persist the acknowledgment as plant state
+
+**Status:** Implemented: optional timestamp/version state, immediate detail persistence, correction with the same checkbox, and backward-compatible loading.
+
+#### Decision
+
+Persist whether the user has acknowledged acting, so both entry points show the same saved state and future watering logic can use it. The implemented state is an optional acknowledgment timestamp plus the guidance version. Missing data is unacknowledged, including for existing plants; it never means inadequate light.
+
+In setup, save the acknowledgment with the plant and its starting schedule on Add. On detail, persist immediately when the control is changed, with no separate Save page. The same control clears acknowledgment; watering state is unaffected in this release.
+
+#### Rationale and boundaries
+
+The earlier transient concern state could not support later acknowledgment or a future schedule decision. A small durable state now directly serves the requested behavior. The timestamp records acknowledgment, not an exact plant movement, and the version identifies the advice acted upon. It remains user-reported information rather than measured placement suitability, light exposure, or soil moisture.
+
+Unchecked may mean skipped, not acted yet, or withdrawn. Reading the advice alone records nothing. Do not fabricate confirmations for old plants, add a room questionnaire, create watering history, or add recurring light reminders. Save failure preserves previous data and exposes retry feedback.
+
+### D30 — Preserve potential future scheduling use as a separate decision
+
+**Status:** Future adaptation deferred by D31; the earlier open policy is resolved for this release.
+
+The user initially said acknowledgment could affect watering. Acknowledgment is now stored and available for future reviewed work, but no schedule adaptation is implemented in this release. A checkbox does not establish previous light, movement direction, or current soil moisture, so it does not support a precise date multiplier. Any future adaptation must specify its evidence, rule, disclosure, idempotence, and correction semantics and preserve explicit watering history. Sources in PRD 14.9 support the general relationship, not a numerical acknowledgment-to-date formula.
+
+### D31 — Keep watering unchanged and begin implementation
+
+**Status:** Explicitly confirmed and authorized by the user on 15 November 2026.
+
+#### Decision and rationale
+
+For this release, save the optional placement acknowledgment without changing watering dates, intervals, history, Last watered, or reminders. Handle adaptation separately later. This keeps the experience simple and avoids an unsupported scheduling rule or extra prompts. Existing plants remain unacknowledged until the user acts; already-suitable placement counts. The user accepted this first-release policy and explicitly instructed the team to document it and move into implementation.
+
+#### Implementation consequences
+
+- Use the same sourced species suggestion in setup and detail, and one optional unchecked acknowledgment.
+- Save acknowledgment timestamp and guidance version per plant. Detail writes save immediately; the same control can clear it. Preserve older-version acknowledgments with inline context and no expiry or forced prompt.
+- During setup save the selected state together with the plant and its normal starting schedule on Add; Cancel writes nothing.
+- Do not synchronize reminders for placement-only writes. Repeated confirmations do not rewrite the timestamp or any watering state.
+- Save failures preserve committed state and allow retry. No added recurring light reminders, assessment questionnaire, or light activity history.
+- Verification must cover old JSON, persistence/relaunch, setup skip and confirmation, detail changes and correction, failed writes, unchanged watering, and narrow/large-text layouts.
+
+D27's review-and-authorization gate has been satisfied for this scope. New scheduling behavior would require a new reviewed decision.
+
+### D32 — Label both optional setup sections consistently
+
+**Status:** Confirmed by the user and implemented on 15 November 2026.
+
+Show **Optional** next to both **Last watered** and **Light & placement** in Add a plant, with matching secondary typography, spacing, and wrapping. Labelling only one optional section can make the other appear required. The user preferred showing the label in both rather than removing it from both. This is a presentation change; both inputs remain skippable and all persistence/watering behavior stays the same.
+
+### D27 — Document, review, then explicitly authorize implementation
+
+
+**Status:** Confirmed workflow, explicitly requested by the user.
+
+#### Decision
+
+Discuss requirements first. Document material decisions, alternatives, rationale, tradeoffs, and open questions in the local repository. Review the PRD, implementation plan, and related documents with the user. Begin app implementation only after the user confirms the documents and explicitly authorizes that implementation.
+
+#### Documentation ownership
+
+- `PRD.md`: scope, behavior contract, acceptance criteria, sources, and unresolved product questions.
+- `PRODUCT_DECISIONS.md`: selected alternatives, why they were selected, scope cuts, and revisit triggers.
+- `IMPLEMENTATION_PLAN.md`: gated sequence, architecture direction, validation work, and documentation upkeep.
+- `DESIGN_GUIDELINES.md`: language, input budget, hierarchy, navigation, and reminder restraint.
+- `STATUS.md`: separate current implementation from requirements/planning; record actual verification evidence only.
+- `README.md`: entry point to the current release and proposed scope.
+
+Keep these aligned as decisions evolve. Do not leave a material product decision only in chat or implement an unresolved choice silently. Product discussion, document editing, and an implementation plan are not implementation approval.
