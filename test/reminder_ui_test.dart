@@ -1,4 +1,5 @@
 import 'package:bloom/data/garden_repository.dart';
+import 'package:bloom/data/cloud_garden_sync.dart';
 import 'package:bloom/data/watering_notifications.dart';
 import 'package:bloom/domain/garden_store.dart';
 import 'package:bloom/domain/models.dart';
@@ -70,7 +71,11 @@ void main() {
         ),
         child: child!,
       ),
-      home: PreferencesScreen(store: store, notifications: service),
+      home: PreferencesScreen(
+        store: store,
+        notifications: service,
+        cloudSync: CloudGardenSync(),
+      ),
     ),
   );
 
@@ -190,7 +195,12 @@ void main() {
     WateringNotifications service,
   ) async {
     await tester.pumpWidget(
-      BloomApp(store: state, flags: FirstRunFlags(), notifications: service),
+      BloomApp(
+        store: state,
+        flags: FirstRunFlags(),
+        notifications: service,
+        cloudSync: CloudGardenSync(),
+      ),
     );
     await tester.pumpAndSettle();
   }

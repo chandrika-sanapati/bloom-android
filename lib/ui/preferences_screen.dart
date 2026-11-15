@@ -2,18 +2,25 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../data/auth_service.dart';
+import '../data/cloud_garden_sync.dart';
 import '../data/watering_notifications.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
+import 'login_screen.dart';
 
 class PreferencesScreen extends StatefulWidget {
   const PreferencesScreen({
     super.key,
     required this.store,
     required this.notifications,
+    this.auth,
+    required this.cloudSync,
   });
   final GardenStore store;
   final WateringNotifications notifications;
+  final AuthService? auth;
+  final CloudGardenSync cloudSync;
   @override
   State<PreferencesScreen> createState() => _PreferencesScreenState();
 }
@@ -103,6 +110,47 @@ class _PreferencesScreenState extends State<PreferencesScreen>
     }
   }
 
+  Future<void> _toggleAuth() async {
+    final auth = widget.auth;
+    if (auth == null || _busy) return;
+    if (!auth.signedIn) {
+      final signedIn = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => LoginScreen(
+            auth: auth,
+            cloudSync: widget.cloudSync,
+            store: widget.store,
+          ),
+        ),
+      );
+      if (!mounted || signedIn != true) return;
+      setState(() {});
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    try {
+      if (auth.signedIn) {
+        await auth.signOut();
+      } else if (!await auth.signInWithGoogle()) {
+        throw StateError('Sign-in was cancelled or unavailable.');
+      } else {
+        final result = await widget.cloudSync.sync(widget.store.garden);
+        if (result == CloudSyncResult.conflict) {
+          _message =
+              'Your account already has a different garden. Local data was not overwritten.';
+        }
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _message = 'Google sign-in was cancelled or unavailable.');
+    }
+    if (!mounted) return;
+    setState(() => _busy = false);
+  }
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: Listenable.merge([
@@ -131,6 +179,29 @@ class _PreferencesScreenState extends State<PreferencesScreen>
         body: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            if (widget.auth case final auth?) ...[
+              Text('Account', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 12),
+              Card(
+                margin: EdgeInsets.zero,
+                child: ListTile(
+                  leading: const Icon(Icons.account_circle_outlined),
+                  title: Text(
+                    auth.signedIn ? 'Signed in' : 'Sign in with Google',
+                  ),
+                  subtitle: auth.email == null
+                      ? const Text(
+                          'Optional cloud features; local Bloom works without an account.',
+                        )
+                      : Text(auth.email!),
+                  trailing: auth.signedIn
+                      ? const Icon(Icons.logout)
+                      : const Icon(Icons.login),
+                  onTap: _busy ? null : _toggleAuth,
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
             Text('Watering reminders', style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),
             Card(

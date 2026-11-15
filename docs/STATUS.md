@@ -62,7 +62,13 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Exact delivery timing; Android may deliver inexact alarms within its allowed window.
 - Photo identification results/provider integration; the current photo flow intentionally stops after local intake and preview.
 - Supabase Auth, Google sign-in, remote garden sync, and PlantNet Edge Function integration are not configured yet.
+- Configured builds now gate Home on Google/Supabase authentication; garden sync uploads the local payload when the remote garden is empty and reports conflicts without overwriting. Production migration has not been applied yet.
+- Host verification: Supabase/auth/sync code compiles and the existing 82-test suite passes. Live Google sign-in and authenticated PlantNet require the configured build and emulator interaction.
 - A typed PlantNet/Supabase Edge Function provider seam is implemented; it activates only when `PLANT_IDENTIFIER_ENDPOINT` is supplied at build time.
+- Optional Supabase initialization is implemented behind `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` build-time defines; no project credentials are tracked in the repository.
+- Optional Google sign-in is implemented behind `GOOGLE_WEB_CLIENT_ID`; Preferences exposes sign-in/sign-out only when Supabase and Google build-time configuration are present.
+- Supabase project `gwuwlzzpfklvfhtkubnj` is linked locally; the `identify-plant` Edge Function is deployed and `PLANTNET_API_KEY` exists as a hosted function secret. Live authenticated identification and Google sign-in still need emulator QA with configured build defines.
+- Configured-build smoke check: APK built with Supabase URL, publishable key, PlantNet Edge Function endpoint, and Google Web Client ID; Supabase initialization completed and the normal app launched on `emulator-5554` without startup errors.
 - Supabase Auth, Google sign-in, remote garden sync, and PlantNet Edge Function integration are not configured yet.
 - Cloud sync, accounts, analytics, environmental checks, diagnosis, nutrition, repotting, or other care domains.
 

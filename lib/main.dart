@@ -2,12 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'data/garden_repository.dart';
+import 'data/auth_service.dart';
+import 'data/cloud_garden_sync.dart';
 import 'data/plant_identifier.dart';
 import 'data/watering_notifications.dart';
 import 'domain/garden_store.dart';
 import 'ui/home_screen.dart';
+import 'ui/login_screen.dart';
 import 'ui/check_screen.dart';
 import 'ui/check_route.dart';
 import 'ui/plant_detail_screen.dart';
@@ -15,18 +19,24 @@ import 'domain/watering_notification.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await _initializeSupabaseIfConfigured();
   final repository = GardenRepository();
   final garden = await repository.load();
   final notifications = WateringNotifications();
   final identifier = configuredPlantIdentifier();
+  final auth = configuredAuthService();
+  final cloudSync = CloudGardenSync();
   final store = GardenStore(
     garden: garden,
     persist: repository.save,
-    onChanged: (next) => notifications.sync(
-      enabled: next.preferences.taskNotifications,
-      plants: next.plants,
-      schedules: next.schedules,
-    ),
+    onChanged: (next) async {
+      await notifications.sync(
+        enabled: next.preferences.taskNotifications,
+        plants: next.plants,
+        schedules: next.schedules,
+      );
+      await cloudSync.sync(next);
+    },
   );
   runApp(
     BloomApp(
@@ -34,8 +44,21 @@ Future<void> main() async {
       flags: FirstRunFlags(),
       notifications: notifications,
       identifier: identifier,
+      auth: auth,
+      cloudSync: cloudSync,
     ),
   );
+}
+
+Future<void> _initializeSupabaseIfConfigured() async {
+  const url = String.fromEnvironment('SUPABASE_URL');
+  const publishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
+  if (url.isEmpty || publishableKey.isEmpty) return;
+  try {
+    await Supabase.initialize(url: url, publishableKey: publishableKey);
+  } catch (_) {
+    // Cloud services are optional; keep the local-first app available.
+  }
 }
 
 class BloomApp extends StatefulWidget {
@@ -44,6 +67,8 @@ class BloomApp extends StatefulWidget {
     required this.store,
     required this.flags,
     required this.notifications,
+    this.auth,
+    required this.cloudSync,
     this.identifier,
   });
 
@@ -51,6 +76,8 @@ class BloomApp extends StatefulWidget {
   final FirstRunFlags flags;
   final WateringNotifications notifications;
   final PlantIdentifier? identifier;
+  final AuthService? auth;
+  final CloudGardenSync cloudSync;
 
   @override
   State<BloomApp> createState() => _BloomAppState();
@@ -201,13 +228,65 @@ class _BloomAppState extends State<BloomApp> with WidgetsBindingObserver {
           theme: ThemeData(colorScheme: lightScheme, useMaterial3: true),
           darkTheme: ThemeData(colorScheme: darkScheme, useMaterial3: true),
           themeMode: ThemeMode.system,
-          home: HomeScreen(
+          home: _AuthGate(
             store: widget.store,
             flags: widget.flags,
             notifications: widget.notifications,
             identifier: widget.identifier,
+            auth: widget.auth,
+            cloudSync: widget.cloudSync,
           ),
         );
+      },
+    );
+  }
+}
+
+class _AuthGate extends StatelessWidget {
+  const _AuthGate({
+    required this.store,
+    required this.flags,
+    required this.notifications,
+    required this.identifier,
+    required this.auth,
+    required this.cloudSync,
+  });
+
+  final GardenStore store;
+  final FirstRunFlags flags;
+  final WateringNotifications notifications;
+  final PlantIdentifier? identifier;
+  final AuthService? auth;
+  final CloudGardenSync cloudSync;
+
+  @override
+  Widget build(BuildContext context) {
+    final service = auth;
+    if (service == null || !service.configured) {
+      return HomeScreen(
+        store: store,
+        flags: flags,
+        notifications: notifications,
+        identifier: identifier,
+        auth: auth,
+        cloudSync: cloudSync,
+      );
+    }
+
+    return StreamBuilder<AuthState>(
+      stream: service.authStateChanges,
+      builder: (context, _) {
+        if (service.signedIn) {
+          return HomeScreen(
+            store: store,
+            flags: flags,
+            notifications: notifications,
+            identifier: identifier,
+            auth: auth,
+            cloudSync: cloudSync,
+          );
+        }
+        return LoginScreen(auth: service, cloudSync: cloudSync, store: store);
       },
     );
   }

@@ -1,7 +1,7 @@
 # Bloom backend and identification plan
 
 **Decision:** Supabase Auth + Postgres + Storage + Edge Functions
-**Status:** Architecture approved; Flutter provider seam implemented, Supabase project/auth/sync and Edge Function deployment remain to be configured
+**Status:** Supabase project linked, `identify-plant` Edge Function deployed, Flutter provider/auth seams implemented, mandatory-auth gate and local-first garden sync implemented; live Google sign-in/PlantNet QA and database migration remain
 **Last updated:** 15 November 2026
 
 ## Goals
@@ -40,6 +40,8 @@ The Flutter app must not call PlantNet directly. The PlantNet key is a secret an
   - **Use the cloud garden and replace this device's garden**
   - **Review differences** (later)
 - Never silently overwrite local garden data during first sign-in.
+
+Configured production builds currently gate Home until Google sign-in succeeds. Builds without Supabase/Google defines remain usable for local development and tests. After sign-in, an empty remote garden receives the local garden; a non-empty conflict blocks overwrite until an explicit merge UI exists.
 
 ### Postgres
 
@@ -124,14 +126,16 @@ abstract interface class GardenSyncRepository {
 
 The current local store remains the source used by the UI. Remote sync should be an explicit application service that coordinates local persistence, authentication, upload/download, merge, and failure recovery. Screens should not call Supabase directly.
 
-The current code includes `SupabasePlantIdentifier`, which calls a configured Edge Function endpoint with multipart photos and normalizes PlantNet-style candidates. Configure it only at build time:
+The current code includes `SupabasePlantIdentifier`, which calls a configured Edge Function endpoint with multipart photos and normalizes PlantNet-style candidates. It uses the current Supabase session access token when one is available. Configure the project only at build time:
 
 ```sh
 flutter run \
+  --dart-define=SUPABASE_URL=https://<project-ref>.supabase.co \
+  --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_... \
   --dart-define=PLANT_IDENTIFIER_ENDPOINT=https://<project-ref>.supabase.co/functions/v1/identify-plant
 ```
 
-Without that define, photo intake remains local-only and clearly reports that identification is not configured. The PlantNet API key is never accepted by the Flutter client.
+Without those defines, photo intake remains local-only and clearly reports that identification is not configured. The PlantNet API key is never accepted by the Flutter client. A publishable Supabase key is not a PlantNet secret, but it still belongs in build-time configuration rather than tracked source.
 
 ## Sync policy
 
@@ -146,6 +150,8 @@ Without that define, photo intake remains local-only and clearly reports that id
 
 - Sync only when authenticated and enabled by the user.
 - Save locally first; queue a remote upload.
+- When mandatory-auth mode is enabled, the app gates Home until a valid session exists; local writes remain the immediate source and are uploaded after persistence.
+- If the network is unavailable, local writes continue and the next app resume/save retries sync.
 - A failed upload never removes or rolls back local data.
 - Use a revision/updated-at conflict check. Do not silently last-write-wins across devices.
 - Present a conflict screen when both local and remote changed since the last sync.
@@ -185,8 +191,8 @@ Project-specific values are intentionally not committed. Before enabling the fea
 2. **Provider seam:** add `PlantIdentifier` and fake/test implementation; no production credentials.
 3. **Edge Function:** proxy PlantNet, return normalized candidates, enforce auth/quota/limits.
 4. **Candidate confirmation:** user confirms a candidate; supported profiles can enter setup, unsupported candidates remain without an invented schedule.
-5. **Supabase Auth:** optional Google sign-in and session state.
-6. **Local/cloud merge:** explicit first-sign-in choice and revisioned garden sync.
+5. **Supabase Auth:** Google sign-in and session state. The configured production build gates Home until sign-in; unconfigured test/local builds remain usable without an account.
+6. **Local/cloud merge:** first sign-in uploads the local garden when the remote row is empty; non-empty conflicts block overwrite until a merge UI is implemented.
 7. **Photo persistence:** optional private storage only after user confirmation.
 8. **Manual QA:** auth cancellation, offline use, quota errors, permission states, privacy, conflict/recovery, and account deletion.
 

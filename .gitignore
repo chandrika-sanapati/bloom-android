@@ -125,3 +125,4 @@ app.*.symbols
 /android/app/release
 /android/app/profile
 /android/app/debug
+/supabase/.temp/

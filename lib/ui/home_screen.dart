@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../data/garden_repository.dart';
+import '../data/auth_service.dart';
+import '../data/cloud_garden_sync.dart';
 import '../data/plant_identifier.dart';
 import '../data/watering_notifications.dart';
 import '../domain/garden_store.dart';
@@ -20,12 +22,16 @@ class HomeScreen extends StatefulWidget {
     required this.flags,
     required this.notifications,
     this.identifier,
+    this.auth,
+    required this.cloudSync,
   });
 
   final GardenStore store;
   final FirstRunFlags flags;
   final WateringNotifications notifications;
   final PlantIdentifier? identifier;
+  final AuthService? auth;
+  final CloudGardenSync cloudSync;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -86,6 +92,8 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (_) => PreferencesScreen(
           store: widget.store,
           notifications: widget.notifications,
+          auth: widget.auth,
+          cloudSync: widget.cloudSync,
         ),
       ),
     );
