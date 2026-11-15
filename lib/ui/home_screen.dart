@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/garden_repository.dart';
+import '../data/plant_identifier.dart';
 import '../data/watering_notifications.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
@@ -18,11 +19,13 @@ class HomeScreen extends StatefulWidget {
     required this.store,
     required this.flags,
     required this.notifications,
+    this.identifier,
   });
 
   final GardenStore store;
   final FirstRunFlags flags;
   final WateringNotifications notifications;
+  final PlantIdentifier? identifier;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -70,7 +73,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void _openPhotoIdentification() {
     setState(() => _fabOpen = false);
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const PhotoIdentificationScreen()),
+      MaterialPageRoute(
+        builder: (_) =>
+            PhotoIdentificationScreen(identifier: widget.identifier),
+      ),
     );
   }
 

@@ -62,6 +62,7 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Exact delivery timing; Android may deliver inexact alarms within its allowed window.
 - Photo identification results/provider integration; the current photo flow intentionally stops after local intake and preview.
 - Supabase Auth, Google sign-in, remote garden sync, and PlantNet Edge Function integration are not configured yet.
+- A typed PlantNet/Supabase Edge Function provider seam is implemented; it activates only when `PLANT_IDENTIFIER_ENDPOINT` is supplied at build time.
 - Supabase Auth, Google sign-in, remote garden sync, and PlantNet Edge Function integration are not configured yet.
 - Cloud sync, accounts, analytics, environmental checks, diagnosis, nutrition, repotting, or other care domains.
 

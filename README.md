@@ -101,6 +101,8 @@ The domain/widget suite covers watering, placement, reminder timing, soil health
 - [`docs/previews/README.md`](docs/previews/README.md) — explicitly historical iOS design references; not a specification for the Android UI.
 - [`docs/BACKEND_PLAN.md`](docs/BACKEND_PLAN.md) — Supabase, Google sign-in, PlantNet proxy, sync, privacy, and rollout plan.
 
+Photo identification is configured only with a Supabase Edge Function endpoint at build time. Never put the PlantNet API key in Flutter, Git, or an APK; store it as an Edge Function secret.
+
 ## Product boundary
 
 Bloom is an assistant for remembering and recording plant checks. It does not diagnose disease, guarantee plant health, or claim that a date proves a plant needs water. Broader environmental assessments, chemistry/diagnosis, additional plant profiles, and cloud sync remain roadmap items. Soil health supports the on-demand care described below.

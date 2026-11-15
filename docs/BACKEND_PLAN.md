@@ -1,7 +1,7 @@
 # Bloom backend and identification plan
 
 **Decision:** Supabase Auth + Postgres + Storage + Edge Functions
-**Status:** Architecture approved; project wiring not configured yet
+**Status:** Architecture approved; Flutter provider seam implemented, Supabase project/auth/sync and Edge Function deployment remain to be configured
 **Last updated:** 15 November 2026
 
 ## Goals
@@ -123,6 +123,15 @@ abstract interface class GardenSyncRepository {
 ```
 
 The current local store remains the source used by the UI. Remote sync should be an explicit application service that coordinates local persistence, authentication, upload/download, merge, and failure recovery. Screens should not call Supabase directly.
+
+The current code includes `SupabasePlantIdentifier`, which calls a configured Edge Function endpoint with multipart photos and normalizes PlantNet-style candidates. Configure it only at build time:
+
+```sh
+flutter run \
+  --dart-define=PLANT_IDENTIFIER_ENDPOINT=https://<project-ref>.supabase.co/functions/v1/identify-plant
+```
+
+Without that define, photo intake remains local-only and clearly reports that identification is not configured. The PlantNet API key is never accepted by the Flutter client.
 
 ## Sync policy
 

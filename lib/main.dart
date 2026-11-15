@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 
 import 'data/garden_repository.dart';
+import 'data/plant_identifier.dart';
 import 'data/watering_notifications.dart';
 import 'domain/garden_store.dart';
 import 'ui/home_screen.dart';
@@ -17,6 +18,7 @@ Future<void> main() async {
   final repository = GardenRepository();
   final garden = await repository.load();
   final notifications = WateringNotifications();
+  final identifier = configuredPlantIdentifier();
   final store = GardenStore(
     garden: garden,
     persist: repository.save,
@@ -31,6 +33,7 @@ Future<void> main() async {
       store: store,
       flags: FirstRunFlags(),
       notifications: notifications,
+      identifier: identifier,
     ),
   );
 }
@@ -41,11 +44,13 @@ class BloomApp extends StatefulWidget {
     required this.store,
     required this.flags,
     required this.notifications,
+    this.identifier,
   });
 
   final GardenStore store;
   final FirstRunFlags flags;
   final WateringNotifications notifications;
+  final PlantIdentifier? identifier;
 
   @override
   State<BloomApp> createState() => _BloomAppState();
@@ -200,6 +205,7 @@ class _BloomAppState extends State<BloomApp> with WidgetsBindingObserver {
             store: widget.store,
             flags: widget.flags,
             notifications: widget.notifications,
+            identifier: widget.identifier,
           ),
         );
       },

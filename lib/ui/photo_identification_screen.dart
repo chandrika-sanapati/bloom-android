@@ -3,8 +3,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../data/plant_identifier.dart';
+import '../domain/plant_identification.dart';
+
 class PhotoIdentificationScreen extends StatefulWidget {
-  const PhotoIdentificationScreen({super.key});
+  const PhotoIdentificationScreen({super.key, this.identifier});
+
+  final PlantIdentifier? identifier;
 
   @override
   State<PhotoIdentificationScreen> createState() =>
@@ -14,6 +19,8 @@ class PhotoIdentificationScreen extends StatefulWidget {
 class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
   final _picker = ImagePicker();
   XFile? _photo;
+  PlantIdentificationResult? _result;
+  bool _identifying = false;
   String? _message;
 
   Future<void> _pick(ImageSource source) async {
@@ -26,6 +33,7 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
       if (!mounted || photo == null) return;
       setState(() {
         _photo = photo;
+        _result = null;
         _message = null;
       });
     } catch (_) {
@@ -34,6 +42,36 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
         () => _message =
             'The photo could not be opened. You can try again or choose a different image.',
       );
+    }
+  }
+
+  Future<void> _identify() async {
+    final photo = _photo;
+    final identifier = widget.identifier;
+    if (photo == null || identifier == null || _identifying) return;
+    setState(() {
+      _identifying = true;
+      _message = null;
+    });
+    try {
+      final result = await identifier.identify([photo]);
+      if (!mounted) return;
+      setState(() {
+        _result = result;
+        _identifying = false;
+      });
+    } on PlantIdentificationException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _identifying = false;
+        _message = error.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _identifying = false;
+        _message = 'Plant identification is unavailable right now.';
+      });
     }
   }
 
@@ -73,22 +111,69 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
-              onPressed: () => setState(() => _photo = null),
+              onPressed: _identifying
+                  ? null
+                  : () => setState(() {
+                      _photo = null;
+                      _result = null;
+                    }),
               icon: const Icon(Icons.close),
               label: const Text('Remove photo'),
             ),
             const SizedBox(height: 20),
-            Card(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'Identification results are coming next. This photo stays '
-                  'on this screen and no plant or watering schedule has been added.',
-                  style: theme.textTheme.bodyMedium,
+            if (widget.identifier == null && _result == null)
+              Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Identification is not configured in this build yet. '
+                    'This photo stays on this screen and no plant or watering '
+                    'schedule has been added.',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ),
+              )
+            else if (_result == null)
+              FilledButton.icon(
+                onPressed: _identifying ? null : _identify,
+                icon: const Icon(Icons.search),
+                label: Text(
+                  _identifying
+                      ? 'Finding possible matches…'
+                      : 'Find possible matches',
                 ),
               ),
-            ),
+            if (_result case final result?) ...[
+              const SizedBox(height: 20),
+              Text('Possible matches', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
+              if (result.candidates.isEmpty)
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      'No likely plant matches were found. Try a clearer photo.',
+                    ),
+                  ),
+                )
+              else
+                for (final candidate in result.candidates)
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      title: Text(candidate.displayName),
+                      subtitle: Text(candidate.scientificName),
+                      trailing: Text('${(candidate.score * 100).round()}%'),
+                    ),
+                  ),
+              Text(
+                'These are possible matches, not a diagnosis. Confirm a plant before adding it.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ] else ...[
             _PhotoAction(
               icon: Icons.camera_alt_outlined,
