@@ -137,13 +137,31 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
             else if (_result == null)
               FilledButton.icon(
                 onPressed: _identifying ? null : _identify,
-                icon: const Icon(Icons.search),
+                icon: _identifying
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.search),
                 label: Text(
                   _identifying
                       ? 'Finding possible matches…'
                       : 'Find possible matches',
                 ),
               ),
+            if (_identifying) ...[
+              const SizedBox(height: 20),
+              const Center(child: CircularProgressIndicator()),
+              const SizedBox(height: 8),
+              Text(
+                'Comparing your photo with plant references…',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
             if (_result case final result?) ...[
               const SizedBox(height: 20),
               Text('Possible matches', style: theme.textTheme.titleMedium),

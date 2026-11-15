@@ -70,6 +70,7 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Optional Google sign-in is implemented behind `GOOGLE_WEB_CLIENT_ID`; Preferences exposes sign-in/sign-out only when Supabase and Google build-time configuration are present.
 - Supabase project `gwuwlzzpfklvfhtkubnj` is linked locally; the `identify-plant` Edge Function is deployed and `PLANTNET_API_KEY` exists as a hosted function secret. Live authenticated identification and Google sign-in still need emulator QA with configured build defines.
 - Configured-build smoke check: APK built with Supabase URL, publishable key, PlantNet Edge Function endpoint, and Google Web Client ID; Supabase initialization completed and the normal app launched on `emulator-5554` without startup errors.
+- PlantNet end-to-end request verified in hosted logs: authenticated multipart request, PlantNet response, and HTTP 200 in under one second. Flutter now parses the Edge Function's normalized `candidates` response.
 - Supabase Auth, Google sign-in, remote garden sync, and PlantNet Edge Function integration are not configured yet.
 - Cloud sync, accounts, analytics, environmental checks, diagnosis, nutrition, repotting, or other care domains.
 

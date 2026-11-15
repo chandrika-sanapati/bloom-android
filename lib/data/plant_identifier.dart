@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -46,21 +47,43 @@ class SupabasePlantIdentifier implements PlantIdentifier {
 
     final request = http.MultipartRequest('POST', _endpoint);
     final token = accessToken ?? _currentAccessToken();
+    const publishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
+    if (publishableKey.isNotEmpty) {
+      request.headers['apikey'] = publishableKey;
+    }
     if (token != null && token.isNotEmpty) {
       request.headers['Authorization'] = 'Bearer $token';
     }
     for (final photo in photos) {
+      final bytes = await photo.readAsBytes().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => throw const PlantIdentificationException(
+          'Reading the selected photo timed out. Try another image.',
+        ),
+      );
       request.files.add(
         http.MultipartFile.fromBytes(
           'images',
-          await photo.readAsBytes(),
+          bytes,
           filename: photo.name,
+          contentType: _contentType(photo.name),
         ),
       );
     }
 
-    final response = await _client.send(request);
-    final body = await response.stream.bytesToString();
+    const timeout = Duration(seconds: 30);
+    final response = await _client.send(request).timeout(
+      timeout,
+      onTimeout: () => throw const PlantIdentificationException(
+        'Plant identification timed out. Check your connection and try again.',
+      ),
+    );
+    final body = await response.stream.bytesToString().timeout(
+      timeout,
+      onTimeout: () => throw const PlantIdentificationException(
+        'Plant identification timed out. Check your connection and try again.',
+      ),
+    );
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw PlantIdentificationException(
         'Plant identification is unavailable right now (${response.statusCode}).',
@@ -69,7 +92,7 @@ class SupabasePlantIdentifier implements PlantIdentifier {
 
     try {
       final json = jsonDecode(body) as Map<String, dynamic>;
-      final rawResults = json['results'] as List? ?? const [];
+      final rawResults = json['candidates'] as List? ?? const [];
       final candidates = rawResults
           .whereType<Map>()
           .map(_candidateFromJson)
@@ -87,7 +110,27 @@ class SupabasePlantIdentifier implements PlantIdentifier {
     }
   }
 
+  MediaType _contentType(String filename) =>
+      filename.toLowerCase().endsWith('.png')
+      ? MediaType('image', 'png')
+      : MediaType('image', 'jpeg');
+
   PlantCandidate? _candidateFromJson(Map raw) {
+    final normalizedScientific = raw['scientificName'];
+    if (normalizedScientific is String && normalizedScientific.isNotEmpty) {
+      final normalizedNames = (raw['commonNames'] as List?)
+              ?.whereType<String>()
+              .toList() ??
+          const <String>[];
+      final normalizedScore = raw['score'];
+      return PlantCandidate(
+        scientificName: normalizedScientific,
+        commonNames: normalizedNames,
+        score: normalizedScore is num ? normalizedScore.toDouble() : 0,
+        gbifId: raw['gbifId']?.toString(),
+        powoId: raw['powoId']?.toString(),
+      );
+    }
     final species = raw['species'];
     if (species is! Map) return null;
     final scientific = species['scientificNameWithoutAuthor'];
