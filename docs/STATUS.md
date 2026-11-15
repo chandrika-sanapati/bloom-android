@@ -22,6 +22,7 @@ This is the short, current implementation record. If it conflicts with an older 
 - Actual-event-based next scheduling with original scheduled time retained in records.
 - Plant detail with next check, starting interval, Last watered, and Edit next check.
 - Future next-check date/time editing.
+- Check Watering uses a full-width outlined Edit next check action below the scheduled date.
 - Plant removal with schedule and record cleanup.
 - Optional future-only Android notifications and permission-denied messaging.
 - Notification setup and scheduling are best effort and cannot block app startup.
@@ -48,6 +49,7 @@ This is the short, current implementation record. If it conflicts with an older 
 - Android debug APK build: passed using Android Studio's JDK; output is `build/app/outputs/flutter-apk/app-debug.apk`.
 - Emulator smoke check: initial launch exposed exact-alarm permission failure; notification scheduling was changed to inexact, best-effort delivery so the app can start without special-alarm access.
 - Clean emulator smoke flow passed: empty Home → add Snake Plant → Watered → verify Last watered/next check → edit next check to December 15 → force-stop/relaunch → verify the edited date persisted.
+- Date picker and time picker both opened and saved successfully during the emulator smoke flow.
 
 ## Current source map
 
@@ -65,8 +67,8 @@ This is the short, current implementation record. If it conflicts with an older 
 
 The full tradeoff history recovered from the original Bloom product work is maintained in [`PRODUCT_DECISIONS.md`](PRODUCT_DECISIONS.md). It is platform-neutral and distinguishes current Android behavior from deferred and planned capabilities.
 
-## Immediate next checks
+## Remaining verification
 
-1. Run the complete add → check → edit → relaunch flow on the Android emulator.
-2. Verify date entry, notification delivery, permission denial, TalkBack, and large-font layouts.
+1. Verify notification delivery and permission denial on-device.
+2. Review TalkBack labels, selected states, large Android font sizes, narrow layouts, dark theme behavior, and system animation settings.
 3. Decide whether record-level correction/Undo and a configurable reminder time belong in the next release.

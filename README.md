@@ -26,8 +26,9 @@ The current app supports:
 - Removing a plant and its local watering history.
 - Local JSON persistence and optional future-check notifications.
 - Android notification permission handling that leaves in-app tasks available when permission is denied.
+- Notifications use best-effort inexact Android scheduling and never block app startup.
 
-Current limitations are tracked in [`docs/STATUS.md`](docs/STATUS.md). In particular, there is not yet an automated test suite, record-level deletion, a configurable reminder time screen, or support for arbitrary custom plants.
+Current limitations are tracked in [`docs/STATUS.md`](docs/STATUS.md). In particular, record-level deletion, a configurable reminder time screen, notification tap routing, and support for arbitrary custom plants are not yet implemented.
 
 ## Requirements
 
@@ -58,7 +59,7 @@ flutter analyze
 flutter test
 ```
 
-`flutter test` currently reports that no `test/` directory exists; see the verification notes in [`docs/STATUS.md`](docs/STATUS.md).
+The focused domain suite currently contains 12 tests. See the verification notes in [`docs/STATUS.md`](docs/STATUS.md).
 
 ## Project layout
 

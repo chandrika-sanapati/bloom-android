@@ -120,6 +120,8 @@ For **Checked — not watered**:
 - Notifications are disabled by default until the user enables them.
 - Permission is requested only after the user chooses to enable notifications.
 - Only future checks are scheduled.
+- Android delivery is best effort and inexact; special exact-alarm access is not required.
+- Initial notification synchronization runs after the app starts and must not block the core UI.
 - Enabling, disabling, completing a check, or editing the next date synchronizes watering notifications.
 - Overdue history never creates a burst of notifications.
 - If permission is denied, the task remains visible in the app.

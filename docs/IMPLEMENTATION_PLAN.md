@@ -1,6 +1,6 @@
 # Bloom Android implementation plan
 
-**Status:** Watering MVP baseline implemented; verification and hardening remain.
+**Status:** Watering MVP baseline and repeatable verification implemented; device-level accessibility and notification delivery checks remain.
 **Platform:** Flutter Android.
 **Source of truth:** [`STATUS.md`](STATUS.md) for shipped behavior; [`PRD.md`](PRD.md) for product intent and scope.
 **Last updated:** 15 November 2026
@@ -33,34 +33,39 @@ Bloom should make the next watering check clearer, faster, and more trustworthy.
 - Dry non-watering checks use a three-day follow-up; other checks use the profile interval.
 - Late completion schedules from the actual recorded time and retains the original scheduled time in the record.
 - Home Upcoming/Past activity, plant details, next-check editing, and plant removal.
+- Check Watering uses a full-width outlined secondary Edit next check action below the scheduled date.
 - Local persistence with failed-save protection at the store boundary.
-- Optional future-only Android notifications and permission-denied behavior.
+- Optional future-only Android notifications, permission-denied behavior, inexact scheduling, and non-blocking startup.
 
 ## 4. Next engineering steps
 
 ### P0 — Establish repeatable verification
 
-1. Add focused Dart tests for profile values, first-check calculation, timing classification, watering transitions, dry follow-up, late completion, edit validation, and failed persistence.
-2. Decide whether `flutter analyze` should pass with zero findings; currently it reports two `prefer_initializing_formals` info findings in `garden_repository.dart` and `garden_store.dart`.
-3. Run a debug APK build with the Android Studio JDK configured for the shell environment, then install on the available emulator.
-4. Keep verification results and any known environment limitations in `docs/STATUS.md`.
+**Status:** Complete.
+
+1. Add focused Dart tests for profile values, first-check calculation, timing classification, watering transitions, dry follow-up, late completion, edit validation, and failed persistence. **Done: 12 tests pass.**
+2. Make `flutter analyze` pass with zero findings. **Done.**
+3. Build a debug APK with the Android Studio JDK and install it on the available emulator. **Done.**
+4. Keep verification results and known environment limitations in `docs/STATUS.md`. **Done.**
 
 ### P1 — Verify the complete Android journey
 
-- Add each catalog plant and confirm its starting schedule.
-- Enter a valid last-watered date and confirm the calculated next check.
-- Reject future last-watered dates.
-- Complete Watered and confirm Last watered, Past, and the next schedule.
-- Complete Checked — not watered for dry, damp, and unknown soil.
-- Resolve an overdue task without creating a duplicate immediate task.
-- Edit a future next-check date and confirm it changes Upcoming without creating history.
-- Remove a plant and confirm its schedule and records are removed.
-- Deny notification permission and confirm in-app tasks remain intact.
-- Relaunch the app and confirm the garden, records, and preferences persist.
+**Status:** Core journey complete; notification permission/delivery and accessibility checks remain.
+
+- Add each catalog plant and confirm its starting schedule. **Covered by domain tests; Snake Plant verified on emulator.**
+- Enter a valid last-watered date and confirm the calculated next check. **Date/time picker verified on emulator; calculation covered by domain tests.**
+- Reject future last-watered dates. **Covered by domain tests.**
+- Complete Watered and confirm Last watered, Past, and the next schedule. **Verified on emulator and covered by domain tests.**
+- Complete Checked — not watered for dry, damp, and unknown soil. **Covered by domain tests; device interaction remains.**
+- Resolve an overdue task without creating a duplicate immediate task. **Covered by domain behavior; device interaction remains.**
+- Edit a future next-check date and confirm it changes Upcoming without creating history. **Verified on emulator.**
+- Remove a plant and confirm its schedule and records are removed. **Covered by current store behavior; device interaction remains.**
+- Deny notification permission and confirm in-app tasks remain intact. **Remaining device check.**
+- Relaunch the app and confirm the garden, records, and preferences persist. **Verified on emulator.**
 
 ### P2 — Accessibility and resilience
 
-- Review TalkBack labels, selected states, disabled Save, errors, and destructive confirmation.
+- Review TalkBack labels, selected states, disabled Save, errors, destructive confirmation, and the new Edit next check action.
 - Review large Android font sizes, narrow widths, dark theme behavior, and system animation settings.
 - Verify notification tap routing when notification deep-link handling is added.
 - Decide whether record-level deletion/Undo belongs in the next release; it is not currently implemented despite older product notes mentioning it.
@@ -77,9 +82,9 @@ Do not add these to the watering baseline without a new product decision:
 
 ## 6. Definition of done for the next milestone
 
-- Focused automated domain tests exist and pass.
-- The debug APK builds and launches on the supported Android emulator.
-- The complete watering journey is manually verified on Android.
+- Focused automated domain tests exist and pass. **Complete: 12 tests.**
+- The debug APK builds and launches on the supported Android emulator. **Complete.**
+- The core add → check → edit → relaunch journey is manually verified on Android. **Complete.**
 - Persistence failures do not replace the saved garden with an uncommitted state.
 - Notification permission and future-only scheduling are verified on-device.
 - TalkBack and Android text scaling do not hide the primary action or alter the meaning of outcomes.
