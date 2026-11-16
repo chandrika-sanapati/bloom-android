@@ -1,6 +1,6 @@
 # Bloom Android implementation plan
 
-**Status:** Watering, Light & placement, reminder preferences/navigation, permission recovery, Soil health, Care timeline, guarded Back, dynamic theming, latest-watering correction/Undo, and local photo intake are implemented. Latest verification is recorded in STATUS.md; Supabase/PlantNet integration and manual OS/accessibility checks remain.
+**Status:** Watering, Light & placement, reminder preferences/navigation, permission recovery, Soil health, Care timeline, guarded Back, dynamic theming, latest-watering correction/Undo, Supabase auth/sync foundation, PlantNet proxy, and local photo intake are implemented. Latest verification is recorded in STATUS.md; candidate confirmation, full merge UI, and manual OS/accessibility checks remain.
 **Platform:** Flutter Android.
 **Source of truth:** [`STATUS.md`](STATUS.md) for shipped behavior; [`PRD.md`](PRD.md) for product intent and scope.
 **Last updated:** 15 November 2026
