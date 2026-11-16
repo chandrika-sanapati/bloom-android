@@ -134,11 +134,14 @@ class _BloomAppState extends State<BloomApp> with WidgetsBindingObserver {
 
   Future<void> _sync() {
     final garden = widget.store.garden;
-    return widget.notifications.sync(
-      enabled: garden.preferences.taskNotifications,
-      plants: garden.plants,
-      schedules: garden.schedules,
-    );
+    return Future.wait([
+      widget.notifications.sync(
+        enabled: garden.preferences.taskNotifications,
+        plants: garden.plants,
+        schedules: garden.schedules,
+      ),
+      widget.cloudSync.sync(garden),
+    ]).then((_) {});
   }
 
   void _receive(String? payload) {
