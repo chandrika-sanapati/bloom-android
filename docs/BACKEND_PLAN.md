@@ -155,6 +155,7 @@ Without those defines, photo intake remains local-only and clearly reports that 
 - A failed upload never removes or rolls back local data.
 - Use a revision/updated-at conflict check. Do not silently last-write-wins across devices.
 - Present a conflict screen when both local and remote changed since the last sync.
+- Current conflict UI offers **Keep this device’s garden** (revision-checked cloud replacement) or **Use the cloud garden** (explicit local replacement). A future review/diff merge can be added without changing the safety boundary.
 - Preserve scheduled and recorded timestamps separately.
 - Do not duplicate watering or Soil health events by retrying the same mutation; IDs are client-generated and idempotent.
 

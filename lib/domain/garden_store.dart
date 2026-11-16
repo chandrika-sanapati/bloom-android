@@ -74,6 +74,7 @@ class GardenStore extends ChangeNotifier {
   Future<bool> addPlant(Plant value, {DateTime? lastWatered, DateTime? now}) =>
       _serial(() => _addPlant(value, lastWatered: lastWatered, now: now));
   Future<bool> savePlant(Plant value) => _serial(() => _savePlant(value));
+  Future<bool> replaceGarden(Garden value) => _serial(() => _commit(value));
   Future<bool> setLightPlacementAcknowledged(
     String id,
     bool value, {

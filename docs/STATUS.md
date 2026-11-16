@@ -65,6 +65,7 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Configured builds now gate Home on Google/Supabase authentication; garden sync uploads the local payload when the remote garden is empty and reports conflicts without overwriting. Production migration has not been applied yet.
 - Host verification: Supabase/auth/sync code compiles and the existing 82-test suite passes. Live Google sign-in and authenticated PlantNet require the configured build and emulator interaction.
 - Cloud sync status is exposed in Preferences as syncing, synced, conflict, or failed; local saves remain available when the network is unavailable.
+- Cloud conflicts now open an explicit merge screen with Keep this device’s garden or Use the cloud garden; no conflict is resolved silently.
 - A typed PlantNet/Supabase Edge Function provider seam is implemented; it activates only when `PLANT_IDENTIFIER_ENDPOINT` is supplied at build time.
 - Optional Supabase initialization is implemented behind `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` build-time defines; no project credentials are tracked in the repository.
 - Optional Google sign-in is implemented behind `GOOGLE_WEB_CLIENT_ID`; Preferences exposes sign-in/sign-out only when Supabase and Google build-time configuration are present.

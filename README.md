@@ -101,7 +101,7 @@ The domain/widget suite covers watering, placement, reminder timing, soil health
 - [`docs/previews/README.md`](docs/previews/README.md) — explicitly historical iOS design references; not a specification for the Android UI.
 - [`docs/BACKEND_PLAN.md`](docs/BACKEND_PLAN.md) — Supabase, Google sign-in, PlantNet proxy, sync, privacy, and rollout plan.
 
-When Supabase configuration is supplied, Bloom requires Google sign-in before Home and syncs the local garden to the authenticated user's cloud row. If the cloud row is empty, the local garden is uploaded; later saves use revision checks and a conflicting non-empty cloud row is not silently overwritten. Sync status is visible in Preferences. Without configuration, local/test builds remain usable without an account.
+When Supabase configuration is supplied, Bloom requires Google sign-in before Home and syncs the local garden to the authenticated user's cloud row. If the cloud row is empty, the local garden is uploaded; later saves use revision checks and a conflicting non-empty cloud row is not silently overwritten. Sync status is visible in Preferences. If local and cloud gardens conflict, Preferences offers explicit **Keep this device’s garden** and **Use the cloud garden** choices. Without configuration, local/test builds remain usable without an account.
 
 Photo identification is configured only with a Supabase Edge Function endpoint at build time. Never put the PlantNet API key in Flutter, Git, or an APK; store it as an Edge Function secret.
 

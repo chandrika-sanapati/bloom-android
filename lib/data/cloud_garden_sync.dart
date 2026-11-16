@@ -23,10 +23,18 @@ enum CloudSyncStatus {
   failed,
 }
 
+class CloudGardenConflict {
+  const CloudGardenConflict({required this.payload, required this.revision});
+
+  final Map<String, dynamic> payload;
+  final int revision;
+}
+
 class CloudGardenSync {
   final status = ValueNotifier<CloudSyncStatus>(CloudSyncStatus.unavailable);
   final message = ValueNotifier<String?>(null);
   int? _lastSyncedRevision;
+  CloudGardenConflict? _conflict;
 
   SupabaseClient? get _client {
     try {
@@ -38,6 +46,7 @@ class CloudGardenSync {
 
   bool get configured => _client != null;
   bool get signedIn => _client?.auth.currentSession != null;
+  CloudGardenConflict? get conflict => _conflict;
 
   Future<CloudSyncResult> sync(Garden garden) async {
     final client = _client;
@@ -85,6 +94,10 @@ class CloudGardenSync {
       // successful sync, update only if the remote revision is still ours.
       if (_lastSyncedRevision == null ||
           remoteRevision != _lastSyncedRevision) {
+        _conflict = CloudGardenConflict(
+          payload: Map<String, dynamic>.from(remote['payload'] as Map),
+          revision: remoteRevision,
+        );
         return _set(
           CloudSyncResult.conflict,
           'Cloud data changed on another device. Local data was not overwritten.',
@@ -120,6 +133,49 @@ class CloudGardenSync {
       return CloudSyncResult.failed;
     }
   }
+
+  Future<CloudSyncResult> resolveConflictKeepLocal(Garden garden) async {
+    final client = _client;
+    final user = client?.auth.currentUser;
+    final conflict = _conflict;
+    if (client == null || user == null || conflict == null) {
+      return CloudSyncResult.failed;
+    }
+    final payload = garden.toJson();
+    final updated = await client
+        .from('gardens')
+        .update({
+          'payload': payload,
+          'schema_version': 1,
+          'revision': conflict.revision + 1,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('user_id', user.id)
+        .eq('revision', conflict.revision)
+        .select('revision')
+        .maybeSingle();
+    if (updated == null) {
+      return _set(
+        CloudSyncResult.conflict,
+        'Cloud data changed again. Review the conflict and try again.',
+      );
+    }
+    final revision =
+        (updated['revision'] as num?)?.toInt() ?? conflict.revision + 1;
+    _remember(revision, jsonEncode(payload));
+    _conflict = null;
+    status.value = CloudSyncStatus.synced;
+    message.value = 'This device garden is now synced.';
+    return CloudSyncResult.synced;
+  }
+
+  Future<Garden?> cloudGarden() async {
+    final payload = _conflict?.payload;
+    if (payload == null) return null;
+    return Garden.fromJson(payload);
+  }
+
+  void clearConflict() => _conflict = null;
 
   void _remember(int revision, String payload) {
     _lastSyncedRevision = revision;

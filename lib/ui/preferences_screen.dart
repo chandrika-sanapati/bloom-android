@@ -8,6 +8,7 @@ import '../data/watering_notifications.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
 import 'login_screen.dart';
+import 'cloud_conflict_screen.dart';
 
 class PreferencesScreen extends StatefulWidget {
   const PreferencesScreen({
@@ -260,6 +261,24 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                 'Older saved checks keep their time until completed or edited.',
                 style: theme.textTheme.bodySmall,
               ),
+              if (widget.cloudSync.status.value ==
+                  CloudSyncStatus.conflict) ...[
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: _busy
+                      ? null
+                      : () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => CloudConflictScreen(
+                              store: widget.store,
+                              sync: widget.cloudSync,
+                            ),
+                          ),
+                        ),
+                  icon: const Icon(Icons.compare_arrows),
+                  label: const Text('Review cloud conflict'),
+                ),
+              ],
             ],
             const SizedBox(height: 16),
             Text(
