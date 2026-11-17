@@ -39,20 +39,12 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-enum _Tab { upcoming, past }
-
 class _HomeScreenState extends State<HomeScreen> {
-  _Tab _tab = _Tab.upcoming;
-  bool _showHint = false;
-  bool _fabOpen = false;
-
   /// Plant ids chosen for bulk delete; null when not selecting.
   Set<String>? _selection;
 
-  void _startSelection([String? plantId]) => setState(() {
-    _fabOpen = false;
-    _selection = {?plantId};
-  });
+  void _startSelection([String? plantId]) =>
+      setState(() => _selection = {?plantId});
 
   void _toggle(String plantId) => setState(() {
     final selection = _selection!;
@@ -115,7 +107,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     widget.store.addListener(_onChanged);
-    _loadHint();
   }
 
   @override
@@ -131,28 +122,15 @@ class _HomeScreenState extends State<HomeScreen> {
     if (ids.isEmpty) _selection = null;
   });
 
-  void _selectTab(_Tab tab) => setState(() => _tab = tab);
-
-  Future<void> _loadHint() async {
-    final seen = await widget.flags.hasSeenAddPlantHint();
-    if (!mounted) return;
-    setState(() => _showHint = !seen && widget.store.garden.plants.isEmpty);
-  }
-
   Future<void> _openCatalog() async {
     await widget.flags.markAddPlantHintSeen();
     if (!mounted) return;
-    setState(() {
-      _showHint = false;
-      _fabOpen = false;
-    });
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => CatalogScreen(store: widget.store)),
     );
   }
 
   void _openPhotoIdentification() {
-    setState(() => _fabOpen = false);
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => PhotoIdentificationScreen(
@@ -195,13 +173,45 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _addPlant() async {
+    final choice = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.search),
+              title: const Text('Search by name'),
+              onTap: () => Navigator.pop(sheetContext, true),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('Identify from a photo'),
+              onTap: () => Navigator.pop(sheetContext, false),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || choice == null) return;
+    choice ? await _openCatalog() : _openPhotoIdentification();
+  }
+
+  void _openAllActivity() => Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => _AllActivityScreen(store: widget.store),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final garden = widget.store.garden;
-    final isEmpty = garden.plants.isEmpty;
-
     final selection = _selection;
     final selecting = selection != null;
+    final email = widget.auth?.signedIn == true ? widget.auth?.email : null;
     return PopScope(
       canPop: !selecting,
       onPopInvokedWithResult: (didPop, _) {
@@ -232,127 +242,76 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               )
             : AppBar(
-                title: const BloomTitle(),
+                toolbarHeight: 72,
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _greeting(DateTime.now()),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const Text('Your garden'),
+                  ],
+                ),
                 actions: [
                   IconButton(
-                    tooltip: 'Profile',
-                    icon: const Icon(Icons.account_circle_outlined),
-                    onPressed: _openProfile,
+                    tooltip: 'Add plant',
+                    icon: const Icon(Icons.add),
+                    onPressed: _addPlant,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: IconButton(
+                      tooltip: 'Profile',
+                      onPressed: _openProfile,
+                      icon: _Avatar(email: email, size: 32),
+                    ),
                   ),
                 ],
               ),
-        floatingActionButton: selecting
-            ? null
-            : _AddPlantFabMenu(
-                open: _fabOpen,
-                showHint: isEmpty && _showHint,
-                onToggle: () => setState(() => _fabOpen = !_fabOpen),
-                onSearch: _openCatalog,
-                onIdentify: _openPhotoIdentification,
-              ),
-        body: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _fabOpen ? () => setState(() => _fabOpen = false) : null,
-          child: isEmpty ? const _EmptyHome() : _PopulatedHome(this),
-        ),
+        body: garden.plants.isEmpty
+            ? _EmptyHome(onAdd: _addPlant)
+            : _PopulatedHome(this),
       ),
     );
   }
 }
 
-class _AddPlantFabMenu extends StatelessWidget {
-  const _AddPlantFabMenu({
-    required this.open,
-    required this.showHint,
-    required this.onToggle,
-    required this.onSearch,
-    required this.onIdentify,
-  });
+String _greeting(DateTime now) => now.hour < 12
+    ? 'Good morning'
+    : now.hour < 18
+    ? 'Good afternoon'
+    : 'Good evening';
 
-  final bool open;
-  final bool showHint;
-  final VoidCallback onToggle;
-  final VoidCallback onSearch;
-  final VoidCallback onIdentify;
+class _Avatar extends StatelessWidget {
+  const _Avatar({required this.email, required this.size});
+
+  final String? email;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        if (open) ...[
-          _FabMenuAction(
-            icon: Icons.camera_alt_outlined,
-            label: 'Identify from a photo',
-            onTap: onIdentify,
-          ),
-          const SizedBox(height: 12),
-          _FabMenuAction(
-            icon: Icons.search,
-            label: 'Search by name',
-            onTap: onSearch,
-          ),
-          const SizedBox(height: 16),
-        ] else if (showHint)
-          const Padding(
-            padding: EdgeInsets.only(bottom: 12),
-            child: Chip(label: Text('Tap to add a plant')),
-          ),
-        Semantics(
-          button: true,
-          label: open ? 'Close add plant menu' : 'Add plant',
-          hint: open ? null : 'Choose how to add a plant',
-          child: FloatingActionButton(
-            tooltip: open ? 'Close add plant menu' : 'Add plant',
-            onPressed: onToggle,
-            child: AnimatedRotation(
-              turns: open ? 0.125 : 0,
-              duration: const Duration(milliseconds: 180),
-              child: const Icon(Icons.add),
-            ),
-          ),
-        ),
-      ],
+    final scheme = Theme.of(context).colorScheme;
+    final initial = email == null || email!.isEmpty
+        ? null
+        : email!.characters.first.toUpperCase();
+    return CircleAvatar(
+      radius: size / 2,
+      backgroundColor: scheme.primary,
+      foregroundColor: scheme.onPrimary,
+      child: initial == null
+          ? Icon(Icons.person_outline, size: size * 0.6)
+          : Text(initial, style: TextStyle(fontSize: size * 0.45)),
     );
   }
 }
 
-class _FabMenuAction extends StatelessWidget {
-  const _FabMenuAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    label: label,
-    child: Material(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(28),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(28),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [Icon(icon), const SizedBox(width: 12), Text(label)],
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
 class _EmptyHome extends StatelessWidget {
-  const _EmptyHome();
+  const _EmptyHome({required this.onAdd});
+
+  final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
@@ -360,38 +319,30 @@ class _EmptyHome extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        Card(
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Image.asset(
-                'assets/images/area-whole.png',
-                height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Add your first plant',
-                      style: theme.textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Tap + to choose a supported plant and start its watering check-ins.',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Image.asset(
+            'assets/images/area-whole.png',
+            height: 220,
+            width: double.infinity,
+            fit: BoxFit.cover,
           ),
+        ),
+        const SizedBox(height: 20),
+        Text('Add your first plant', style: theme.textTheme.titleLarge),
+        const SizedBox(height: 6),
+        Text(
+          'Bloom reminds you when to check its soil.',
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 20),
+        FilledButton.icon(
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          onPressed: onAdd,
+          icon: const Icon(Icons.add),
+          label: const Text('Add plant'),
         ),
       ],
     );
@@ -408,45 +359,51 @@ class _PopulatedHome extends StatelessWidget {
     final store = state.widget.store;
     final theme = Theme.of(context);
     final plants = store.garden.plants;
+    final selection = state._selection;
 
-    final scheduled = <(Plant, WateringSchedule)>[];
+    final due = <(Plant, WateringSchedule, CareTaskTiming)>[];
     for (final plant in plants) {
       final schedule = store.scheduleFor(plant.id);
-      if (schedule != null) scheduled.add((plant, schedule));
+      if (schedule == null) continue;
+      final timing = CareTaskTiming.classify(schedule.nextCheckAt);
+      if (timing != CareTaskTiming.upcoming) due.add((plant, schedule, timing));
     }
-    scheduled.sort((a, b) => a.$2.nextCheckAt.compareTo(b.$2.nextCheckAt));
-
-    final past = PlantActivity.forGarden(store.garden);
+    due.sort((a, b) => a.$2.nextCheckAt.compareTo(b.$2.nextCheckAt));
+    final recent = PlantActivity.forGarden(store.garden).take(3).toList();
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
       children: [
+        if (selection == null) _TodayCard(state: state, due: due),
+        const SizedBox(height: 24),
         Row(
           children: [
             Expanded(
-              child: Text('My plants', style: theme.textTheme.titleMedium),
+              child: Text(
+                'My plants · ${plants.length}',
+                style: theme.textTheme.titleMedium,
+              ),
             ),
-            if (state._selection == null && plants.length > 1)
+            if (selection == null && plants.length > 1)
               TextButton(
                 onPressed: state._startSelection,
                 child: const Text('Select'),
               ),
           ],
         ),
-        const SizedBox(height: 4),
-        SizedBox(
-          height: 224,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: plants.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final plant = plants[index];
-              final selection = state._selection;
-              return PlantCard(
+        const SizedBox(height: 8),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 12,
+          childAspectRatio: 0.82,
+          children: [
+            for (final plant in plants)
+              _PlantTile(
                 store: store,
                 plant: plant,
-                schedule: store.scheduleFor(plant.id),
                 selected: selection?.contains(plant.id),
                 onTap: selection == null
                     ? () => state._openPlant(plant)
@@ -454,93 +411,287 @@ class _PopulatedHome extends StatelessWidget {
                 onLongPress: selection == null
                     ? () => state._startSelection(plant.id)
                     : null,
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 24),
-        Text('Activity', style: theme.textTheme.titleMedium),
-        const SizedBox(height: 12),
-        SegmentedButton<_Tab>(
-          segments: const [
-            ButtonSegment(value: _Tab.upcoming, label: Text('Upcoming')),
-            ButtonSegment(value: _Tab.past, label: Text('Past')),
+              ),
+            if (selection == null) _AddTile(onTap: state._addPlant),
           ],
-          selected: {state._tab},
-          onSelectionChanged: (selection) => state._selectTab(selection.first),
         ),
-        const SizedBox(height: 16),
-        if (state._tab == _Tab.upcoming)
-          ..._upcoming(context, scheduled)
-        else
-          ..._pastRows(context, past.take(5).toList()),
+        if (recent.isNotEmpty && selection == null) ...[
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: Text('Recent', style: theme.textTheme.titleMedium),
+              ),
+              TextButton(
+                onPressed: state._openAllActivity,
+                child: const Text('See all'),
+              ),
+            ],
+          ),
+          for (final entry in recent)
+            if (store.plant(entry.plantId) case final plant?)
+              HistoryRow(plant: plant, entry: entry),
+        ],
       ],
     );
   }
+}
 
-  List<Widget> _upcoming(
-    BuildContext context,
-    List<(Plant, WateringSchedule)> scheduled,
-  ) {
-    if (scheduled.isEmpty) {
-      return const [
-        EmptyActivityCard(
-          title: 'Nothing scheduled',
-          detail: 'Add a supported plant to start watering check-ins.',
+/// The single place that says what needs doing today.
+class _TodayCard extends StatelessWidget {
+  const _TodayCard({required this.state, required this.due});
+
+  final _HomeScreenState state;
+  final List<(Plant, WateringSchedule, CareTaskTiming)> due;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    if (due.isEmpty) {
+      return Card(
+        margin: EdgeInsets.zero,
+        color: scheme.surfaceContainerHigh,
+        child: ListTile(
+          leading: Icon(Icons.check_circle_outline, color: scheme.primary),
+          title: const Text('Nothing to check today'),
         ),
-      ];
+      );
     }
-    final widgets = <Widget>[];
-    for (final timing in CareTaskTiming.values) {
-      final items = scheduled
-          .where(
-            (item) => CareTaskTiming.classify(item.$2.nextCheckAt) == timing,
-          )
-          .toList();
-      if (items.isEmpty) continue;
-      if (timing != CareTaskTiming.upcoming) {
-        widgets.add(
-          Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 8),
-            child: Text(
-              timing.label,
-              style: Theme.of(context).textTheme.titleSmall,
+    final now = DateTime.now();
+    return Card(
+      margin: EdgeInsets.zero,
+      color: scheme.primary,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 12, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Today',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: scheme.onPrimary.withValues(alpha: 0.85),
+              ),
+            ),
+            Text(
+              due.length == 1
+                  ? '1 plant to check'
+                  : '${due.length} plants to check',
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: scheme.onPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            for (final (plant, schedule, _) in due)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: PlantImage(
+                          store: state.widget.store,
+                          plant: plant,
+                          height: 40,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            plant.name,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: scheme.onPrimary,
+                            ),
+                          ),
+                          Text(
+                            relativeCheckLabel(schedule.nextCheckAt, now),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: scheme.onPrimary.withValues(alpha: 0.85),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: scheme.onPrimary,
+                        foregroundColor: scheme.primary,
+                      ),
+                      onPressed: () => state._openCheck(plant),
+                      child: const Text('Check'),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PlantTile extends StatelessWidget {
+  const _PlantTile({
+    required this.store,
+    required this.plant,
+    required this.onTap,
+    this.onLongPress,
+    this.selected,
+  });
+
+  final GardenStore store;
+  final Plant plant;
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+  final bool? selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final schedule = store.scheduleFor(plant.id);
+    final timing = schedule == null
+        ? null
+        : CareTaskTiming.classify(schedule.nextCheckAt);
+    final status = schedule == null
+        ? 'No schedule'
+        : relativeCheckLabel(schedule.nextCheckAt, DateTime.now());
+    final isSelected = selected == true;
+    return Semantics(
+      selected: selected == null ? null : isSelected,
+      button: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        onLongPress: onLongPress,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: PlantImage(store: store, plant: plant, height: 160),
+                  ),
+                  if (isSelected)
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: scheme.primary, width: 3),
+                      ),
+                    ),
+                  if (selected != null)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: CircleAvatar(
+                        radius: 13,
+                        backgroundColor: isSelected
+                            ? scheme.primary
+                            : scheme.surface.withValues(alpha: 0.9),
+                        child: Icon(
+                          isSelected ? Icons.check : Icons.circle_outlined,
+                          size: 18,
+                          color: isSelected
+                              ? scheme.onPrimary
+                              : scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              plant.name,
+              style: theme.textTheme.titleSmall,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              status,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: timing == CareTaskTiming.overdue
+                    ? scheme.error
+                    : scheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AddTile extends StatelessWidget {
+  const _AddTile({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: Material(
+            color: scheme.surfaceContainer,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(color: scheme.outlineVariant),
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: onTap,
+              child: Center(
+                child: Icon(Icons.add, size: 32, color: scheme.primary),
+              ),
             ),
           ),
-        );
-      }
-      for (final item in items) {
-        widgets.add(
-          TaskRow(
-            plant: item.$1,
-            schedule: item.$2,
-            timing: timing,
-            onTap: () => state._openCheck(item.$1),
-          ),
-        );
-        widgets.add(const SizedBox(height: 8));
-      }
-    }
-    return widgets;
-  }
-
-  List<Widget> _pastRows(BuildContext context, List<PlantActivity> entries) {
-    if (entries.isEmpty) {
-      return const [
-        EmptyActivityCard(
-          title: 'No care history yet',
-          detail: 'Your completed checks will appear here.',
         ),
-      ];
-    }
-    final store = state.widget.store;
-    final rows = <Widget>[];
-    for (final entry in entries) {
-      final plant = store.plant(entry.plantId);
-      if (plant == null) continue;
-      rows.add(HistoryRow(plant: plant, entry: entry));
-      rows.add(const Divider(height: 1));
-    }
-    return rows;
+        const SizedBox(height: 6),
+        Text('Add plant', style: Theme.of(context).textTheme.titleSmall),
+        const Text(''),
+      ],
+    );
   }
+}
+
+class _AllActivityScreen extends StatelessWidget {
+  const _AllActivityScreen({required this.store});
+
+  final GardenStore store;
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: store,
+    builder: (context, _) {
+      final entries = PlantActivity.forGarden(store.garden);
+      return Scaffold(
+        appBar: AppBar(title: const Text('Recent activity')),
+        body: entries.isEmpty
+            ? const Center(child: Text('No activity yet'))
+            : ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: [
+                  for (final entry in entries)
+                    if (store.plant(entry.plantId) case final plant?)
+                      HistoryRow(plant: plant, entry: entry),
+                ],
+              ),
+      );
+    },
+  );
 }

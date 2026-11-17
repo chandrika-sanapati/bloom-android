@@ -269,30 +269,14 @@ class _PreferencesScreenState extends State<PreferencesScreen>
         body: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            if (widget.auth?.configured == true) ...[
-              Text('Account', style: theme.textTheme.titleMedium),
-              const SizedBox(height: 12),
-              Card(
-                margin: EdgeInsets.zero,
-                child: ListTile(
-                  leading: const Icon(Icons.account_circle_outlined),
-                  title: Text(
-                    widget.auth!.signedIn ? 'Signed in' : 'Sign in to Bloom',
-                  ),
-                  subtitle: widget.auth!.email == null
-                      ? const Text(
-                          'Use Google or email and password to save your garden securely.',
-                        )
-                      : Text(widget.auth!.email!),
-                  trailing: widget.auth!.signedIn
-                      ? const Icon(Icons.logout)
-                      : const Icon(Icons.login),
-                  onTap: _busy ? null : _toggleAuth,
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-            const SizedBox(height: 24),
+            _ProfileHeader(
+              auth: widget.auth,
+              cloudSync: widget.cloudSync,
+              plantCount: widget.store.garden.plants.length,
+              busy: _busy,
+              onSignIn: _toggleAuth,
+            ),
+            const SizedBox(height: 28),
             Text('Reminders', style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),
             Card(
@@ -300,6 +284,7 @@ class _PreferencesScreenState extends State<PreferencesScreen>
               child: Column(
                 children: [
                   SwitchListTile(
+                    secondary: const Icon(Icons.notifications_outlined),
                     title: const Text('Notifications'),
                     value: preferences.taskNotifications,
                     onChanged: _busy ? null : _update,
@@ -362,22 +347,35 @@ class _PreferencesScreenState extends State<PreferencesScreen>
               ),
             ],
             if (widget.auth?.signedIn == true) ...[
-              const SizedBox(height: 24),
-              Text('Data & privacy', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 28),
+              Text('Account', style: theme.textTheme.titleMedium),
               const SizedBox(height: 12),
               Card(
                 margin: EdgeInsets.zero,
-                child: ListTile(
-                  leading: Icon(
-                    Icons.person_remove_outlined,
-                    color: theme.colorScheme.error,
-                  ),
-                  title: Text(
-                    'Delete account',
-                    style: TextStyle(color: theme.colorScheme.error),
-                  ),
-                  subtitle: const Text('Removes your account and all plants'),
-                  onTap: _busy ? null : _deleteAccountAndData,
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.logout),
+                      title: const Text('Sign out'),
+                      onTap: _busy ? null : _toggleAuth,
+                    ),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                    ListTile(
+                      leading: Icon(
+                        Icons.person_remove_outlined,
+                        color: theme.colorScheme.error,
+                      ),
+                      title: Text(
+                        'Delete account',
+                        style: TextStyle(color: theme.colorScheme.error),
+                      ),
+                      subtitle: const Text(
+                        'Removes your account and all plants',
+                      ),
+                      onTap: _busy ? null : _deleteAccountAndData,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -386,4 +384,82 @@ class _PreferencesScreenState extends State<PreferencesScreen>
       );
     },
   );
+}
+
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({
+    required this.auth,
+    required this.cloudSync,
+    required this.plantCount,
+    required this.busy,
+    required this.onSignIn,
+  });
+
+  final AuthService? auth;
+  final CloudGardenSync cloudSync;
+  final int plantCount;
+  final bool busy;
+  final VoidCallback onSignIn;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final signedIn = auth?.signedIn == true;
+    final email = signedIn ? auth?.email : null;
+    final plants = plantCount == 1 ? '1 plant' : '$plantCount plants';
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 28,
+          backgroundColor: scheme.primary,
+          foregroundColor: scheme.onPrimary,
+          child: email == null || email.isEmpty
+              ? const Icon(Icons.person_outline, size: 30)
+              : Text(
+                  email.characters.first.toUpperCase(),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: scheme.onPrimary,
+                  ),
+                ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                email ?? (signedIn ? 'Signed in' : 'Not signed in'),
+                style: theme.textTheme.titleMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              ValueListenableBuilder(
+                valueListenable: cloudSync.status,
+                builder: (context, status, _) {
+                  final sync = switch (status) {
+                    CloudSyncStatus.synced => ' · Synced',
+                    CloudSyncStatus.syncing => ' · Syncing…',
+                    CloudSyncStatus.failed => ' · Sync pending',
+                    _ => signedIn ? '' : ' · On this device',
+                  };
+                  return Text(
+                    '$plants$sync',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+        if (!signedIn && auth?.configured == true)
+          FilledButton.tonal(
+            onPressed: busy ? null : onSignIn,
+            child: const Text('Sign in'),
+          ),
+      ],
+    );
+  }
 }
