@@ -26,7 +26,7 @@ class PlantDetailScreen extends StatelessWidget {
       builder: (context, _) {
         final plant = store.plant(plantId);
         final schedule = store.scheduleFor(plantId);
-        if (plant == null || schedule == null) {
+        if (plant == null) {
           return Scaffold(
             appBar: AppBar(title: const Text('Plant unavailable')),
             body: Center(
@@ -53,7 +53,7 @@ class _Body extends StatefulWidget {
 
   final GardenStore store;
   final Plant plant;
-  final WateringSchedule schedule;
+  final WateringSchedule? schedule;
 
   @override
   State<_Body> createState() => _BodyState();
@@ -64,7 +64,7 @@ class _BodyState extends State<_Body> {
 
   GardenStore get store => widget.store;
   Plant get plant => widget.plant;
-  WateringSchedule get schedule => widget.schedule;
+  WateringSchedule? get schedule => widget.schedule;
 
   Future<void> _saveLightPlacement(bool value) async {
     if (_savingLight) return;
@@ -109,49 +109,69 @@ class _BodyState extends State<_Body> {
             ),
           ),
           const SizedBox(height: 20),
-          FilledButton.icon(
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(50),
+          if (schedule != null)
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(50),
+              ),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  settings: wateringCheckSettings(schedule!),
+                  builder: (_) => CheckScreen(store: store, plantId: plant.id),
+                ),
+              ),
+              icon: const Icon(Icons.water_drop),
+              label: const Text('Check watering'),
             ),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                settings: wateringCheckSettings(schedule),
-                builder: (_) => CheckScreen(store: store, plantId: plant.id),
+          const SizedBox(height: 24),
+          if (schedule == null) ...[
+            const SizedBox(height: 20),
+            Card(
+              margin: EdgeInsets.zero,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Care profile is being prepared. You can keep this plant, '
+                  'record care in the timeline, and add a personal next check '
+                  'when you are ready. Bloom will not invent watering guidance.',
+                  style: theme.textTheme.bodyMedium,
+                ),
               ),
             ),
-            icon: const Icon(Icons.water_drop),
-            label: const Text('Check watering'),
-          ),
-          const SizedBox(height: 24),
-          Text('Watering', style: theme.textTheme.titleSmall),
-          const SizedBox(height: 8),
-          Card(
-            margin: EdgeInsets.zero,
-            child: Column(
-              children: [
-                _InfoRow(label: 'Added', value: formatDate(schedule.createdAt)),
-                _InfoRow(
-                  label: 'Next check',
-                  value: formatDateTime(schedule.nextCheckAt),
-                ),
-                _InfoRow(
-                  label: 'Starting suggestion',
-                  value: 'Every ${schedule.intervalDays} days',
-                ),
-                _InfoRow(
-                  label: 'Last watered',
-                  value: lastWatered == null
-                      ? 'Not recorded'
-                      : formatDate(lastWatered),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.calendar_today),
-                  title: const Text('Edit next check'),
-                  onTap: () => pickNextCheck(context, store, plant.id),
-                ),
-              ],
+          ] else ...[
+            Text('Watering', style: theme.textTheme.titleSmall),
+            const SizedBox(height: 8),
+            Card(
+              margin: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  _InfoRow(
+                    label: 'Added',
+                    value: formatDate(schedule!.createdAt),
+                  ),
+                  _InfoRow(
+                    label: 'Next check',
+                    value: formatDateTime(schedule!.nextCheckAt),
+                  ),
+                  _InfoRow(
+                    label: 'Starting suggestion',
+                    value: 'Every ${schedule!.intervalDays} days',
+                  ),
+                  _InfoRow(
+                    label: 'Last watered',
+                    value: lastWatered == null
+                        ? 'Not recorded'
+                        : formatDate(lastWatered),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.calendar_today),
+                    title: const Text('Edit next check'),
+                    onTap: () => pickNextCheck(context, store, plant.id),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
           if (species != null) ...[
             const SizedBox(height: 16),
             Text(

@@ -245,30 +245,45 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
   void _useCandidate(BuildContext context, PlantCandidate candidate) {
     final species = PlantSpecies.forScientificName(candidate.scientificName);
     if (species == null) {
-      showDialog<void>(
+      showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Profile not reviewed yet'),
           content: Text(
-            '${candidate.displayName} can be saved as an identity, but Bloom '
-            'does not have reviewed watering guidance for it yet.',
+            '${candidate.displayName} can be added now. Bloom is preparing '
+            'reviewed care guidance, so no automatic watering schedule will '
+            'be created yet.',
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Add plant'),
             ),
           ],
         ),
-      );
+      ).then((confirmed) async {
+        if (confirmed != true || !mounted) return;
+        final saved = await widget.store.savePlant(
+          Plant(
+            id: newId(),
+            name: candidate.displayName,
+            species: candidate.scientificName,
+            asset: 'assets/images/area-whole.png',
+          ),
+        );
+        if (!mounted || !saved) return;
+        if (!context.mounted) return;
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      });
       return;
     }
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => PlantSetupScreen(
-          store: widget.store,
-          species: species,
-        ),
+        builder: (_) => PlantSetupScreen(store: widget.store, species: species),
       ),
     );
   }
