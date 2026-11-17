@@ -1,16 +1,16 @@
 # Bloom backend and identification plan
 
 **Decision:** Supabase Auth + Postgres + Storage + Edge Functions
-**Status:** Supabase project linked, `identify-plant` Edge Function deployed, Flutter provider/auth seams implemented, mandatory-auth gate and revisioned local-first garden sync implemented; live Google sign-in/PlantNet QA and production migration verification remain
-**Last updated:** 15 November 2026
+**Status:** Supabase project linked, `identify-plant` Edge Function deployed, Flutter provider/auth seams implemented, mandatory-auth gate, email/password and Google authentication, revision-guarded local-wins garden sync, and normalized candidate flow implemented; live email-confirmation QA, remaining PlantNet error QA, RLS review, and production-release verification remain.
+**Last updated:** 17 November 2026
 
 ## Goals
 
 - Keep Bloom usable offline and preserve the current local garden behavior.
-- Add optional Google sign-in without making an account required for the core watering loop.
+- Support Google and email/password authentication; configured builds require an account before Home while unconfigured builds remain local-only.
 - Sync a user's garden, watering history, Soil health history, placement acknowledgment, and preferences after explicit sign-in.
 - Proxy PlantNet identification through a server-side Edge Function so the PlantNet API key never ships in the APK.
-- Keep user photos private and short-lived unless the user explicitly saves one to their plant.
+- Keep identification uploads short-lived. Private saved-photo Storage is deferred and is not part of the current app.
 
 ## Architecture
 
@@ -31,14 +31,14 @@ The Flutter app must not call PlantNet directly. The PlantNet key is a secret an
 
 ### Auth
 
-- Use Supabase Auth with Google provider.
+- Use Supabase Auth with Google and email/password providers.
 - Native Android Google sign-in supplies an ID token to `signInWithIdToken`.
 - Store the Supabase session using the package's secure/session persistence strategy; never store Google client secrets in the app.
-- Login is optional. Signed-out users remain local-only.
+- Login is mandatory in configured builds. Signed-out users remain local-only only when Supabase is not configured; sign-out preserves local data and stops authenticated writes.
 - Sign-in preserves the local garden and uploads it when cloud data differs.
 - Never replace local garden data from the cloud during sign-in or background sync.
 
-Configured production builds currently gate Home until authentication succeeds. Builds without Supabase defines remain usable for local development and tests. After sign-in, an empty remote garden receives the local garden; when both differ, the local garden is uploaded with a revision guard.
+Configured production builds currently gate Home until authentication succeeds. Builds without Supabase defines remain usable for local development and tests. After sign-in, an empty remote garden receives the local garden; when both differ, the local garden is uploaded with a revision guard. The deployed `gardens` migration is applied; final RLS and production-release review remain.
 
 ### Postgres
 
@@ -69,7 +69,7 @@ identification_runs
 - expires_at timestamptz
 ```
 
-The first sync implementation may store one versioned garden payload per user rather than normalizing every plant/event immediately. The payload must use the existing local JSON schema and an explicit schema version. Normalized tables can follow after conflict behavior is validated.
+The current sync implementation stores one versioned garden payload per user rather than normalizing every plant/event. The payload uses the existing local JSON schema and an explicit schema version. Normalized tables remain deferred.
 
 RLS requirements:
 
@@ -121,7 +121,7 @@ abstract interface class GardenSyncRepository {
 }
 ```
 
-The current local store remains the source used by the UI. Remote sync should be an explicit application service that coordinates local persistence, authentication, upload/download, merge, and failure recovery. Screens should not call Supabase directly.
+The current local store remains the source used by the UI. Remote sync is an explicit application service that coordinates local persistence, authentication, guarded local-wins upload, and failure recovery. Screens do not call Supabase directly.
 
 The current code includes `SupabasePlantIdentifier`, which calls a configured Edge Function endpoint with multipart photos and normalizes PlantNet-style candidates. It uses the current Supabase session access token when one is available. Configure the project only at build time:
 
@@ -138,14 +138,14 @@ Without those defines, photo intake remains local-only and clearly reports that 
 
 ### Initial sign-in
 
-- No account: use local storage only.
+- No configured Supabase: use local storage only. In configured builds, Home remains behind authentication.
 - Sign in with an existing local garden: preserve and upload the local garden.
-- Empty local garden: offer download of the user's cloud garden.
-- Cloud garden empty: offer upload of local garden.
+- Empty local garden: upload the local garden; the current release does not download or replace it from the cloud.
+- Cloud garden empty: upload the local garden.
 
 ### Ongoing sync
 
-- Sync only when authenticated and enabled by the user.
+- Sync only when authenticated in a configured build; there is no separate sync-enable preference.
 - Save locally first; queue a remote upload.
 - When mandatory-auth mode is enabled, the app gates Home until a valid session exists; local writes remain the immediate source and are uploaded after persistence.
 - If the network is unavailable, local writes continue and the next app resume/save retries sync.
@@ -158,7 +158,7 @@ Without those defines, photo intake remains local-only and clearly reports that 
 
 ### Sign-out
 
-- Keep the local garden on the device unless the user explicitly chooses **Remove cloud account data from this device**.
+- Keep the local garden on the device after sign-out.
 - Stop remote sync immediately.
 - Do not delete local care history as a side effect of sign-out.
 
@@ -185,13 +185,13 @@ Project-specific values are intentionally not committed. Before enabling the fea
 
 ## Rollout sequence
 
-1. **Current slice:** FAB menu, local photo intake, reviewed candidate contract, no external call.
+1. **Current slice:** FAB menu, local photo intake, and authenticated candidate identification through the Edge Function.
 2. **Provider seam:** add `PlantIdentifier` and fake/test implementation; no production credentials.
 3. **Edge Function:** proxy PlantNet, return normalized candidates, enforce auth/quota/limits.
-4. **Candidate confirmation:** user confirms a candidate; supported profiles can enter setup, unsupported candidates remain without an invented schedule.
-5. **Supabase Auth:** Google sign-in and session state. The configured production build gates Home until sign-in; unconfigured test/local builds remain usable without an account.
-6. **Local/cloud sync:** first sign-in uploads the local garden when the remote row is empty; differing cloud data is guarded-overwritten by the local garden.
-7. **Photo persistence:** optional private storage only after user confirmation.
+4. **Candidate confirmation:** implemented; user confirms a candidate, supported profiles enter setup, and unsupported candidates remain without an invented schedule.
+5. **Supabase Auth:** Google and email/password sign-in/registration, email-confirmation messaging, and configured-build Home gating are implemented.
+6. **Local/cloud sync:** implemented; first sign-in uploads an empty cloud row, differing cloud data is guarded-overwritten by the local garden, and every local save queues asynchronous sync.
+7. **Photo persistence:** deferred; identification photos are temporary request inputs and are not saved to Storage by the current app.
 8. **Manual QA:** auth cancellation, offline use, quota errors, permission states, privacy, local-wins retry behavior, and account deletion.
 
 Do not implement all layers in one change. Each layer should preserve the offline watering app and have its own tests and rollback behavior.

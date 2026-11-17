@@ -1,6 +1,6 @@
 # Bloom Android implementation plan
 
-**Status:** Watering, Light & placement, reminder preferences/navigation, permission recovery, Soil health, Care timeline, guarded Back, dynamic theming, latest-watering correction/Undo, Supabase auth/sync foundation, local-wins cloud sync, PlantNet proxy, and local photo intake are implemented. Latest verification is recorded in STATUS.md; candidate confirmation and manual OS/accessibility checks remain.
+**Status:** Watering, Light & placement, Profile/Preferences, reminder navigation, permission recovery, Soil health, Care timeline, guarded Back, dynamic theming, latest-watering correction/Undo, Supabase auth/sync, local-wins cloud sync, PlantNet proxy, photo identification, and candidate confirmation are implemented. Latest verification is recorded in STATUS.md; manual OS/accessibility checks remain.
 **Platform:** Flutter Android.
 **Source of truth:** [`STATUS.md`](STATUS.md) for shipped behavior; [`PRD.md`](PRD.md) for product intent and scope.
 **Last updated:** 15 November 2026
@@ -28,12 +28,12 @@ Bloom should make the next watering check clearer, faster, and more trustworthy.
 | State transitions | `lib/domain/garden_store.dart` owns add, edit, completion, removal, notification preference, and persistence transitions. |
 | Persistence | `lib/data/garden_repository.dart` stores JSON under the application support directory using a temporary file replacement. |
 | Notifications | `lib/data/watering_notifications.dart` schedules future watering checks only and removes stale Bloom requests during sync. |
-| UI | `lib/ui/` contains Home, catalog/setup, plant detail, watering check, preferences, and shared widgets. |
-| Assets | `assets/images/` contains the four plant images and the empty-state image. |
+| UI | `lib/ui/` contains Home, catalog/setup, plant detail, watering check, Profile/Preferences, photo identification, care screens, and shared widgets. |
+| Assets | `assets/images/` contains the five catalog plant images and the empty-state image. |
 
 ## 3. Completed baseline
 
-- Four supported catalog profiles with bounded ranges and deterministic starting intervals.
+- Five supported catalog profiles with bounded ranges and deterministic starting intervals.
 - Material 3 dynamic light/dark color schemes through `dynamic_color` 1.9.0, with Bloom teal fallback.
 - Optional last-watered date during setup, with a same-day baseline when it is unknown.
 - One active schedule per supported plant.
@@ -53,7 +53,7 @@ Bloom should make the next watering check clearer, faster, and more trustworthy.
 
 **Status:** Complete.
 
-1. Add focused Dart tests for profile values, first-check calculation, timing classification, watering transitions, dry follow-up, late completion, edit validation, and failed persistence. **Done; the latest pulled-main run passes 74 tests across watering, placement, reminders, soil care, timeline, and navigation.**
+1. Add focused Dart tests for profile values, first-check calculation, timing classification, watering transitions, dry follow-up, late completion, edit validation, failed persistence, auth UI, and local-wins cloud sync. **Done; the current suite passes 89 tests.**
 2. Make `flutter analyze` pass with zero findings. **Done.**
 3. Build a debug APK with the Android Studio JDK and install it on the available emulator. **Done.**
 4. Keep verification results and known environment limitations in `docs/STATUS.md`. **Done.**
@@ -89,12 +89,12 @@ Do not add these to the watering baseline without a new product decision:
 - Arbitrary custom plant schedules or a fallback interval.
 - Per-plant interval editing, pause/resume, seasonal logic, or adaptive schedule changes.
 - Configurable reminder time and notification navigation are implemented under the reviewed scope in section 8.
-- Broader environmental context, live weather, sensors, nutrition, repotting, pruning, symptom diagnosis, or specialist routing. Light & placement in section 7 is implemented; broader environmental behavior remains outside it.
-- Cloud accounts, sync, sharing, analytics, or a separate watering-history destination.
+- Broader environmental context, live weather, sensors, recurring nutrition/repotting schedules, pruning, symptom diagnosis, or specialist routing. The approved on-demand Soil health flow is implemented; broader environmental behavior remains outside it.
+- Cloud sharing, analytics, or a separate watering-history destination. Authenticated local-wins cloud sync is implemented and remains in stabilization.
 
 ## 6. Definition of done for the next milestone
 
-- Focused automated domain/widget tests exist and pass. **Complete: 81 tests with correction, Undo, notification-safety, and permission-recovery coverage.**
+- Focused automated domain/widget tests exist and pass. **Complete: 89 tests with auth UI, local-wins cloud sync, correction, Undo, notification-safety, and permission-recovery coverage.**
 - The debug APK builds and launches on the supported Android emulator. **Complete.**
 - The core add → check → edit → relaunch journey is manually verified on Android. **Complete.**
 - Persistence failures do not replace the saved garden with an uncommitted state.
@@ -114,7 +114,7 @@ Do not add these to the watering baseline without a new product decision:
 
 **Complete:** Species light profiles and optional versioned acknowledgment serialize backward-compatibly. Invalid optional acknowledgment data does not discard a valid plant.
 
-- Add reviewed light guidance to the existing species model or a focused domain content file, shared by setup and detail. Use PRD 14.9 sources and review all four plant profiles.
+- Add reviewed light guidance to the existing species model or a focused domain content file, shared by setup and detail. Use PRD 14.9 sources and review all five plant profiles.
 - Add optional per-plant placement acknowledgment, with acknowledged timestamp and guidance version as the proposed minimum. Existing JSON without this field must load as unacknowledged; do not infer state from soil or watering history.
 - Extend serialization, copy/update paths, and store operations to preserve the state and unrelated data. Keep actual placement location, previous light, sensor data, and room information outside scope.
 - Keep persistence atomic: setup creates plant, starting schedule, and selected acknowledgment together. Detail updates the existing plant; a failed save keeps previous state and offers retry.
@@ -176,7 +176,7 @@ The user authorized one global preference, automatic-only updates after today, c
 - For old/unknown provenance, apply legacy protection without inferring intent or changing timestamps. Preserve old checks on upgrade and explain the limitation only when relevant; do not add a user classification flow. This policy was adopted with implementation authorization.
 - Distinguish a failed garden write from a notification resync failure after a successful write. Publish no uncommitted preference or task changes.
 
-### R2 — Minimal Preferences UI
+### R2 — Minimal Profile → Preferences UI
 
 - Add one Reminder time row beside the existing notification controls, using the native time picker and device time formatting.
 - Save on final picker confirmation, with no second confirmation dialog or required setup input. Show scope and platform timing expectations inline.
@@ -218,9 +218,9 @@ The user authorized one global preference, automatic-only updates after today, c
 - The integration-only activity/channel is compiled from `src/integration/kotlin` only with the test Gradle flag. The normal APK uses MainActivity and contains no test channel or exported test receiver. Cold fixtures use cache files, never the normal garden.
 - Refresh the zone and pending request conversion on resume; preserve saved instants. Do not silently rebase existing protected checks after travel. Live background travel adaptation and exact delivery guarantees remain excluded.
 
-## 9. Occasional care — requirements refinement only
+## 9. Occasional care — implemented boundaries
 
-Follow PRD sections 16/18 and decisions D41–D47. The compact/expandable sunlight presentation is implemented and verified in section 10; existing light functionality remains its foundation. The next domain is a separate **Soil health** section with three actions (Adding nutrients, Refresh potting mix, Repotting); refine the nutrient rules first, then the linked mix/root-space checks: start from the user's need to decide whether an action is warranted, with progressive disclosure and watering kept primary. Review the smallest useful inputs and evidence-supported result/uncertainty handling before specifying records or reminders. Exact flows and implementation remain unapproved; do not add care schedules or code from these discussion notes.
+Follow PRD sections 16/18 and decisions D41–D47. The compact/expandable sunlight presentation and the approved **Soil health** section are implemented and verified. Soil health has three actions (Adding nutrients, Refresh potting mix, Repotting), conservative on-demand checks, combined local records, timeline correction/removal, and no recurring care schedules. Do not add new care schedules or content during the stabilization freeze.
 
 Apply D42 to the hierarchy discussion: Light & placement is setup/occasional review, not another recurring care task. Do not add expiry, automatic acknowledgment resets, or light reminders. Preserve setup, acknowledgment behavior, and saved placement data. D44 / section 10 authorize compact summaries and expandable advice on detail; relocation under Other care remains outside scope.
 

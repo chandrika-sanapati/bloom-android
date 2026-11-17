@@ -1,9 +1,9 @@
 # Bloom — Android product requirements
 
-**Status:** Watering, Light & placement, reminder preferences/navigation, Soil health, Care timeline, guarded Back, dynamic theming, and local photo intake implemented; Supabase/PlantNet integration remains planned. Verification evidence and remaining manual checks are in STATUS.md
+**Status:** Watering, Light & placement, Profile/Preferences, reminder navigation, Soil health, Care timeline, guarded Back, dynamic theming, authenticated Supabase/PlantNet integration, email/password and Google authentication, and local-wins cloud sync are implemented. Verification evidence and remaining manual checks are in STATUS.md.
 **Product:** Bloom for Android, a local-first Flutter app
 **Owner:** Bloom product team
-**Last updated:** 15 November 2026
+**Last updated:** 17 November 2026
 
 The full product decision record—including alternatives, tradeoffs, future care-domain boundaries, and decision-revisit triggers—is in [`PRODUCT_DECISIONS.md`](PRODUCT_DECISIONS.md). Sections 1–13 describe the watering baseline. Section 14 specifies the approved Light & placement release, now implemented with watering dates unchanged. Verification evidence and remaining checks are in STATUS.md. Section 15 specifies the reviewed reminder-preference and notification-navigation scope, authorized and implemented on 15 November 2026. Section 18 defines the Soil health release; sections 19–20 define the plant timeline and guarded Back navigation. The user subsequently authorized all three and confirmed integrated drainage. Current verification is recorded in STATUS.md.
 
@@ -20,7 +20,10 @@ A date is a prompt to inspect the plant, not proof that the plant needs water. B
 - The active product is the Flutter Android app in this repository.
 - Garden data is stored locally on the device as JSON.
 - Notifications are optional and Android-specific in the current implementation.
-- There are no accounts, cloud sync, analytics service, live weather, device-location inference, sensors, or automatic watering hardware.
+- Configured builds require authentication before Home. Supabase Auth supports Google and email/password registration/sign-in; unconfigured builds remain local-only for development and tests.
+- Local garden JSON remains the immediate source of truth. Authenticated local saves queue asynchronous cloud sync; the local payload is authoritative and guarded-overwrites differing cloud data by revision.
+- Plant identification is available through the authenticated Supabase Edge Function when its endpoint is configured. PlantNet keys never ship in Flutter or the APK.
+- There is no analytics service, live weather, device-location inference, sensor integration, or automatic watering hardware.
 - The five supported catalog plants are the only plants that receive an automatic watering schedule in the current product.
 - The historical iOS screenshots in `docs/previews/` are not current product behavior.
 
@@ -47,7 +50,8 @@ The following behavior exists in the current Android code:
 - Setting or clearing placement leaves watering state and existing reminders unchanged.
 - Plant details opens a dedicated Care timeline and provides compact Soil health checks and explicit combined care records.
 - Native page Back navigation protects dirty forms with Keep editing / Discard changes.
-- The Add plant FAB menu offers Search by name and Identify from a photo. Photo intake is local-only until the PlantNet/Supabase provider is configured.
+- The Add plant FAB menu offers Search by name and Identify from a photo. Configured builds can upload selected photos to the authenticated Edge Function and display normalized possible matches; unconfigured builds retain local photo intake only.
+- Profile contains account controls, cloud-sync status, and a Preferences section for reminder and notification settings.
 
 ## 4. Product goals
 
@@ -67,7 +71,7 @@ The following behavior exists in the current Android code:
 - Per-plant interval editing, pause/resume, seasonal logic, or silent adaptive changes.
 - Deferred/Check later outcomes.
 - Automatic nutrient/repotting schedules, chemistry treatment, pruning, or disease-treatment flows. Explicit on-demand Soil health is included in section 18.
-- Accounts, cloud sync, sharing, social features, analytics, or community schedules.
+- Sharing, social features, analytics, community schedules, and cloud merge/sharing beyond local-wins synchronization.
 - Watering-specific search/filters and global history correction. The per-plant Care timeline is explicitly authorized in section 19.
 
 ## 6. Supported profiles
@@ -134,6 +138,21 @@ For **Checked — not watered**:
 - If permission is denied, the task remains visible in the app.
 - Garden writes use a temporary file before replacement. A failed save must not update the in-memory garden or notify listeners.
 
+### 8.1 Authentication, Profile, and cloud persistence
+
+- When Supabase build-time configuration is present, authentication is required before Home. The login surface offers Google when its Web Client ID is configured and email/password registration/sign-in in all configured builds. Supabase email-confirmation-required registration is explained without creating a local session.
+- Builds without Supabase configuration remain local-only for development and tests. Local garden persistence remains available and authoritative in every build.
+- Home opens **Profile** through a user/account icon. Profile contains account controls and cloud-sync status, with reminder and notification controls grouped under **Preferences**.
+- After a successful local persistence operation, Bloom queues cloud synchronization asynchronously. Local UI and local data do not wait for a network request, and a failed cloud write never rolls back or removes local data.
+- The cloud stores one versioned garden payload per authenticated user. An empty cloud row receives the local payload. If cloud and local payloads differ, the local payload is authoritative and replaces the cloud payload only through a revision-checked update; bounded retries handle a concurrent remote write.
+- Cloud sync does not download or replace the local garden, and it does not expose a merge/conflict screen under this release policy. Sign-out preserves local data and stops authenticated cloud writes.
+
+### 8.2 Photo identification boundary
+
+- When `PLANT_IDENTIFIER_ENDPOINT` is configured, selected photos are sent only to the authenticated Supabase Edge Function, which proxies PlantNet and returns normalized possible matches.
+- The PlantNet API key is server-side only. Identification results are candidates, not diagnoses or care instructions.
+- The user must confirm a candidate before adding it. Supported reviewed identities can use existing setup; unsupported identities may be saved without an invented watering schedule. Temporary identification photos are not saved to user Storage by the current app.
+
 ## 9. Accessibility and interaction requirements
 
 - Use Android Material 3 controls and navigation.
@@ -179,7 +198,7 @@ SoilCareEvent
 - optional product / notes / mixContainsFeed
 
 AppPreferences
-- reminderHour / reminderMinute (editable in Preferences; initially 09:00)
+- reminderHour / reminderMinute (editable in Profile → Preferences; initially 09:00)
 - taskNotifications
 ```
 
@@ -187,7 +206,7 @@ Keep schedule transitions in `GardenStore`. Do not make screens mutate records, 
 
 ## 11. Acceptance criteria for the next validation milestone
 
-- The four catalog plants can each be added and receive the documented starting interval.
+- The five catalog plants can each be added and receive the documented starting interval.
 - A known last-watered date and an unknown date produce the documented first checks.
 - Future last-watered dates are rejected.
 - Watered and Checked — not watered produce the documented history and schedule changes.
@@ -207,10 +226,10 @@ Only add a later capability after the watering loop is reliable and validated.
 
 1. **Verification hardening:** automated domain tests, Android build/emulator checks, notification timing, date entry, persistence recovery, and accessibility review.
 2. **Reminder control and navigation — implemented:** a global reminder-time preference and direct notification entry to the relevant watering check; see section 15. Latest-record correction remains separate future work.
-3. **More reviewed plant profiles — in progress:** Spider Plant is the first additional reviewed profile; continue one profile at a time with a range, starting value, cue, and source review.
+3. **More reviewed plant profiles — deferred:** Five reviewed catalog profiles are currently shipped; additional catalog content requires a future scope decision.
 4. **Light & placement — implemented:** species-specific light suggestions during setup and on detail, with one optional saved acknowledgment and unchanged watering dates; see section 14. Adaptation and broader environmental checks remain deferred.
 5. **Soil health — implemented:** on-demand help for Adding nutrients, Refresh potting mix, and Repotting, with distinct actions and explicitly recorded overlap; see section 18. Drainage is an approved cross-cutting check, not a fourth care action. Symptom diagnosis remains separate future scope.
-6. **Sync and sharing:** only after local ownership, correction, and notification semantics are well understood.
+6. **Cloud sync — implemented:** configured builds authenticate users and asynchronously synchronize local-authoritative garden payloads with revision guards. Sharing and merge features remain deferred.
 
 ## 13. Product principles
 
@@ -342,12 +361,12 @@ Let the user choose a useful time for watering reminders from Preferences, then 
 
 Selected scope:
 
-- One **Reminder time** preference in Settings/Preferences, applying to all plants.
+- One **Reminder time** preference in Profile → Preferences, applying to all plants.
 - Changing it updates eligible **existing automatic future checks on later days** and newly scheduled automatic checks. **Custom timings, today's existing checks, and overdue checks remain unchanged**, as clarified by the user.
 - A valid notification tap opens that plant's **Check watering** screen.
 - The documents were reviewed before implementation was explicitly authorized; keep them aligned with the code.
 
-Not included: per-plant recurring time preferences, daily digests, repeated overdue nudges, snooze, notification buttons that record watering, new care reminders, exact-to-the-minute delivery, Undo, backup/restore, cloud sync, or sunlight-driven interval changes.
+Not included: per-plant recurring time preferences, daily digests, repeated overdue nudges, snooze, notification buttons that record watering, new care reminders, exact-to-the-minute delivery, backup/restore, cloud sharing/merge, or sunlight-driven interval changes. Authenticated local-wins garden sync is implemented separately from reminder behavior.
 
 ### 15.2 Baseline before this feature and implemented change
 
@@ -358,7 +377,7 @@ Previously, notifications carried only a plant ID and had no tap handler. This r
 ### 15.3 Minimal Preferences flow
 
 1. Keep the existing **Watering notifications** switch.
-2. Add one **Reminder time** row in the same Preferences screen, displaying the saved time in the device's 12/24-hour format; keep 09:00 as the fallback for users who have never selected a time.
+2. Add one **Reminder time** row in the Profile → Preferences section, displaying the saved time in the device's 12/24-hour format; keep 09:00 as the fallback for users who have never selected a time.
 3. Tapping the row opens the native Flutter/Android time picker at the saved value. Its final confirmation saves the choice; no extra settings page, bulk-application questionnaire, or second confirmation dialog.
 4. Explain the scope beside the control: **Applies to automatic checks after today. Custom times and today's checks stay unchanged.** Include a concise note that Android may deliver reminders later.
 5. The row remains available when notifications are off or permission is denied. Choosing a time does not enable notifications or request permission. Explain in that state: **Turn on watering notifications to receive reminders.** In-app check times still follow the confirmed preference policy.
@@ -526,7 +545,7 @@ These are action categories, not three diagnoses or three mandatory tasks. The n
 
 ### 18.4 Assessment inputs and content contract
 
-The table defines relevant evidence, not a diagnosis or a mandatory full questionnaire. Version-1 branches are specified in 18.11. They use the same conservative condition checks for the current four foliage-plant profiles and do not prescribe species-specific fertilizer formulations or infer measured conditions.
+The table defines relevant evidence, not a diagnosis or a mandatory full questionnaire. Version-1 branches are specified in 18.11. They use the same conservative condition checks for the current five foliage-plant profiles and do not prescribe species-specific fertilizer formulations or infer measured conditions.
 
 | Check | Relevant facts to consider when they affect guidance | Required limits |
 | --- | --- | --- |
@@ -572,7 +591,7 @@ Adjacent-topic boundaries:
 ### 18.8 Acceptance criteria
 
 1. SH-01–04: watering stays primary; Soil health is separate and progressively disclosed; a user can perform one check, choose unknown, accept no action, or exit without new tasks or writes.
-2. SH-05–06: reviewed rules consider relevant recent care and avoid unsupported deficiency/repotting claims; missing data returns limited guidance rather than fabricated certainty. Version-1 advisory rules apply across the four current catalog plants, with explicit uncertainty and no universal dosage or interval.
+2. SH-05–06: reviewed rules consider relevant recent care and avoid unsupported deficiency/repotting claims; missing data returns limited guidance rather than fabricated certainty. Version-1 advisory rules apply across the five current catalog plants, with explicit uncertainty and no universal dosage or interval.
 3. SH-07–09: each action alone and every combination of the three can be saved in one event; no action is inferred/preselected; cancellation/failure/duplicate-save behavior is correct. One event updates only its selected action histories.
 4. SH-10–11: old JSON and overlapping records round-trip; saves are atomic; concurrent changes survive; watering dates/history/Last watered, custom times, reminders, and light acknowledgment remain unchanged by soil care.
 5. SH-12: no default recurring task, notifications prompt, overdue Soil health badge, or apparent numeric health measurement is introduced.

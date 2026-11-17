@@ -28,17 +28,17 @@ The current app supports:
 - Local JSON persistence and optional future-check notifications.
 - Android notification permission handling that leaves in-app tasks available when permission is denied.
 - Notifications use best-effort inexact Android scheduling and never block app startup.
-- Denied notification permission is recoverable from Preferences through Android settings; in-app checks remain available.
+- Denied notification permission is recoverable from Profile → Preferences through Android settings; in-app checks remain available.
 - Material 3 light/dark themes using Android dynamic colors when available, with Bloom teal as the fallback.
 - A labeled FAB menu for Search by name and Identify from a photo.
-- Local photo intake with camera/gallery selection and preview; identification results are not connected yet.
+- Photo identification through the authenticated Supabase Edge Function, normalized candidate results, candidate confirmation, and safe unsupported-identity handling.
 - Species-specific light/placement advice during setup and on plant detail.
 - Optional saved acknowledgment that the user placed the plant as suggested; watering dates stay unchanged.
 - On-demand Soil health checks, including drainage, plus separate or combined nutrient/mix-refresh/repotting records.
 - A dedicated Care timeline from each plant page, with soil-care correction/removal.
 - Native back arrows and confirmation before discarding unsaved form changes.
 
-Current limitations are tracked in [`docs/STATUS.md`](docs/STATUS.md). In particular, watering-history correction and support for arbitrary custom plants are not yet implemented.
+Current limitations and manual verification status are tracked in [`docs/STATUS.md`](docs/STATUS.md). In particular, arbitrary custom plants, exact notification timing, and several manual Android/accessibility checks remain outside the current scope.
 
 ## Light & placement
 
@@ -48,7 +48,7 @@ The user confirmed that placement acknowledgment will leave watering schedules u
 
 ## Reminder time and notification navigation
 
-Preferences includes a global **Reminder time** with the native time picker. Changes update automatic checks after today; custom, today's, overdue, and unclassified older check times are preserved. First/completed automatic checks use the preferred local clock. Notification taps open the specific current watering check; stale/legacy reminders open plant detail, and unavailable targets return Home. See [PRD section 15](docs/PRD.md#15-reminder-preferences-and-notification-navigation--requirements), [D33–D40](docs/PRODUCT_DECISIONS.md#14-reminder-preferences-and-navigation-decisions), and [implementation plan section 8](docs/IMPLEMENTATION_PLAN.md#8-reminder-preferences-and-notification-navigation--implementation-plan).
+Profile contains account controls, cloud-sync status, and a Preferences section with a global **Reminder time** native time picker. Changes update automatic checks after today; custom, today's, overdue, and unclassified older check times are preserved. First/completed automatic checks use the preferred local clock. Notification taps open the specific current watering check; stale/legacy reminders open plant detail, and unavailable targets return Home. See [PRD section 15](docs/PRD.md#15-reminder-preferences-and-notification-navigation--requirements), [D33–D40](docs/PRODUCT_DECISIONS.md#14-reminder-preferences-and-navigation-decisions), and [implementation plan section 8](docs/IMPLEMENTATION_PLAN.md#8-reminder-preferences-and-navigation--implementation-plan).
 
 ## Requirements
 
@@ -85,7 +85,7 @@ The domain/widget suite covers watering, placement, reminder timing, soil health
 
 - `lib/domain/` — garden models, supported plant profiles, and schedule transitions.
 - `lib/data/` — local JSON persistence, first-run flags, and Android watering notifications.
-- `lib/ui/` — Home, catalog/setup, plant detail, watering check, and preferences screens.
+- `lib/ui/` — Home, catalog/setup, plant detail, watering check, Profile/Preferences, photo identification, and care screens.
 - `assets/images/` — bundled plant and empty-state images.
 - `android/` — the Android host and Gradle configuration.
 - `docs/` — product requirements, Android/Flutter design guidance, status, and roadmap.
@@ -102,11 +102,11 @@ The domain/widget suite covers watering, placement, reminder timing, soil health
 - [`docs/previews/README.md`](docs/previews/README.md) — explicitly historical iOS design references; not a specification for the Android UI.
 - [`docs/BACKEND_PLAN.md`](docs/BACKEND_PLAN.md) — Supabase, Google sign-in, PlantNet proxy, sync, privacy, and rollout plan.
 
-When Supabase configuration is supplied, Bloom requires Google sign-in before Home and syncs the local garden to the authenticated user's cloud row. If the cloud row is empty, the local garden is uploaded; later saves use revision checks and a conflicting non-empty cloud row is not silently overwritten. Sync status is visible in Preferences. If local and cloud gardens conflict, Preferences offers explicit **Keep this device’s garden** and **Use the cloud garden** choices. Without configuration, local/test builds remain usable without an account.
+When Supabase configuration is supplied, Bloom requires authentication before Home and supports Google plus email/password registration and sign-in. Email confirmation is explained when Supabase requires it. The local garden remains authoritative: an empty cloud row receives the local garden, and differing cloud data is guarded-overwritten using the remote revision. Every successful local save queues asynchronous cloud synchronization; local persistence never waits for or rolls back because of a cloud failure. Sync status is visible in Profile. Without Supabase configuration, local/test builds remain usable without an account.
 
 Photo identification is configured only with a Supabase Edge Function endpoint at build time. Never put the PlantNet API key in Flutter, Git, or an APK; store it as an Edge Function secret.
 
-Optional cloud/identification run example:
+Configured cloud/identification run example:
 
 ```sh
 flutter run \
@@ -123,11 +123,11 @@ Optional Google sign-in also requires:
 --dart-define=GOOGLE_WEB_CLIENT_ID=your-web-client-id.apps.googleusercontent.com
 ```
 
-The Android OAuth client and Supabase Google provider must be configured first. Garden sync is not enabled yet; sign-in currently establishes the optional Supabase session used by authenticated services.
+The Android OAuth client and Supabase Google provider must be configured before Google sign-in is enabled. Email/password authentication only requires the configured Supabase project and its email provider settings. In configured builds, authentication is mandatory before Home; unconfigured builds remain local-only for development and tests.
 
 ## Product boundary
 
-Bloom is an assistant for remembering and recording plant checks. It does not diagnose disease, guarantee plant health, or claim that a date proves a plant needs water. Broader environmental assessments, chemistry/diagnosis, additional plant profiles, and cloud sync remain roadmap items. Soil health supports the on-demand care described below.
+Bloom is an assistant for remembering and recording plant checks. It does not diagnose disease, guarantee plant health, or claim that a date proves a plant needs water. Broader environmental assessments, chemistry/diagnosis, additional plant profiles, sharing, analytics, and social capabilities remain outside the current scope. Soil health supports the on-demand care described below.
 
 ## Current development mode: stabilization only
 

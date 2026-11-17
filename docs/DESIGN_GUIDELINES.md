@@ -67,7 +67,7 @@ These guidelines apply to the Flutter Android app. They replace the former iOS/S
 
 ## Product boundaries
 
-Do not add custom plant intervals, diagnosis, environmental inference, live weather, cloud sync, or additional recurring care domains to the watering flow without a documented product decision and updated status entry.
+Do not add custom plant intervals, diagnosis, environmental inference, live weather, cloud merge/sharing, or additional recurring care domains to the watering flow. Preserve the implemented local-wins cloud sync as a separate authenticated service.
 
 ## Light & placement
 
@@ -88,7 +88,7 @@ Do not add custom plant intervals, diagnosis, environmental inference, live weat
 
 **State:** Reviewed, authorized, and implemented on 15 November 2026. Follow [PRD section 15](PRD.md#15-reminder-preferences-and-notification-navigation--requirements) and decisions D33–D40. Verification evidence and remaining manual accessibility checks are in STATUS.md.
 
-- Keep Preferences compact: existing Watering notifications switch plus one Reminder time row. Show device-formatted local time and use the native picker with one final confirmation, not another settings page or dialog.
+- Keep Profile compact: account and cloud status first, followed by a Preferences section containing the existing Watering notifications switch plus one Reminder time row. Show device-formatted local time and use the native picker with one final confirmation, not another settings page or dialog.
 - Explain the scope simply: **Applies to automatic checks after today. Custom times and today's checks stay unchanged.** Preserve calendar dates and overdue checks as specified in PRD 15.4. Do not offer bulk overwrite of user-set times.
 - Proposed legacy safeguard: when an older saved check's origin is unknown, preserve its time and explain only when relevant. Do not ask users to classify their garden. Custom provenance is internal state, not a new required field or recurring per-plant settings flow.
 - Keep the row usable with notifications off/denied and explain that enabling notifications is separate. Changing time alone never opens a permission prompt.

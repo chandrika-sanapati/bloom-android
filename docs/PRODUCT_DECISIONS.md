@@ -1,7 +1,7 @@
 # Bloom product decisions and tradeoffs
 
-**Status:** Watering, Light & placement, reminder preferences, and notification navigation implemented; reviewed authorization and final decisions in section 14.
-**Last reviewed:** 15 November 2026
+**Status:** Watering, Light & placement, Profile/Preferences, reminder preferences/navigation, Soil health, Care timeline, guarded Back, authenticated Supabase/PlantNet integration, email/password and Google authentication, and local-wins cloud sync implemented; reviewed authorization and final decisions remain historical context.
+**Last reviewed:** 17 November 2026
 **Decision scope:** Product, UX, content safety, and roadmap choices
 
 ## Current implementation constraint
@@ -11,6 +11,13 @@ Bloom is currently under a **stabilization-only feature freeze**. The implemente
 This document preserves the product reasoning that led to Bloom's focused watering MVP. It is intentionally separate from the implementation plan: it records **why** a choice was made, not only what code should do.
 
 The source material was the earlier Bloom product repository. SwiftUI, Xcode, iOS, and prototype-file details have been removed or translated to platform-neutral decisions. The current Android implementation remains the authority for shipped behavior. A decision marked **Designed** is not user-research evidence until it is validated.
+
+## Current implementation decisions
+
+- **Authentication:** Configured builds require Supabase authentication before Home. Users can register/sign in with email/password or sign in with Google when the Google Web Client ID is configured. Email confirmation is explained when required. Builds without Supabase configuration remain local-only.
+- **Profile:** The Home account action is labeled **Profile** and uses a user icon. Profile contains account controls, cloud-sync status, and a nested **Preferences** section for notifications and reminder time.
+- **Cloud ownership:** The local garden is authoritative. Successful local persistence is never blocked by cloud sync. Every saved garden queues asynchronous sync; differing cloud payloads are overwritten using a revision guard, with bounded retry if another write races.
+- **Identification boundary:** PlantNet is called only through the authenticated Supabase Edge Function. Results are possible matches, not diagnoses or automatic care guidance. Confirmed unsupported identities do not receive invented schedules.
 
 ## How to read this document
 
@@ -39,7 +46,7 @@ Start with one complete loop:
 
 > **Schedule a check → inspect the plant → record what happened → schedule the next useful check.**
 
-The Android MVP supports four reviewed catalog profiles, two explicit outcomes, local persistence, and optional notifications. Broader care domains were deferred for the watering MVP. The user then selected bounded Light & placement work; section 13 records the approved implemented suggestion/acknowledgment flow with watering dates unchanged.
+The Android MVP supports five reviewed catalog profiles, two explicit outcomes, local persistence, and optional notifications. Broader care domains were deferred for the watering MVP. The user then selected bounded Light & placement work; section 13 records the approved implemented suggestion/acknowledgment flow with watering dates unchanged.
 
 ### Why
 
@@ -97,7 +104,7 @@ Should Bloom use one fixed interval, ask the user to choose an interval, or show
 
 #### Decision
 
-Use bounded check-in ranges with deterministic starting values for the four reviewed catalog plants:
+Use bounded check-in ranges with deterministic starting values for the five reviewed catalog plants:
 
 | Plant | Range | Starting value |
 | --- | ---: | ---: |
@@ -229,15 +236,15 @@ Any future modifier must identify the signal used, explain the suggestion, offer
 
 1. Allow any plant name and use a generic fallback interval.
 2. Allow any plant name and show no automatic schedule.
-3. Restrict the watering catalog to four reviewed profiles until more profiles are ready.
+3. Restrict the watering catalog to reviewed profiles until more profiles are ready.
 
 #### Decision
 
-Only the four reviewed catalog plants are currently addable through Android's catalog. No generic interval is invented for an unsupported plant. If custom plants are reintroduced, they must show an explicit **Set up watering schedule** state rather than receiving false guidance.
+Only the five reviewed catalog plants are currently addable through Android's catalog. No generic interval is invented for an unsupported plant. If custom plants are reintroduced, they must show an explicit **Set up watering schedule** state rather than receiving false guidance.
 
 #### Why
 
-The four profiles have reviewed ranges and deterministic values. A generic fallback would appear more authoritative than the available evidence and would blur the content boundary.
+The five profiles have reviewed ranges and deterministic values. A generic fallback would appear more authoritative than the available evidence and would blur the content boundary.
 
 ## 6. Outcome, history, and correction decisions
 
@@ -544,7 +551,7 @@ The tradeoff for each cut is lower friction, fewer state transitions, less notif
 
 Revisit these decisions only when there is evidence or a changed constraint:
 
-- Add profiles when users are blocked by the four-plant limit and reviewed content is available.
+- Add profiles only after a future scope decision and reviewed content is available; catalog expansion is frozen during stabilization.
 - Add environmental context when users need help explaining watering outcomes and can provide useful observations.
 - Add correction/Undo when accidental records appear in validation or data recovery becomes important.
 - Add more history tools when the five-record Past view becomes demonstrably dense.
@@ -655,7 +662,7 @@ Keep these aligned as decisions evolve. Do not leave a material product decision
 
 Recorded on 15 November 2026. Feature selection and protection rules were reviewed before implementation was authorized; the adopted contract is in [PRD section 15](PRD.md#15-reminder-preferences-and-notification-navigation--requirements). D27's document-first gate is complete; D39 records explicit implementation authorization.
 
-### D33 — Put one global reminder time in Preferences
+### D33 — Put one global reminder time in Profile → Preferences
 
 **Status:** Selected, reviewed, and implemented under D39.
 
@@ -809,6 +816,6 @@ The user requested back arrows instead of Close, then explicitly required confir
 
 **Status:** Implemented and verified after the user requested Soil health following timeline/navigation and explicitly selected integrated drainage on 15 November 2026. Supersedes documentation-only gates in D45/D46 and the pending drainage scope in D47 for this release.
 
-Adopt the documented compact Soil health section, focused advisory checks, three explicit action types with one combined record, optional actual-date/context recording, and correction/removal of soil events through the timeline. Keep watering, placement, and reminders unchanged; add no automatic schedules. Version-1 rules are conservative observations for the existing four foliage profiles, not a diagnosis or product recommendation engine; PRD 18.11 specifies early exits and unknown handling.
+Adopt the documented compact Soil health section, focused advisory checks, three explicit action types with one combined record, optional actual-date/context recording, and correction/removal of soil events through the timeline. Keep watering, placement, and reminders unchanged; add no automatic schedules. Version-1 rules are conservative observations for the existing five foliage profiles, not a diagnosis or product recommendation engine; PRD 18.11 specifies early exits and unknown handling.
 
 Implementation defaults resolve the previous recording questions: date-only actual care date plus UTC recording timestamp; optional product/mix/notes fields; edit and confirmed removal for soil records only. No universal feed dose/interval, health score, fourth drainage action, pH/salt treatment, environmental assessment, or pest diagnosis is included. Future content can expand after separate review. The prior upstream push covered reminder/light work. After this release was completed and verified, the user explicitly requested committing and pushing it upstream.

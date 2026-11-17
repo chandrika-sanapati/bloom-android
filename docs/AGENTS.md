@@ -4,7 +4,7 @@
 
 The active target is the Flutter Android app in this repository. The Android implementation and [`STATUS.md`](STATUS.md) are the source of truth for what exists. The product documents describe intended behavior, but must not claim that a feature is shipped until it is present in `lib/` and verified.
 
-The app is local-first and currently focused on watering check-ins for four catalog plants. Preserve local garden data and existing user changes when modifying persistence or the domain model. Prefer small, focused changes that match the existing Flutter structure.
+The app is local-first and currently focused on watering check-ins for five reviewed catalog plants. Configured builds require authentication and synchronize the local-authoritative garden asynchronously. Preserve local garden data and existing user changes when modifying persistence or the domain model. Prefer small, focused changes that match the existing Flutter structure.
 
 ## Scope freeze
 
