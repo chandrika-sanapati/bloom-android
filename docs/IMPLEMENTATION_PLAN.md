@@ -92,7 +92,7 @@ Do not add these to the watering baseline without a new product decision:
 - Per-plant interval editing, pause/resume, seasonal logic, or adaptive schedule changes.
 - Configurable reminder time and notification navigation are implemented under the reviewed scope in section 8.
 - Broader environmental context, live weather, sensors, recurring nutrition/repotting schedules, pruning, symptom diagnosis, or specialist routing. The approved on-demand Soil health flow is implemented; broader environmental behavior remains outside it.
-- Cloud sharing, analytics, or a separate watering-history destination. Authenticated local-wins cloud sync is implemented and remains in stabilization.
+- Cloud sharing, analytics, or a separate watering-history destination. Authenticated local-wins normalized collection sync is implemented and remains in stabilization.
 
 ## 6. Definition of done for the next milestone
 

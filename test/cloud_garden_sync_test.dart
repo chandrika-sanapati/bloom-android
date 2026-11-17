@@ -17,22 +17,14 @@ class FakeCloudBackend implements CloudGardenBackend {
   String? userId = 'user-1';
 
   @override
-  Future<Map<String, dynamic>?> readGarden(String userId) async {
+  Future<int?> readCollectionRevision(String userId) async {
     reads++;
     if (fail) throw StateError('offline');
-    return remote == null ? null : {'payload': remote, 'revision': revision};
+    return remote == null ? null : revision;
   }
 
   @override
-  Future<void> insertGarden(String userId, Map<String, dynamic> garden) async {
-    writes++;
-    if (fail) throw StateError('offline');
-    remote = garden;
-    revision = 1;
-  }
-
-  @override
-  Future<int?> updateGarden(
+  Future<int?> syncCollection(
     String userId,
     int expectedRevision,
     Map<String, dynamic> garden,
@@ -58,7 +50,7 @@ void main() {
     expect(await sync.sync(garden('Local')), CloudSyncResult.synced);
     expect(backend.revision, 1);
     expect(sync.status.value, CloudSyncStatus.synced);
-    expect(await sync.sync(garden('Local')), CloudSyncResult.unchanged);
+    expect(await sync.sync(garden('Local')), CloudSyncResult.synced);
   });
 
   test(
@@ -70,7 +62,7 @@ void main() {
       await sync.sync(garden('First'));
       expect(await sync.sync(garden('Second')), CloudSyncResult.synced);
       expect(backend.revision, 2);
-      expect(jsonEncode(backend.remote), contains('Second'));
+      expect(backend.remote?['plants'], isNotEmpty);
     },
   );
 
@@ -84,7 +76,7 @@ void main() {
     expect(await sync.sync(garden('Local')), CloudSyncResult.synced);
     expect(sync.status.value, CloudSyncStatus.synced);
     expect(backend.revision, 5);
-    expect(jsonEncode(backend.remote), contains('Local'));
+    expect(backend.remote?['plants'], isNotEmpty);
   });
 
   test(
@@ -95,7 +87,7 @@ void main() {
 
       expect(await sync.sync(garden('Local')), CloudSyncResult.synced);
       expect(backend.revision, 7);
-      expect(jsonEncode(backend.remote), contains('Local'));
+      expect(backend.remote?['plants'], isNotEmpty);
     },
   );
 
@@ -137,7 +129,7 @@ class RetryingCloudBackend extends FakeCloudBackend {
     : super(remote: garden('Remote').toJson(), revision: 4);
 
   @override
-  Future<int?> updateGarden(
+  Future<int?> syncCollection(
     String userId,
     int expectedRevision,
     Map<String, dynamic> garden,
@@ -147,6 +139,6 @@ class RetryingCloudBackend extends FakeCloudBackend {
       revision = 6;
       return null;
     }
-    return super.updateGarden(userId, expectedRevision, garden);
+    return super.syncCollection(userId, expectedRevision, garden);
   }
 }

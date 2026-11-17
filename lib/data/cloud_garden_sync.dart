@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -11,9 +9,8 @@ enum CloudSyncStatus { unavailable, signedOut, syncing, synced, failed }
 
 abstract interface class CloudGardenBackend {
   String? get userId;
-  Future<Map<String, dynamic>?> readGarden(String userId);
-  Future<void> insertGarden(String userId, Map<String, dynamic> garden);
-  Future<int?> updateGarden(
+  Future<int?> readCollectionRevision(String userId);
+  Future<int?> syncCollection(
     String userId,
     int expectedRevision,
     Map<String, dynamic> garden,
@@ -29,42 +26,29 @@ class SupabaseCloudGardenBackend implements CloudGardenBackend {
   String? get userId => client.auth.currentUser?.id;
 
   @override
-  Future<Map<String, dynamic>?> readGarden(String userId) async => await client
-      .from('gardens')
-      .select('payload, revision')
-      .eq('user_id', userId)
-      .maybeSingle();
+  Future<int?> readCollectionRevision(String userId) async =>
+      (await client
+              .from('plant_collections')
+              .select('revision')
+              .eq('user_id', userId)
+              .maybeSingle())?['revision']
+          as int?;
 
   @override
-  Future<void> insertGarden(String userId, Map<String, dynamic> garden) async {
-    await client.from('gardens').insert({
-      'user_id': userId,
-      'schema_version': 1,
-      'payload': garden,
-      'revision': 1,
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
-    });
-  }
-
-  @override
-  Future<int?> updateGarden(
+  Future<int?> syncCollection(
     String userId,
     int expectedRevision,
     Map<String, dynamic> garden,
   ) async {
-    final updated = await client
-        .from('gardens')
-        .update({
-          'payload': garden,
-          'schema_version': 1,
-          'revision': expectedRevision + 1,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        })
-        .eq('user_id', userId)
-        .eq('revision', expectedRevision)
-        .select('revision')
-        .maybeSingle();
-    return (updated?['revision'] as num?)?.toInt();
+    final response = await client.functions.invoke(
+      'sync-plant-collection',
+      body: {'expectedRevision': expectedRevision, 'payload': garden},
+    );
+    if (response.status == 409) return null;
+    if (response.status < 200 || response.status >= 300) {
+      throw StateError('Collection sync failed.');
+    }
+    return (response.data as Map<String, dynamic>)['revision'] as int?;
   }
 }
 
@@ -114,43 +98,23 @@ class CloudGardenSync {
     status.value = CloudSyncStatus.syncing;
     message.value = null;
     final localPayload = garden.toJson();
-    final localJson = jsonEncode(localPayload);
     try {
-      var remote = await backend.readGarden(userId);
-
-      if (remote == null) {
-        await backend.insertGarden(userId, localPayload);
-        status.value = CloudSyncStatus.synced;
-        return CloudSyncResult.synced;
-      }
-
+      var remoteRevision = await backend.readCollectionRevision(userId) ?? 0;
       for (var attempt = 0; attempt < 3; attempt++) {
-        final currentRemote = remote;
-        if (currentRemote == null) break;
-        final remoteRevision =
-            (currentRemote['revision'] as num?)?.toInt() ?? 0;
-        final remoteJson = jsonEncode(currentRemote['payload']);
-        if (remoteJson == localJson) {
-          status.value = CloudSyncStatus.synced;
-          return CloudSyncResult.unchanged;
-        }
-
-        // The device garden is authoritative. Use the revision read immediately
-        // before the write so an update from another device cannot be silently
-        // lost while this guarded overwrite is in flight.
-        final revision = await backend.updateGarden(
+        final revision = await backend.syncCollection(
           userId,
           remoteRevision,
           localPayload,
         );
         if (revision != null) {
           status.value = CloudSyncStatus.synced;
-          return CloudSyncResult.synced;
+          return revision == remoteRevision
+              ? CloudSyncResult.unchanged
+              : CloudSyncResult.synced;
         }
 
         if (attempt < 2) {
-          remote = await backend.readGarden(userId);
-          if (remote == null) break;
+          remoteRevision = await backend.readCollectionRevision(userId) ?? 0;
         }
       }
 

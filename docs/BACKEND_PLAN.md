@@ -71,7 +71,7 @@ identification_runs
 
 `plant_profiles` and `plant_profile_aliases` are managed catalog tables readable by authenticated clients. The app caches the bundled profile catalog for offline startup and uses the remote catalog when available; profile updates never silently rewrite existing schedules.
 
-The current sync implementation stores one versioned garden payload per user rather than normalizing every plant/event. The payload uses the existing local JSON schema and an explicit schema version. Normalized tables remain deferred.
+The current sync implementation uses one `plant_collections` row per user with normalized `plants`, `watering_schedules`, `watering_records`, and `soil_care_events` tables. Each plant references `plant_profiles`; each physical plant retains its own schedule and history. The local JSON file remains the device persistence format, not the long-term cloud schema.
 
 RLS requirements:
 
@@ -160,6 +160,7 @@ Without those defines, photo intake remains local-only and clearly reports that 
 - Use a revision/updated-at guard for local-wins cloud overwrites.
 - Retry when another device changes the remote row during the write; never replace local data from the cloud.
 - Cloud sync has no user-facing merge screen under the current local-wins policy. A future review/diff merge would require an explicit scope decision.
+- Normalized cloud writes run through the transactional `sync_plant_collection` RPC exposed by the authenticated `sync-plant-collection` Edge Function. Partial multi-table writes are not performed from Flutter.
 - Preserve scheduled and recorded timestamps separately.
 - Do not duplicate watering or Soil health events by retrying the same mutation; IDs are client-generated and idempotent.
 
