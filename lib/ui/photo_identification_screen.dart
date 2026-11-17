@@ -91,7 +91,7 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Identify from a photo'),
-        leading: const BackButton(),
+        leading: BackButton(onPressed: _close),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -237,9 +237,39 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
+          const SizedBox(height: 20),
+          OutlinedButton(onPressed: _close, child: const Text('Cancel')),
         ],
       ),
     );
+  }
+
+  Future<void> _close() async {
+    if (_photo == null || !mounted) {
+      if (mounted) Navigator.of(context).pop();
+      return;
+    }
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Discard this photo?'),
+        content: const Text(
+          'Your selected photo and any identification result will be removed '
+          'from this screen. No plant has been added.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Keep editing'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Discard photo'),
+          ),
+        ],
+      ),
+    );
+    if (discard == true && mounted) Navigator.of(context).pop();
   }
 
   void _useCandidate(BuildContext context, PlantCandidate candidate) {
