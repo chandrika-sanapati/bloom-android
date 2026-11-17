@@ -265,7 +265,7 @@ void main() {
       final client = FakeNotificationClient();
       final state = store();
       await app(tester, state, notifications(client));
-      await tester.tap(find.byTooltip('Preferences'));
+      await tester.tap(find.byTooltip('Profile'));
       await tester.pumpAndSettle();
       client.tap!(WateringNotificationTarget.encode(schedule, 'UTC'));
       await tester.pumpAndSettle();

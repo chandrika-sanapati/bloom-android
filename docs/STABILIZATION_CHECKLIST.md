@@ -21,13 +21,14 @@ This checklist is the active work queue during the feature freeze. It covers onl
 ## Auth and cloud sync
 
 - [x] Configured builds gate Home behind Google/Supabase authentication.
+- [x] Configured builds offer Google and email/password sign-in and registration.
+- [x] Email confirmation-required registration is explained without creating a local session.
 - [x] Local/test builds without cloud defines remain usable.
 - [x] Empty remote garden accepts the local garden on first sync.
-- [x] Non-empty remote conflict does not silently overwrite local data.
-- [x] Explicit Keep local / Use cloud conflict UI exists.
+- [x] Non-empty remote differences are guarded-overwritten by the local garden.
+- [x] Every successful local garden save queues asynchronous cloud synchronization.
 - [x] Revision-checked remote updates are implemented.
-- [x] Verify Keep local against the live database and confirm protected conflict behavior. Revision increment path is covered by fake-backend tests.
-- [x] Verify Use cloud UI path exists and local replacement is explicit. Full live replacement remains a manual follow-up.
+- [x] Verify local-wins revision-checked overwrite and retry behavior with fake-backend tests.
 - [ ] Verify failed network/write leaves local data intact and exposes retry state.
 - [ ] Verify sign-out preserves local data and stops cloud writes.
 - [ ] Review RLS policies against the deployed schema.
@@ -46,7 +47,7 @@ This checklist is the active work queue during the feature freeze. It covers onl
 
 ## Existing UI/data reliability
 
-- [ ] Complete TalkBack review for login, Preferences, FAB menu, photo flow, conflict flow, timeline, correction, and watering choices.
+- [ ] Complete TalkBack review for login, Profile/Preferences, FAB menu, photo flow, timeline, correction, and watering choices.
 - [ ] Review large text, narrow layout, dark theme, and reduced-motion behavior on the existing screens.
 - [ ] Verify Android Back and predictive Back for all dirty forms.
 - [ ] Verify notification permission denial/re-enable and long-idle/inexact delivery behavior.
@@ -61,7 +62,7 @@ Do not implement during this stage:
 - Additional plant profiles or catalog expansion.
 - New care domains or new recurring schedules.
 - New identification providers or broader ML behavior.
-- Cloud merge automation beyond the existing explicit choices.
+- Cloud merge automation beyond the local-wins policy.
 - Search/history expansion.
 - Widgets, sharing, analytics, subscriptions, or social features.
 

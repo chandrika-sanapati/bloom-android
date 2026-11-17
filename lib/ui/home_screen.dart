@@ -88,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _openPreferences() {
+  void _openProfile() {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => PreferencesScreen(
@@ -130,9 +130,9 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const BloomTitle(),
         actions: [
           IconButton(
-            tooltip: 'Preferences',
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: _openPreferences,
+            tooltip: 'Profile',
+            icon: const Icon(Icons.account_circle_outlined),
+            onPressed: _openProfile,
           ),
         ],
       ),

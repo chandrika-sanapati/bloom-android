@@ -1,6 +1,6 @@
 # Bloom Android status
 
-**Last checked:** 15 November 2026
+**Last checked:** 17 November 2026
 **Branch:** `main`
 **Target:** Flutter Android
 
@@ -12,7 +12,7 @@ This is the short, current implementation record. If it conflicts with an older 
 
 Bloom is under a feature freeze. Do not add new product capabilities, care domains, catalog expansion, sync modes, identification features, or navigation destinations during this stage. Work is limited to stabilizing and documenting behavior that already exists:
 
-- Cloud sync, auth gating, conflict resolution, and local-data safety.
+- Cloud sync, auth gating, local-wins overwrite safety, and local-data safety.
 - PlantNet request/response handling and existing candidate confirmation.
 - Existing watering, reminders, Soil health, timeline, correction/Undo, light placement, FAB, and photo-intake flows.
 - Persistence, migration, error recovery, accessibility, Android lifecycle, and notification reliability.
@@ -35,7 +35,7 @@ Latest pulled `main` was verified on the local Android 36 emulator (`emulator-55
 - The normal app was relaunched after testing; the working tree remained clean.
 - Latest-watering correction integration: the isolated Care timeline suite passed after the correction implementation; the normal APK rebuilt, installed, and relaunched successfully.
 - Protected correction coverage: older records remain read-only, later custom dates are preserved, failed deletion rolls back, and notification correction keeps one current request without an overdue burst.
-- Permission recovery coverage: enabled-but-denied reminders show an Android settings action, reminder time remains available, and permission state refreshes when Preferences resumes.
+- Permission recovery coverage: enabled-but-denied reminders show an Android settings action, reminder time remains available, and permission state refreshes when Profile resumes.
 - FAB/photo intake coverage: the labeled FAB menu exposes Search by name and Identify from a photo; image intake remains local and stops before identification results.
 
 The repeatable commands require Flutter, Android platform-tools, and the Android Studio JDK on `PATH`. The repository helper assumes those tools are available as `flutter` and `adb`; on this laptop use the pinned Flutter and Android Studio JDK paths when necessary.
@@ -70,30 +70,30 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 ## Not implemented
 
 - Latest watering-record deletion/correction and immediate Undo are implemented from the Care timeline. Undo is valid until another saved garden change occurs.
-- Notification permission recovery is implemented: Preferences shows an Android settings action for an enabled-but-denied state and refreshes permission when returning from settings.
+- Notification permission recovery is implemented: Profile shows an Android settings action for an enabled-but-denied state and refreshes permission when returning from settings.
 - Adjustable dry follow-up window; the current implementation uses three days.
 - Arbitrary custom/unlisted plant creation or schedule setup.
 - Exact delivery timing; Android may deliver inexact alarms within its allowed window.
 - Photo identification candidate confirmation and unsupported-identity saving remain; authenticated candidate results are returned by the Edge Function.
-- Supabase Auth, Google sign-in, remote garden sync, and PlantNet Edge Function integration are not configured yet.
-- Configured builds now gate Home on Google/Supabase authentication; garden sync uploads the local payload when the remote garden is empty and reports conflicts without overwriting. Production migration has not been applied yet.
-- Host verification: Supabase/auth/sync code compiles and the existing 82-test suite passes. Live Google sign-in and authenticated PlantNet require the configured build and emulator interaction.
-- Cloud sync status is exposed in Preferences as syncing, synced, conflict, or failed; local saves remain available when the network is unavailable.
-- Cloud conflicts now open an explicit merge screen with Keep this device’s garden or Use the cloud garden; no conflict is resolved silently.
+- Supabase Auth supports mandatory configured-build authentication with Google and email/password sign-in or registration. Email confirmation is reported when Supabase requires it.
+- Configured builds now gate Home on Google/Supabase authentication; garden sync uploads the local payload when the remote garden is empty and guarded-overwrites differing cloud data with the local payload. Production migration has not been applied yet.
+- Host verification: Supabase/auth/sync/auth UI code compiles and the current 87-test suite passes. Live email registration still requires a real inbox and confirmation link; live Google sign-in and authenticated PlantNet require configured-build emulator interaction.
+- Cloud sync status is exposed in Profile as syncing, synced, different-gardens, or failed; local saves remain available when the network is unavailable.
+- When local and cloud gardens differ, the local garden is authoritative. Bloom uses the remote revision as a guard, retries if another write races, and keeps the local save successful even when cloud sync is unavailable.
 - A typed PlantNet/Supabase Edge Function provider seam is implemented; it activates only when `PLANT_IDENTIFIER_ENDPOINT` is supplied at build time.
 - Optional Supabase initialization is implemented behind `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` build-time defines; no project credentials are tracked in the repository.
-- Optional Google sign-in is implemented behind `GOOGLE_WEB_CLIENT_ID`; Preferences exposes sign-in/sign-out only when Supabase and Google build-time configuration are present.
+- Optional Google sign-in is implemented behind `GOOGLE_WEB_CLIENT_ID`; email/password authentication is available whenever Supabase build-time configuration is present. Profile exposes account controls for configured sessions and retains reminder controls under Preferences.
 - Supabase project `gwuwlzzpfklvfhtkubnj` is linked locally; the `identify-plant` Edge Function is deployed and `PLANTNET_API_KEY` exists as a hosted function secret. Live authenticated identification and Google sign-in have been exercised on the configured emulator.
 - Configured-build smoke check: APK built with Supabase URL, publishable key, PlantNet Edge Function endpoint, and Google Web Client ID; Supabase initialization completed and the normal app launched on `emulator-5554` without startup errors.
 - PlantNet end-to-end request verified in hosted logs: authenticated multipart request, PlantNet response, and HTTP 200 in under one second. Flutter now parses the Edge Function's normalized `candidates` response.
-- Live cloud-sync check: Google sign-in succeeded, a local Spider Plant mutation remained visible, and Preferences reported a protected non-empty remote-garden conflict without overwriting local data.
+- Live cloud-sync check: Google sign-in succeeded, a local Spider Plant mutation remained visible, and Profile reported a protected non-empty remote-garden difference without overwriting local data.
 - Cloud sync, accounts, analytics, environmental checks, diagnosis, nutrition, repotting, or other care domains.
 
 ## Reminder preferences and notification navigation — implemented on 15 November 2026
 
 The user reviewed the documents and explicitly authorized implementation after confirming custom/today protection.
 
-- Preferences has one native **Reminder time** picker with device 12/24-hour formatting, cancellation/no-op behavior, failure/retry feedback, and inline scope disclosure. It works with notifications off/denied and does not request permission on time changes.
+- Profile retains a Preferences section with one native **Reminder time** picker using device 12/24-hour formatting, cancellation/no-op behavior, failure/retry feedback, and inline scope disclosure. It works with notifications off/denied and does not request permission on time changes.
 - One atomic store transition updates the preference and automatic checks after today. Custom times (including times matching the old preference), every existing check today, overdue checks, and unclassified older checks stay exact. Missing/unknown `timeSource` loads as `legacy`; manual edits mark `custom`; first/completed automatic checks mark `preference`.
 - The existing Edit next check is a one-off override. Completion uses the preferred local clock on the calculated profile/follow-up day, retaining actual recorded timestamps, Last watered, and history. Dry non-watering follow-up stays three days. Placement still changes no watering state.
 - Versioned payloads identify plant/due/revision. Current tasks open Check watering, including overdue ones. Stale/completed/rescheduled/legacy links open current plant detail with feedback; deleted/invalid links recover Home. Opening a reminder writes no care history and selects no outcome.
@@ -111,7 +111,7 @@ The user reviewed the documents and explicitly authorized implementation after c
 - Light-placement Android regression: **2 tests passed again** after the reminder changes, including setup skip/acknowledgment, detail correction, reload, and unchanged watering state.
 - Normal `flutter build apk --debug --target lib/main.dart`: **passed**. The normal APK's dex was checked to exclude IntegrationActivity/test receiver code. Installed with `adb install -r` and launched successfully as `com.chandrika.bloom`.
 - Before device testing, the normal app's saved files were backed up locally. All **8 saved files** matched the backup after isolated tests and before installation; the garden JSON remained **byte-for-byte unchanged** after in-place update and launch. This is evidence for this reminder implementation run; it does not undo the earlier placement-test incident described below.
-- Preferences and notification-opened check screenshots from isolated Android fixtures were visually inspected. System time formatting was 12-hour on device; widget tests also verified 24-hour display.
+- Profile/Preferences and notification-opened check screenshots from isolated Android fixtures were visually inspected. System time formatting was 12-hour on device; widget tests also verified 24-hour display.
 - Remaining manual checks: full TalkBack/animation/font-setting audit; real OS permission-dialog denial/re-enable; delayed inexact delivery, long-idle battery restrictions, and OEM behavior. Deterministic DST/zone rules and routing tests do not prove exact or continuous background delivery.
 
 See [PRD section 15](PRD.md#15-reminder-preferences-and-notification-navigation--requirements), [D33–D40](PRODUCT_DECISIONS.md#14-reminder-preferences-and-navigation-decisions), and [implementation plan section 8](IMPLEMENTATION_PLAN.md#8-reminder-preferences-and-notification-navigation--implementation-plan) for the contract and implementation boundaries.

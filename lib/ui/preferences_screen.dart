@@ -8,7 +8,6 @@ import '../data/watering_notifications.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
 import 'login_screen.dart';
-import 'cloud_conflict_screen.dart';
 
 class PreferencesScreen extends StatefulWidget {
   const PreferencesScreen({
@@ -139,9 +138,9 @@ class _PreferencesScreenState extends State<PreferencesScreen>
         throw StateError('Sign-in was cancelled or unavailable.');
       } else {
         final result = await widget.cloudSync.sync(widget.store.garden);
-        if (result == CloudSyncResult.conflict) {
+        if (result == CloudSyncResult.failed) {
           _message =
-              'Your account already has a different garden. Local data was not overwritten.';
+              'Signed in. Your garden remains saved locally and will retry syncing.';
         }
       }
     } catch (_) {
@@ -176,13 +175,13 @@ class _PreferencesScreenState extends State<PreferencesScreen>
       );
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Preferences'),
+          title: const Text('Profile'),
           leading: const BackButton(),
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            if (widget.auth case final auth?) ...[
+            if (widget.auth?.configured == true) ...[
               Text('Account', style: theme.textTheme.titleMedium),
               const SizedBox(height: 12),
               Card(
@@ -190,14 +189,14 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                 child: ListTile(
                   leading: const Icon(Icons.account_circle_outlined),
                   title: Text(
-                    auth.signedIn ? 'Signed in' : 'Sign in with Google',
+                    widget.auth!.signedIn ? 'Signed in' : 'Sign in to Bloom',
                   ),
-                  subtitle: auth.email == null
+                  subtitle: widget.auth!.email == null
                       ? const Text(
-                          'Optional cloud features; local Bloom works without an account.',
+                          'Use Google or email and password to save your garden securely.',
                         )
-                      : Text(auth.email!),
-                  trailing: auth.signedIn
+                      : Text(widget.auth!.email!),
+                  trailing: widget.auth!.signedIn
                       ? const Icon(Icons.logout)
                       : const Icon(Icons.login),
                   onTap: _busy ? null : _toggleAuth,
@@ -216,7 +215,6 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                   final fallback = switch (widget.cloudSync.status.value) {
                     CloudSyncStatus.syncing => 'Syncing your garden…',
                     CloudSyncStatus.synced => 'Garden synced',
-                    CloudSyncStatus.conflict => 'Cloud conflict needs review',
                     CloudSyncStatus.failed =>
                       'Sync failed; garden remains local',
                     _ => '',
@@ -228,6 +226,9 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                 },
               ),
             ],
+            const SizedBox(height: 24),
+            Text('Preferences', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 12),
             Text('Watering reminders', style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),
             Card(
@@ -261,24 +262,6 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                 'Older saved checks keep their time until completed or edited.',
                 style: theme.textTheme.bodySmall,
               ),
-              if (widget.cloudSync.status.value ==
-                  CloudSyncStatus.conflict) ...[
-                const SizedBox(height: 12),
-                FilledButton.icon(
-                  onPressed: _busy
-                      ? null
-                      : () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => CloudConflictScreen(
-                              store: widget.store,
-                              sync: widget.cloudSync,
-                            ),
-                          ),
-                        ),
-                  icon: const Icon(Icons.compare_arrows),
-                  label: const Text('Review cloud conflict'),
-                ),
-              ],
             ],
             const SizedBox(height: 16),
             Text(

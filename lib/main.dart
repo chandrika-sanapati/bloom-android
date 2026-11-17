@@ -35,8 +35,8 @@ Future<void> main() async {
         plants: next.plants,
         schedules: next.schedules,
       );
-      await cloudSync.sync(next);
     },
+    onPersisted: cloudSync.sync,
   );
   runApp(
     BloomApp(

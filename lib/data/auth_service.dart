@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+enum EmailAuthResult { signedIn, confirmationRequired }
+
 class AuthService {
   // Keep the public configuration name while retaining private state.
   AuthService({String? webClientId})
@@ -13,7 +15,8 @@ class AuthService {
   final GoogleSignIn _google = GoogleSignIn.instance;
   bool _initialized = false;
 
-  bool get configured => _webClientId?.isNotEmpty == true && _supabaseReady;
+  bool get configured => _supabaseReady;
+  bool get googleConfigured => _webClientId?.isNotEmpty == true && configured;
 
   bool get signedIn =>
       _supabaseReady && Supabase.instance.client.auth.currentSession != null;
@@ -40,7 +43,7 @@ class AuthService {
   }
 
   Future<bool> signInWithGoogle() async {
-    if (!configured) return false;
+    if (!googleConfigured) return false;
     await _initialize();
     if (!_google.supportsAuthenticate()) return false;
     final account = await _google.authenticate();
@@ -64,6 +67,31 @@ class AuthService {
     return signedIn;
   }
 
+  Future<bool> signInWithEmail(String email, String password) async {
+    if (!configured) return false;
+    await Supabase.instance.client.auth.signInWithPassword(
+      email: email.trim(),
+      password: password,
+    );
+    return signedIn;
+  }
+
+  Future<EmailAuthResult> registerWithEmail(
+    String email,
+    String password,
+  ) async {
+    if (!configured) {
+      throw const AuthException('Cloud authentication is not configured.');
+    }
+    final response = await Supabase.instance.client.auth.signUp(
+      email: email.trim(),
+      password: password,
+    );
+    return response.session == null
+        ? EmailAuthResult.confirmationRequired
+        : EmailAuthResult.signedIn;
+  }
+
   Future<void> signOut() async {
     if (!configured) return;
     await Supabase.instance.client.auth.signOut();
@@ -73,6 +101,5 @@ class AuthService {
 
 AuthService? configuredAuthService() {
   const webClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
-  if (webClientId.isEmpty) return null;
   return AuthService(webClientId: webClientId);
 }

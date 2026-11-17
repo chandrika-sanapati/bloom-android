@@ -35,13 +35,10 @@ The Flutter app must not call PlantNet directly. The PlantNet key is a secret an
 - Native Android Google sign-in supplies an ID token to `signInWithIdToken`.
 - Store the Supabase session using the package's secure/session persistence strategy; never store Google client secrets in the app.
 - Login is optional. Signed-out users remain local-only.
-- Sign-in must offer a clear merge choice when local data exists:
-  - **Keep this device's garden and upload it**
-  - **Use the cloud garden and replace this device's garden**
-  - **Review differences** (later)
-- Never silently overwrite local garden data during first sign-in.
+- Sign-in preserves the local garden and uploads it when cloud data differs.
+- Never replace local garden data from the cloud during sign-in or background sync.
 
-Configured production builds currently gate Home until Google sign-in succeeds. Builds without Supabase/Google defines remain usable for local development and tests. After sign-in, an empty remote garden receives the local garden; a non-empty conflict blocks overwrite until an explicit merge UI exists.
+Configured production builds currently gate Home until authentication succeeds. Builds without Supabase defines remain usable for local development and tests. After sign-in, an empty remote garden receives the local garden; when both differ, the local garden is uploaded with a revision guard.
 
 ### Postgres
 
@@ -142,7 +139,7 @@ Without those defines, photo intake remains local-only and clearly reports that 
 ### Initial sign-in
 
 - No account: use local storage only.
-- Sign in with an existing local garden: show a merge decision before upload/download.
+- Sign in with an existing local garden: preserve and upload the local garden.
 - Empty local garden: offer download of the user's cloud garden.
 - Cloud garden empty: offer upload of local garden.
 
@@ -153,9 +150,9 @@ Without those defines, photo intake remains local-only and clearly reports that 
 - When mandatory-auth mode is enabled, the app gates Home until a valid session exists; local writes remain the immediate source and are uploaded after persistence.
 - If the network is unavailable, local writes continue and the next app resume/save retries sync.
 - A failed upload never removes or rolls back local data.
-- Use a revision/updated-at conflict check. Do not silently last-write-wins across devices.
-- Present a conflict screen when both local and remote changed since the last sync.
-- Current conflict UI offers **Keep this device’s garden** (revision-checked cloud replacement) or **Use the cloud garden** (explicit local replacement). A future review/diff merge can be added without changing the safety boundary.
+- Use a revision/updated-at guard for local-wins cloud overwrites.
+- Retry when another device changes the remote row during the write; never replace local data from the cloud.
+- Cloud sync has no user-facing merge screen under the current local-wins policy. A future review/diff merge would require an explicit scope decision.
 - Preserve scheduled and recorded timestamps separately.
 - Do not duplicate watering or Soil health events by retrying the same mutation; IDs are client-generated and idempotent.
 
@@ -193,8 +190,8 @@ Project-specific values are intentionally not committed. Before enabling the fea
 3. **Edge Function:** proxy PlantNet, return normalized candidates, enforce auth/quota/limits.
 4. **Candidate confirmation:** user confirms a candidate; supported profiles can enter setup, unsupported candidates remain without an invented schedule.
 5. **Supabase Auth:** Google sign-in and session state. The configured production build gates Home until sign-in; unconfigured test/local builds remain usable without an account.
-6. **Local/cloud merge:** first sign-in uploads the local garden when the remote row is empty; non-empty conflicts block overwrite until a merge UI is implemented.
+6. **Local/cloud sync:** first sign-in uploads the local garden when the remote row is empty; differing cloud data is guarded-overwritten by the local garden.
 7. **Photo persistence:** optional private storage only after user confirmation.
-8. **Manual QA:** auth cancellation, offline use, quota errors, permission states, privacy, conflict/recovery, and account deletion.
+8. **Manual QA:** auth cancellation, offline use, quota errors, permission states, privacy, local-wins retry behavior, and account deletion.
 
 Do not implement all layers in one change. Each layer should preserve the offline watering app and have its own tests and rollback behavior.

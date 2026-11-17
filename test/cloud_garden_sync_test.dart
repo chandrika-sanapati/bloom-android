@@ -76,35 +76,28 @@ void main() {
     },
   );
 
-  test('reports a conflict when the remote revision changes', () async {
+  test('overwrites a different remote garden with the local garden', () async {
     final backend = FakeCloudBackend(
       remote: garden('Remote').toJson(),
       revision: 4,
     );
     final sync = CloudGardenSync(backend: backend);
 
-    expect(await sync.sync(garden('Local')), CloudSyncResult.conflict);
-    expect(sync.status.value, CloudSyncStatus.conflict);
-    expect(sync.conflict?.revision, 4);
+    expect(await sync.sync(garden('Local')), CloudSyncResult.synced);
+    expect(sync.status.value, CloudSyncStatus.synced);
+    expect(backend.revision, 5);
+    expect(jsonEncode(backend.remote), contains('Local'));
   });
 
   test(
-    'keep local resolves a conflict with a guarded revision update',
+    'retries a guarded overwrite when the remote changes during the write',
     () async {
-      final backend = FakeCloudBackend(
-        remote: garden('Remote').toJson(),
-        revision: 4,
-      );
+      final backend = RetryingCloudBackend();
       final sync = CloudGardenSync(backend: backend);
 
-      await sync.sync(garden('Local'));
-      expect(
-        await sync.resolveConflictKeepLocal(garden('Local')),
-        CloudSyncResult.synced,
-      );
-      expect(backend.revision, 5);
+      expect(await sync.sync(garden('Local')), CloudSyncResult.synced);
+      expect(backend.revision, 7);
       expect(jsonEncode(backend.remote), contains('Local'));
-      expect(sync.conflict, isNull);
     },
   );
 
@@ -116,4 +109,25 @@ void main() {
     expect(sync.status.value, CloudSyncStatus.failed);
     expect(sync.message.value, contains('still saved locally'));
   });
+}
+
+class RetryingCloudBackend extends FakeCloudBackend {
+  bool firstWrite = true;
+
+  RetryingCloudBackend()
+    : super(remote: garden('Remote').toJson(), revision: 4);
+
+  @override
+  Future<int?> updateGarden(
+    String userId,
+    int expectedRevision,
+    Map<String, dynamic> garden,
+  ) async {
+    if (firstWrite) {
+      firstWrite = false;
+      revision = 6;
+      return null;
+    }
+    return super.updateGarden(userId, expectedRevision, garden);
+  }
 }

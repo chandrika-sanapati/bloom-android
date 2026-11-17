@@ -23,7 +23,18 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _busy = false;
+  bool _register = false;
+  bool _obscurePassword = true;
   String? _message;
+  final _email = TextEditingController();
+  final _password = TextEditingController();
+
+  @override
+  void dispose() {
+    _email.dispose();
+    _password.dispose();
+    super.dispose();
+  }
 
   Future<void> _signIn() async {
     if (_busy) return;
@@ -37,15 +48,11 @@ class _LoginScreenState extends State<LoginScreen> {
       if (signedIn) {
         final sync = await widget.cloudSync.sync(widget.store.garden);
         if (!mounted) return;
-        if (sync == CloudSyncResult.conflict) {
-          await widget.auth.signOut();
-          if (!mounted) return;
-          setState(() {
-            _busy = false;
-            _message =
-                'Your account already has a different garden. Bloom did not overwrite local data.';
-          });
-          return;
+        if (sync == CloudSyncResult.failed) {
+          setState(
+            () => _message =
+                'Signed in. Your garden is saved locally and will sync when available.',
+          );
         }
         Navigator.of(context).pop(true);
       } else {
@@ -72,6 +79,65 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _submitEmail() async {
+    if (_busy) return;
+    final email = _email.text.trim();
+    final password = _password.text;
+    if (!email.contains('@') || password.length < 6) {
+      setState(
+        () => _message =
+            'Enter a valid email and a password with at least 6 characters.',
+      );
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    try {
+      if (_register) {
+        final result = await widget.auth.registerWithEmail(email, password);
+        if (!mounted) return;
+        if (result == EmailAuthResult.confirmationRequired) {
+          setState(() {
+            _busy = false;
+            _message =
+                'Check your email to confirm your account, then return here to sign in.';
+          });
+          return;
+        }
+      } else {
+        final signedIn = await widget.auth.signInWithEmail(email, password);
+        if (!signedIn) {
+          throw const AuthException('Email sign-in did not create a session.');
+        }
+      }
+      if (!mounted) return;
+      final sync = await widget.cloudSync.sync(widget.store.garden);
+      if (!mounted) return;
+      if (sync == CloudSyncResult.failed) {
+        setState(
+          () => _message =
+              'Signed in. Your garden is saved locally and will sync when available.',
+        );
+      }
+      Navigator.of(context).pop(true);
+    } on AuthException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _message = error.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _message =
+            'Authentication failed. Check your connection and try again.';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -93,22 +159,88 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Sign in with Google to prepare for secure cloud features. Bloom '
-            'continues to work locally when you are signed out or offline.',
+            'Sign in with Google or your email and password to securely save '
+            'your garden in the cloud.',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 32),
-          FilledButton.icon(
-            onPressed: widget.auth.configured && !_busy ? _signIn : null,
-            icon: const Icon(Icons.login),
-            label: Text(_busy ? 'Signing in…' : 'Continue with Google'),
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(52),
+          if (widget.auth.googleConfigured)
+            FilledButton.icon(
+              onPressed: _busy ? null : _signIn,
+              icon: const Icon(Icons.login),
+              label: Text(_busy ? 'Signing in…' : 'Continue with Google'),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+              ),
             ),
-          ),
+          if (widget.auth.googleConfigured) const SizedBox(height: 16),
+          if (widget.auth.configured) ...[
+            Text(
+              'Or use email',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleSmall,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _email,
+              enabled: !_busy,
+              keyboardType: TextInputType.emailAddress,
+              autofillHints: const [AutofillHints.email],
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _password,
+              enabled: !_busy,
+              obscureText: _obscurePassword,
+              autofillHints: const [AutofillHints.password],
+              decoration: InputDecoration(
+                labelText: 'Password',
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: _busy ? null : _submitEmail,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+              ),
+              child: Text(
+                _busy
+                    ? 'Working…'
+                    : _register
+                    ? 'Create account'
+                    : 'Sign in with email',
+              ),
+            ),
+            TextButton(
+              onPressed: _busy
+                  ? null
+                  : () => setState(() {
+                      _register = !_register;
+                      _message = null;
+                    }),
+              child: Text(
+                _register
+                    ? 'Already have an account? Sign in'
+                    : 'Need an account? Register',
+              ),
+            ),
+          ],
           if (!widget.auth.configured) ...[
             const SizedBox(height: 12),
             Text(

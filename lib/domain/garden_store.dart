@@ -23,11 +23,19 @@ class _WateringCorrectionReceipt {
 /// Holds the garden and applies watering transitions in one persistence boundary.
 class GardenStore extends ChangeNotifier {
   // `garden` remains public while `_garden` stays private state.
-  GardenStore({required Garden garden, required this.persist, this.onChanged})
-    : _garden = garden; // ignore: prefer_initializing_formals
+  GardenStore({
+    required Garden garden,
+    required this.persist,
+    this.onChanged,
+    this.onPersisted,
+  }) : _garden = garden; // ignore: prefer_initializing_formals
 
   /// Runs after each saved change, so reminders stay in step with the garden.
   final Future<void> Function(Garden garden)? onChanged;
+
+  /// Runs after every saved change, independently of notification updates.
+  /// Cloud sync uses this callback so all local writes are uploaded.
+  final Future<void> Function(Garden garden)? onPersisted;
 
   Garden _garden;
   final Future<void> Function(Garden garden) persist;
@@ -530,14 +538,24 @@ class GardenStore extends ChangeNotifier {
     _garden = next;
     notifyListeners();
     if (syncNotifications) {
-      // The committed garden remains authoritative if an optional side effect
-      // fails; notification status is reported by the notification service.
-      try {
-        await onChanged?.call(next);
-      } catch (_) {
-        /* Retry on resume. */
-      }
+      // The local commit is authoritative. Notifications and cloud sync are
+      // optional asynchronous side effects and must never delay or roll back
+      // a successful local save.
+      unawaited(() async {
+        try {
+          await onChanged?.call(next);
+        } catch (_) {
+          /* Retry on resume or on the next local change. */
+        }
+      }());
     }
+    unawaited(() async {
+      try {
+        await onPersisted?.call(next);
+      } catch (_) {
+        /* Retry on resume or on the next local change. */
+      }
+    }());
     return true;
   }
 }

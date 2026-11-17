@@ -1,0 +1,82 @@
+import 'package:bloom/data/auth_service.dart';
+import 'package:bloom/data/cloud_garden_sync.dart';
+import 'package:bloom/domain/garden_store.dart';
+import 'package:bloom/domain/models.dart';
+import 'package:bloom/ui/login_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+class FakeAuthService extends AuthService {
+  FakeAuthService() : super();
+
+  @override
+  bool get configured => true;
+
+  @override
+  bool get googleConfigured => true;
+
+  @override
+  Future<bool> signInWithGoogle() async => false;
+
+  @override
+  Future<bool> signInWithEmail(String email, String password) async => false;
+
+  @override
+  Future<EmailAuthResult> registerWithEmail(
+    String email,
+    String password,
+  ) async => EmailAuthResult.signedIn;
+}
+
+Widget loginApp() {
+  final store = GardenStore(garden: const Garden(), persist: (_) async {});
+  return MaterialApp(
+    home: LoginScreen(
+      auth: FakeAuthService(),
+      cloudSync: CloudGardenSync(),
+      store: store,
+    ),
+  );
+}
+
+void main() {
+  testWidgets('offers Google and email authentication together', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(loginApp());
+
+    expect(find.text('Continue with Google'), findsOneWidget);
+    expect(find.text('Sign in with email'), findsOneWidget);
+    expect(find.text('Need an account? Register'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Need an account? Register'));
+    await tester.tap(find.text('Need an account? Register'));
+    await tester.pump();
+
+    expect(find.text('Create account'), findsOneWidget);
+    expect(find.text('Already have an account? Sign in'), findsOneWidget);
+  });
+
+  testWidgets('rejects invalid email/password input before submitting', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(loginApp());
+
+    await tester.enterText(find.byType(TextField).at(0), 'not-an-email');
+    await tester.enterText(find.byType(TextField).at(1), 'short');
+    await tester.ensureVisible(find.text('Sign in with email'));
+    await tester.tap(find.text('Sign in with email'));
+    await tester.pump();
+
+    expect(
+      find.text(
+        'Enter a valid email and a password with at least 6 characters.',
+      ),
+      findsOneWidget,
+    );
+  });
+}
