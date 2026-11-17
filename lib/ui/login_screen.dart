@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/auth_service.dart';
 import '../data/cloud_garden_sync.dart';
 import '../domain/garden_store.dart';
+import 'widgets.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
@@ -324,57 +325,12 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget? _messageText(ThemeData theme) {
-    final message = _message;
-    if (message == null) return null;
-    final error = _messageIsError;
-    return Semantics(
-      liveRegion: true,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: error
-              ? theme.colorScheme.errorContainer
-              : theme.colorScheme.secondaryContainer,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              error ? Icons.error_outline : Icons.check_circle_outline,
-              size: 20,
-              color: error
-                  ? theme.colorScheme.onErrorContainer
-                  : theme.colorScheme.onSecondaryContainer,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                message,
-                style: TextStyle(
-                  color: error
-                      ? theme.colorScheme.onErrorContainer
-                      : theme.colorScheme.onSecondaryContainer,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget? _messageText(ThemeData theme) => _message == null
+      ? null
+      : MessageBanner(_message!, isError: _messageIsError);
 
   InputDecoration _field(ThemeData theme, String label, IconData icon) =>
-      InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        filled: true,
-        fillColor: theme.colorScheme.surfaceContainerHighest,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-      );
+      InputDecoration(labelText: label, prefixIcon: Icon(icon));
 
   List<Widget> _formView(ThemeData theme) {
     final message = _messageText(theme);

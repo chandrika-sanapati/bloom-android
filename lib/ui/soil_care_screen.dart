@@ -146,25 +146,23 @@ class _SoilCareScreenState extends State<SoilCareScreen> {
             title: Text(
               widget.event == null ? 'Record soil care' : 'Edit soil care',
             ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: FilledButton(
-                  onPressed: _actions.isEmpty || _saving ? null : _save,
-                  child: Text(_saving ? 'Saving…' : 'Save'),
-                ),
-              ),
-            ],
+          ),
+          bottomNavigationBar: BottomAction(
+            child: FilledButton(
+              onPressed: _actions.isEmpty || _saving ? null : _save,
+              child: Text(_saving ? 'Saving…' : 'Save'),
+            ),
           ),
           body: ListView(
             padding: const EdgeInsets.all(20),
             children: [
+              const SectionHeader('What did you do?'),
               Text(
-                'What did you do?',
-                style: Theme.of(context).textTheme.titleLarge,
+                'Select everything you did.',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
-              const SizedBox(height: 8),
-              const Text('Select everything you did.'),
               const SizedBox(height: 12),
               Card(
                 margin: EdgeInsets.zero,
@@ -187,26 +185,32 @@ class _SoilCareScreenState extends State<SoilCareScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.event_outlined),
-                title: const Text('Care date'),
-                subtitle: Text(formatDate(_date)),
-                onTap: _saving
-                    ? null
-                    : () async {
-                        final chosen = await showDatePicker(
-                          context: context,
-                          initialDate: _date,
-                          firstDate: DateTime(1900),
-                          lastDate: DateTime.now(),
-                        );
-                        if (chosen != null && mounted) {
-                          setState(() => _date = chosen);
-                        }
-                      },
+              const SizedBox(height: 24),
+              const SectionHeader('When'),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.event_outlined),
+                  title: const Text('Care date'),
+                  subtitle: Text(formatDate(_date)),
+                  onTap: _saving
+                      ? null
+                      : () async {
+                          final chosen = await showDatePicker(
+                            context: context,
+                            initialDate: _date,
+                            firstDate: DateTime(1900),
+                            lastDate: DateTime.now(),
+                          );
+                          if (chosen != null && mounted) {
+                            setState(() => _date = chosen);
+                          }
+                        },
+                  trailing: const Icon(Icons.chevron_right),
+                ),
               ),
+              const SizedBox(height: 24),
+              const SectionHeader('Details'),
+              const SizedBox(height: 4),
               if (_actions.contains(SoilCareAction.nutrientsAdded)) ...[
                 const SizedBox(height: 12),
                 TextField(
@@ -215,20 +219,17 @@ class _SoilCareScreenState extends State<SoilCareScreen> {
                   maxLength: 120,
                   decoration: const InputDecoration(
                     labelText: 'Fertilizer or amendment (optional)',
-                    border: OutlineInputBorder(),
                   ),
                   onChanged: (_) => setState(() {}),
                 ),
               ],
               if (_actions.contains(SoilCareAction.mixRefreshed)) ...[
                 const SizedBox(height: 12),
-                const Text('Does the fresh mix contain fertilizer?'),
-                const SizedBox(height: 8),
                 DropdownButtonFormField<bool?>(
                   hint: const Text('Not sure'),
                   initialValue: _mixFeed,
                   decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
+                    labelText: 'Fresh mix contains fertilizer?',
                   ),
                   items: const [
                     DropdownMenuItem(value: true, child: Text('Yes')),
@@ -249,28 +250,24 @@ class _SoilCareScreenState extends State<SoilCareScreen> {
                 maxLines: 4,
                 decoration: const InputDecoration(
                   labelText: 'Notes (optional)',
-                  border: OutlineInputBorder(),
                 ),
                 onChanged: (_) => setState(() {}),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
-                Semantics(
-                  liveRegion: true,
-                  child: Text(
-                    _error!,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-                ),
+                MessageBanner(_error!),
               ],
               if (widget.event != null) ...[
                 const SizedBox(height: 20),
-                OutlinedButton.icon(
-                  onPressed: _saving ? null : _remove,
-                  icon: const Icon(Icons.delete_outline),
-                  label: const Text('Remove record'),
+                Center(
+                  child: TextButton.icon(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.error,
+                    ),
+                    onPressed: _saving ? null : _remove,
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Remove record'),
+                  ),
                 ),
               ],
             ],

@@ -197,20 +197,16 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Watered'), findsNWidgets(2));
       expect(find.text('Refreshed potting mix'), findsOneWidget);
-      // Only the newest watering row exposes the correction affordance.
-      expect(
-        find.textContaining('Tap to delete this latest watering record'),
-        findsOneWidget,
-      );
-
-      await tester.tap(
-        find.textContaining('Tap to delete this latest watering record'),
-      );
+      // Only the newest watering row is tappable (shows a chevron).
+      final wateredRows = find.widgetWithText(ListTile, 'Watered');
+      final tappable = [
+        for (final element in wateredRows.evaluate())
+          if ((element.widget as ListTile).onTap != null) element,
+      ];
+      expect(tappable, hasLength(1));
+      await tester.tap(find.byWidget(tappable.single.widget));
       await tester.pumpAndSettle();
-      expect(
-        find.textContaining('Delete this latest watering record?'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Delete this record?'), findsOneWidget);
       await tester.tap(find.text('Delete record'));
       await tester.pumpAndSettle();
 

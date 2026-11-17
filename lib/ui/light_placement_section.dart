@@ -26,22 +26,9 @@ class LightPlacementSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(
-          spacing: 8,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text('Light & placement', style: theme.textTheme.titleSmall),
-            Text(
-              'Optional',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
+        const SectionHeader('Light & placement · optional'),
         const SizedBox(height: 8),
         Card(
-          margin: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Column(

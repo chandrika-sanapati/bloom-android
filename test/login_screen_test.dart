@@ -48,15 +48,12 @@ void main() {
     await tester.pumpWidget(loginApp());
 
     expect(find.text('Continue with Google'), findsOneWidget);
-    expect(find.text('Sign in with email'), findsOneWidget);
-    expect(find.text('Need an account? Register'), findsOneWidget);
-
-    await tester.ensureVisible(find.text('Need an account? Register'));
-    await tester.tap(find.text('Need an account? Register'));
+    expect(find.widgetWithText(FilledButton, 'Sign in'), findsOneWidget);
+    await tester.tap(
+      find.widgetWithText(SegmentedButton<bool>, 'Create account'),
+    );
     await tester.pump();
-
-    expect(find.text('Create account'), findsOneWidget);
-    expect(find.text('Already have an account? Sign in'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Create account'), findsOneWidget);
   });
 
   testWidgets('rejects invalid email/password input before submitting', (
@@ -68,7 +65,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField).at(0), 'not-an-email');
     await tester.enterText(find.byType(TextField).at(1), 'short');
-    final submit = find.widgetWithText(FilledButton, 'Sign in with email');
+    final submit = find.widgetWithText(FilledButton, 'Sign in');
     await tester.ensureVisible(submit);
     await tester.tap(submit);
     await tester.pump();

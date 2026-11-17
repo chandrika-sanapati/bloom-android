@@ -11,6 +11,7 @@ import '../data/watering_notifications.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
 import 'login_screen.dart';
+import 'widgets.dart';
 
 class PreferencesScreen extends StatefulWidget {
   const PreferencesScreen({
@@ -277,7 +278,7 @@ class _PreferencesScreenState extends State<PreferencesScreen>
               onSignIn: _toggleAuth,
             ),
             const SizedBox(height: 28),
-            Text('Reminders', style: theme.textTheme.titleMedium),
+            const SectionHeader('Reminders'),
             const SizedBox(height: 12),
             Card(
               margin: EdgeInsets.zero,
@@ -341,14 +342,11 @@ class _PreferencesScreenState extends State<PreferencesScreen>
             if (_message ?? widget.notifications.status.value
                 case final String message) ...[
               const SizedBox(height: 16),
-              Semantics(
-                liveRegion: true,
-                child: Text(message, style: theme.textTheme.bodyMedium),
-              ),
+              MessageBanner(message, isError: false),
             ],
             if (widget.auth?.signedIn == true) ...[
               const SizedBox(height: 28),
-              Text('Account', style: theme.textTheme.titleMedium),
+              const SectionHeader('Account'),
               const SizedBox(height: 12),
               Card(
                 margin: EdgeInsets.zero,
@@ -431,7 +429,7 @@ class _ProfileHeader extends StatelessWidget {
               Text(
                 email ?? (signedIn ? 'Signed in' : 'Not signed in'),
                 style: theme.textTheme.titleMedium,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
               ValueListenableBuilder(

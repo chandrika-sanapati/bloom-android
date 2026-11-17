@@ -15,215 +15,6 @@ String formatMonthDay(DateTime date) => _monthDay.format(date);
 String formatDateTime(DateTime date) => _dateTime.format(date);
 String formatDate(DateTime date) => _date.format(date);
 
-class BloomTitle extends StatelessWidget {
-  const BloomTitle({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: Image.asset(
-            'assets/images/bloom_logo.png',
-            width: 30,
-            height: 30,
-            fit: BoxFit.cover,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          'Bloom',
-          style: theme.textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class PlantCard extends StatelessWidget {
-  const PlantCard({
-    super.key,
-    required this.plant,
-    required this.schedule,
-    required this.onTap,
-    this.store,
-    this.onLongPress,
-    this.selected,
-  });
-
-  final Plant plant;
-  final WateringSchedule? schedule;
-  final VoidCallback onTap;
-  final GardenStore? store;
-  final VoidCallback? onLongPress;
-
-  /// Null outside selection mode; otherwise whether this card is selected.
-  final bool? selected;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final status = _status(theme);
-
-    final isSelected = selected == true;
-    final card = SizedBox(
-      width: 150,
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: isSelected
-              ? BorderSide(color: theme.colorScheme.primary, width: 3)
-              : BorderSide.none,
-        ),
-        child: InkWell(
-          onTap: onTap,
-          onLongPress: onLongPress,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              store == null
-                  ? Image.asset(
-                      plant.asset,
-                      height: 126,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    )
-                  : PlantImage(store: store!, plant: plant, height: 126),
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      plant.name,
-                      style: theme.textTheme.titleSmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    status,
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (selected == null) return card;
-    return Semantics(
-      selected: isSelected,
-      child: Stack(
-        children: [
-          card,
-          Positioned(
-            top: 8,
-            right: 8,
-            child: Container(
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.surface.withValues(alpha: 0.9),
-                shape: BoxShape.circle,
-              ),
-              padding: const EdgeInsets.all(2),
-              child: Icon(
-                isSelected ? Icons.check : Icons.circle_outlined,
-                size: 22,
-                color: isSelected
-                    ? theme.colorScheme.onPrimary
-                    : theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _status(ThemeData theme) {
-    final current = schedule;
-    if (current == null) {
-      return Text(
-        'Schedule unavailable',
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      );
-    }
-    final timing = CareTaskTiming.classify(current.nextCheckAt);
-    final overdue = timing == CareTaskTiming.overdue;
-    final text = timing == CareTaskTiming.upcoming
-        ? formatMonthDay(current.nextCheckAt)
-        : timing.label;
-    return Text(
-      text,
-      style: theme.textTheme.labelMedium?.copyWith(
-        fontWeight: FontWeight.w600,
-        color: overdue
-            ? Colors.orange.shade800
-            : theme.colorScheme.onSurfaceVariant,
-      ),
-    );
-  }
-}
-
-class TaskRow extends StatelessWidget {
-  const TaskRow({
-    super.key,
-    required this.plant,
-    required this.schedule,
-    required this.timing,
-    required this.onTap,
-  });
-
-  final Plant plant;
-  final WateringSchedule schedule;
-  final CareTaskTiming timing;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final overdue = timing == CareTaskTiming.overdue;
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: ListTile(
-        onTap: onTap,
-        leading: Icon(
-          overdue ? Icons.error_outline : Icons.water_drop,
-          color: overdue ? Colors.orange.shade800 : theme.colorScheme.primary,
-        ),
-        title: const Text('Check & water'),
-        subtitle: Text(plant.name),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              formatMonthDay(schedule.nextCheckAt),
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: overdue
-                    ? Colors.orange.shade800
-                    : theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(width: 4),
-            const Icon(Icons.chevron_right),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class HistoryRow extends StatelessWidget {
   const HistoryRow({
     super.key,
@@ -290,11 +81,18 @@ class HistoryRow extends StatelessWidget {
                 errorBuilder: (_, _, _) => Icon(icon),
               ),
             )
-          : Icon(
-              icon,
-              color: highlighted
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurfaceVariant,
+          : CircleAvatar(
+              radius: 20,
+              backgroundColor: highlighted
+                  ? theme.colorScheme.secondaryContainer
+                  : theme.colorScheme.surfaceContainerHighest,
+              child: Icon(
+                icon,
+                size: 20,
+                color: highlighted
+                    ? theme.colorScheme.onSecondaryContainer
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
             ),
       title: Text(title),
       subtitle: lines.isEmpty ? null : Text(lines.join('\n')),
@@ -419,4 +217,110 @@ class PlantImage extends StatelessWidget {
       errorBuilder: (_, _, _) => fallback,
     );
   }
+}
+
+int calendarDaysBetween(DateTime from, DateTime to) {
+  final a = DateTime(from.year, from.month, from.day);
+  final b = DateTime(to.year, to.month, to.day);
+  return b.difference(a).inHours ~/ 24;
+}
+
+/// "Today", "Tomorrow", "In 5 days · Dec 1", "Overdue · 2 days".
+String relativeCheckLabel(DateTime when, DateTime now) {
+  final local = when.toLocal();
+  final days = calendarDaysBetween(now, local);
+  if (local.isBefore(now) && days < 0) {
+    return days == -1 ? 'Overdue · 1 day' : 'Overdue · ${-days} days';
+  }
+  if (days <= 0) return 'Today';
+  if (days == 1) return 'Tomorrow';
+  return 'In $days days · ${formatMonthDay(local)}';
+}
+
+/// "today", "yesterday", "9 days ago".
+String relativeAgo(DateTime when, DateTime now) {
+  final days = calendarDaysBetween(when.toLocal(), now);
+  if (days <= 0) return 'today';
+  if (days == 1) return 'yesterday';
+  return '$days days ago';
+}
+
+/// Section title used on every screen; optional trailing action.
+class SectionHeader extends StatelessWidget {
+  const SectionHeader(this.title, {super.key, this.action, this.onAction});
+
+  final String title;
+  final String? action;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Row(
+      children: [
+        Expanded(
+          child: Semantics(
+            header: true,
+            child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+          ),
+        ),
+        if (action != null)
+          TextButton(onPressed: onAction, child: Text(action!)),
+      ],
+    ),
+  );
+}
+
+/// Inline status message: tinted, with an icon, announced to screen readers.
+class MessageBanner extends StatelessWidget {
+  const MessageBanner(this.message, {super.key, this.isError = true});
+
+  final String message;
+  final bool isError;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final bg = isError ? scheme.errorContainer : scheme.secondaryContainer;
+    final fg = isError ? scheme.onErrorContainer : scheme.onSecondaryContainer;
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              size: 20,
+              color: fg,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(message, style: TextStyle(color: fg)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The one primary action of a screen, pinned above the system bar.
+class BottomAction extends StatelessWidget {
+  const BottomAction({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => SafeArea(
+    top: false,
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+      child: SizedBox(width: double.infinity, child: child),
+    ),
+  );
 }

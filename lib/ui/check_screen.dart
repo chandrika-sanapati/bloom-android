@@ -69,7 +69,7 @@ class _CheckScreenState extends State<CheckScreen> {
         final schedule = widget.store.scheduleFor(widget.plantId);
         if (plant == null || schedule == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Watering task unavailable')),
+            appBar: AppBar(title: const Text('Plant unavailable')),
             body: Center(
               child: TextButton(
                 onPressed: () =>
@@ -89,85 +89,123 @@ class _CheckScreenState extends State<CheckScreen> {
             appBar: AppBar(
               title: const Text('Check & water'),
               leading: const BackButton(),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilledButton(
-                    onPressed: _outcome == null || _saving ? null : _save,
-                    child: Text(_saving ? 'Saving…' : 'Save'),
-                  ),
-                ),
-              ],
+            ),
+            bottomNavigationBar: BottomAction(
+              child: FilledButton(
+                onPressed: _outcome == null || _saving ? null : _save,
+                child: Text(_saving ? 'Saving…' : 'Save'),
+              ),
             ),
             body: ListView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
               children: [
-                Text(plant.name, style: theme.textTheme.headlineSmall),
+                Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: SizedBox(
+                        width: 56,
+                        height: 56,
+                        child: PlantImage(
+                          store: widget.store,
+                          plant: plant,
+                          height: 56,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(plant.name, style: theme.textTheme.titleLarge),
+                          Text(
+                            _dueLabel(
+                              relativeCheckLabel(
+                                schedule.nextCheckAt,
+                                DateTime.now(),
+                              ),
+                            ),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () =>
+                          pickNextCheck(context, widget.store, widget.plantId),
+                      child: const Text('Edit next check'),
+                    ),
+                  ],
+                ),
                 if (species case final profile?
                     when profile.hasCareProfile) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    profile.careCue,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.water_drop_outlined,
+                        size: 20,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          profile.careCue,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-                const SizedBox(height: 4),
-                Text(
-                  'Scheduled check: ${formatDateTime(schedule.nextCheckAt)}',
-                  style: theme.textTheme.bodySmall,
-                ),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(52),
-                    alignment: Alignment.centerLeft,
-                  ),
-                  onPressed: () =>
-                      pickNextCheck(context, widget.store, widget.plantId),
-                  icon: const Icon(Icons.calendar_today),
-                  label: const Text('Edit next check'),
-                ),
-                const SizedBox(height: 24),
-                Text('What did you do?', style: theme.textTheme.titleSmall),
+                const SizedBox(height: 28),
+                const SectionHeader('What did you do?'),
                 const SizedBox(height: 8),
-                Card(
-                  margin: EdgeInsets.zero,
-                  child: RadioGroup<WateringOutcome>(
-                    groupValue: _outcome,
-                    onChanged: (chosen) => setState(() => _outcome = chosen),
-                    child: Column(
-                      children: [
-                        for (final value in WateringOutcome.values)
-                          RadioListTile<WateringOutcome>(
-                            title: Text(value.label),
+                RadioGroup<WateringOutcome>(
+                  groupValue: _outcome,
+                  onChanged: (chosen) => setState(() => _outcome = chosen),
+                  child: Column(
+                    children: [
+                      for (final value in WateringOutcome.values)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: _ChoiceCard(
                             value: value,
+                            selected: _outcome == value,
+                            icon: value == WateringOutcome.watered
+                                ? Icons.water_drop
+                                : Icons.visibility_outlined,
                           ),
-                      ],
-                    ),
+                        ),
+                    ],
                   ),
                 ),
                 if (_outcome == WateringOutcome.checkedNotWatered) ...[
-                  const SizedBox(height: 24),
-                  Text('What did you find?', style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 18),
+                  const SectionHeader('How did the soil feel?'),
                   const SizedBox(height: 8),
-                  SegmentedButton<Soil>(
-                    segments: [
-                      for (final soil in Soil.values)
-                        ButtonSegment(value: soil, label: Text(soil.label)),
-                    ],
-                    selected: {_soil},
-                    onSelectionChanged: (selection) =>
-                        setState(() => _soil = selection.first),
+                  SizedBox(
+                    width: double.infinity,
+                    child: SegmentedButton<Soil>(
+                      showSelectedIcon: false,
+                      segments: [
+                        for (final soil in Soil.values)
+                          ButtonSegment(value: soil, label: Text(soil.label)),
+                      ],
+                      selected: {_soil},
+                      onSelectionChanged: (selection) =>
+                          setState(() => _soil = selection.first),
+                    ),
                   ),
                 ],
-                if (_error != null) ...[
+                if (_error case final error?) ...[
                   const SizedBox(height: 16),
-                  Text(
-                    _error!,
-                    style: TextStyle(color: theme.colorScheme.error),
-                  ),
+                  MessageBanner(error),
                 ],
               ],
             ),
@@ -177,3 +215,42 @@ class _CheckScreenState extends State<CheckScreen> {
     );
   }
 }
+
+class _ChoiceCard extends StatelessWidget {
+  const _ChoiceCard({
+    required this.value,
+    required this.selected,
+    required this.icon,
+  });
+
+  final WateringOutcome value;
+  final bool selected;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: selected ? scheme.secondaryContainer : scheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: selected ? scheme.primary : scheme.outlineVariant,
+          width: selected ? 2 : 1,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: RadioListTile<WateringOutcome>(
+        value: value,
+        controlAffinity: ListTileControlAffinity.trailing,
+        secondary: Icon(icon, color: scheme.primary),
+        title: Text(value.label),
+      ),
+    );
+  }
+}
+
+/// "Due today", "Due in 5 days · Dec 1", or "Overdue · 2 days" as is.
+String _dueLabel(String label) => label.startsWith('Overdue')
+    ? label
+    : 'Due ${label[0].toLowerCase()}${label.substring(1)}';

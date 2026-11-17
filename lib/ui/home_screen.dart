@@ -357,7 +357,6 @@ class _PopulatedHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = state.widget.store;
-    final theme = Theme.of(context);
     final plants = store.garden.plants;
     final selection = state._selection;
 
@@ -376,20 +375,10 @@ class _PopulatedHome extends StatelessWidget {
       children: [
         if (selection == null) _TodayCard(state: state, due: due),
         const SizedBox(height: 24),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'My plants · ${plants.length}',
-                style: theme.textTheme.titleMedium,
-              ),
-            ),
-            if (selection == null && plants.length > 1)
-              TextButton(
-                onPressed: state._startSelection,
-                child: const Text('Select'),
-              ),
-          ],
+        SectionHeader(
+          'My plants · ${plants.length}',
+          action: selection == null && plants.length > 1 ? 'Select' : null,
+          onAction: state._startSelection,
         ),
         const SizedBox(height: 8),
         GridView.count(
@@ -417,16 +406,10 @@ class _PopulatedHome extends StatelessWidget {
         ),
         if (recent.isNotEmpty && selection == null) ...[
           const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: Text('Recent', style: theme.textTheme.titleMedium),
-              ),
-              TextButton(
-                onPressed: state._openAllActivity,
-                child: const Text('See all'),
-              ),
-            ],
+          SectionHeader(
+            'Recent',
+            action: 'See all',
+            onAction: state._openAllActivity,
           ),
           for (final entry in recent)
             if (store.plant(entry.plantId) case final plant?)
@@ -557,9 +540,6 @@ class _PlantTile extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final schedule = store.scheduleFor(plant.id);
-    final timing = schedule == null
-        ? null
-        : CareTaskTiming.classify(schedule.nextCheckAt);
     final status = schedule == null
         ? 'No schedule'
         : relativeCheckLabel(schedule.nextCheckAt, DateTime.now());
@@ -622,7 +602,7 @@ class _PlantTile extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: timing == CareTaskTiming.overdue
+                color: status.startsWith('Overdue')
                     ? scheme.error
                     : scheme.onSurfaceVariant,
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
 import '../domain/plant_activity.dart';
@@ -14,6 +15,7 @@ class PlantTimelineScreen extends StatelessWidget {
   });
   final GardenStore store;
   final String plantId;
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: store,
@@ -24,148 +26,140 @@ class PlantTimelineScreen extends StatelessWidget {
       final latestWateringId = wateringRecords.isEmpty
           ? null
           : wateringRecords.first.id;
+      if (plant == null) {
+        return Scaffold(
+          appBar: AppBar(title: const Text('Plant unavailable')),
+          body: Center(
+            child: TextButton(
+              onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
+              child: const Text('Go to Home'),
+            ),
+          ),
+        );
+      }
+      final rows = <Widget>[];
+      String? month;
+      for (final entry in entries) {
+        final local = entry.date.toLocal();
+        final label = DateFormat.yMMMM().format(local);
+        if (label != month) {
+          month = label;
+          rows.add(
+            Padding(
+              padding: EdgeInsets.only(top: rows.isEmpty ? 0 : 20, bottom: 4),
+              child: SectionHeader(label),
+            ),
+          );
+        }
+        rows.add(
+          _TimelineRow(
+            store: store,
+            plantId: plantId,
+            entry: entry,
+            isLatestWatering: entry.watering?.id == latestWateringId,
+          ),
+        );
+      }
       return Scaffold(
-        appBar: AppBar(title: const Text('Care timeline')),
-        body: plant == null
-            ? Center(
-                child: TextButton(
-                  onPressed: () =>
-                      Navigator.of(context).popUntil((r) => r.isFirst),
-                  child: const Text('Plant unavailable · Go to Home'),
+        appBar: AppBar(title: Text('${plant.name} history')),
+        body: entries.isEmpty
+            ? const Padding(
+                padding: EdgeInsets.all(20),
+                child: EmptyActivityCard(
+                  title: 'No care recorded yet',
+                  detail: 'Checks, care and photos will appear here.',
                 ),
               )
-            : ListView.builder(
-                padding: const EdgeInsets.all(20),
-                itemCount: entries.length + 1,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            plant.name,
-                            style: Theme.of(context).textTheme.headlineSmall,
-                          ),
-                          if (entries.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.only(top: 24),
-                              child: EmptyActivityCard(
-                                title: 'No care recorded yet',
-                                detail:
-                                    'Recorded checks and care will appear here.',
-                              ),
-                            ),
-                        ],
-                      ),
-                    );
-                  }
-                  final entry = entries[index - 1];
-                  final isLatestWatering =
-                      entry.watering?.id == latestWateringId;
-                  final (title, detail, icon) = switch (entry.kind) {
-                    PlantActivityKind.watered => (
-                      'Watered',
-                      'Soil: ${entry.watering!.soil.label}',
-                      Icons.water_drop_outlined,
-                    ),
-                    PlantActivityKind.checked => (
-                      'Checked — not watered',
-                      'Soil: ${entry.watering!.soil.label}',
-                      Icons.visibility_outlined,
-                    ),
-                    PlantActivityKind.placement => (
-                      'Light placement confirmed',
-                      'Placed as suggested.',
-                      Icons.wb_sunny_outlined,
-                    ),
-                    PlantActivityKind.soilCare => (
-                      entry.soilCare!.title,
-                      [
-                        if (entry.soilCare!.product != null)
-                          entry.soilCare!.product!,
-                        if (entry.soilCare!.mixContainsFeed
-                            case final bool contains)
-                          'Fresh mix contains fertilizer: ${contains ? 'Yes' : 'No'}',
-                        if (entry.soilCare!.notes != null)
-                          entry.soilCare!.notes!,
-                        'Tap to edit this record.',
-                      ].join('\n'),
-                      Icons.eco_outlined,
-                    ),
-                    PlantActivityKind.photo => (
-                      'Growth photo',
-                      '',
-                      Icons.photo_camera_outlined,
-                    ),
-                  };
-                  final local = entry.date.toLocal();
-                  final date = MaterialLocalizations.of(
-                    context,
-                  ).formatFullDate(local);
-                  final time = MaterialLocalizations.of(context)
-                      .formatTimeOfDay(
-                        TimeOfDay.fromDateTime(local),
-                        alwaysUse24HourFormat:
-                            MediaQuery.alwaysUse24HourFormatOf(context),
-                      );
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(16),
-                      leading: entry.photo != null
-                          ? GrowthThumbnail(photo: entry.photo!, size: 56)
-                          : Icon(icon),
-                      title: Text(title),
-                      subtitle: Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              entry.kind == PlantActivityKind.soilCare
-                                  ? date
-                                  : '$date · $time',
-                            ),
-                            if (detail.isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              Text(
-                                entry.watering != null && isLatestWatering
-                                    ? '$detail\nTap to delete this latest watering record.'
-                                    : detail,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      onTap: entry.photo != null
-                          ? () => openGrowthPhoto(context, store, entry.photo!)
-                          : entry.soilCare != null
-                          ? () => Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (_) => SoilCareScreen(
-                                  store: store,
-                                  plantId: plantId,
-                                  event: entry.soilCare,
-                                ),
-                              ),
-                            )
-                          : entry.watering?.id == latestWateringId
-                          ? () => _confirmDeleteLatestWatering(
-                              context,
-                              store,
-                              plantId,
-                              entry.watering!,
-                            )
-                          : null,
-                    ),
-                  );
-                },
+            : ListView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                children: rows,
               ),
       );
     },
   );
+}
+
+class _TimelineRow extends StatelessWidget {
+  const _TimelineRow({
+    required this.store,
+    required this.plantId,
+    required this.entry,
+    required this.isLatestWatering,
+  });
+
+  final GardenStore store;
+  final String plantId;
+  final PlantActivity entry;
+  final bool isLatestWatering;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final local = entry.date.toLocal();
+    final when = entry.kind == PlantActivityKind.soilCare
+        ? formatMonthDay(local)
+        : '${formatMonthDay(local)} · ${MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(local), alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context))}';
+    final (title, details, icon) = switch (entry.kind) {
+      PlantActivityKind.watered => ('Watered', <String>[], Icons.water_drop),
+      PlantActivityKind.checked => (
+        'Checked — not watered',
+        ['Soil: ${entry.watering!.soil.label}'],
+        Icons.visibility_outlined,
+      ),
+      PlantActivityKind.placement => (
+        'Light placement confirmed',
+        <String>[],
+        Icons.wb_sunny_outlined,
+      ),
+      PlantActivityKind.soilCare => (
+        entry.soilCare!.title,
+        [
+          if (entry.soilCare!.product != null) entry.soilCare!.product!,
+          if (entry.soilCare!.mixContainsFeed case final bool contains)
+            'Fresh mix contains fertilizer: ${contains ? 'Yes' : 'No'}',
+          if (entry.soilCare!.notes != null) entry.soilCare!.notes!,
+        ],
+        Icons.eco_outlined,
+      ),
+      PlantActivityKind.photo => (
+        'Growth photo',
+        <String>[],
+        Icons.photo_camera_outlined,
+      ),
+    };
+    final VoidCallback? onTap = switch (entry) {
+      PlantActivity(photo: final photo?) => () => openGrowthPhoto(
+        context,
+        store,
+        photo,
+      ),
+      PlantActivity(soilCare: final event?) => () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) =>
+              SoilCareScreen(store: store, plantId: plantId, event: event),
+        ),
+      ),
+      PlantActivity(watering: final record?) when isLatestWatering =>
+        () => _confirmDeleteLatestWatering(context, store, plantId, record),
+      _ => null,
+    };
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+      onTap: onTap,
+      leading: entry.photo != null
+          ? GrowthThumbnail(photo: entry.photo!, size: 40)
+          : CircleAvatar(
+              radius: 20,
+              backgroundColor: scheme.secondaryContainer,
+              child: Icon(icon, size: 20, color: scheme.onSecondaryContainer),
+            ),
+      title: Text(title),
+      subtitle: Text([when, ...details].join('\n')),
+      isThreeLine: details.isNotEmpty,
+      trailing: onTap == null ? null : const Icon(Icons.chevron_right),
+    );
+  }
 }
 
 Future<void> _confirmDeleteLatestWatering(
@@ -179,8 +173,7 @@ Future<void> _confirmDeleteLatestWatering(
     builder: (dialogContext) => AlertDialog(
       title: Text('${record.outcome.label} record'),
       content: const Text(
-        'Delete this latest watering record? Last watered and the next check '
-        'may update.',
+        'Delete this record? Last watered and the next check may update.',
       ),
       actions: [
         TextButton(

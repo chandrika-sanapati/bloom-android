@@ -229,7 +229,7 @@ class _BodyState extends State<_Body> {
                 ),
                 if (profile != null) ...[
                   const SizedBox(height: 28),
-                  const _SectionLabel('Care guide'),
+                  const SectionHeader('Care guide'),
                   _GuideRow(
                     icon: Icons.water_drop_outlined,
                     title: profile.careCue,
@@ -274,15 +274,10 @@ class _BodyState extends State<_Body> {
                   ),
                 ],
                 const SizedBox(height: 28),
-                Row(
-                  children: [
-                    const Expanded(child: _SectionLabel('History')),
-                    if (history.isNotEmpty)
-                      TextButton(
-                        onPressed: _openHistory,
-                        child: const Text('See all'),
-                      ),
-                  ],
+                SectionHeader(
+                  'History',
+                  action: history.isEmpty ? null : 'See all',
+                  onAction: _openHistory,
                 ),
                 if (history.isEmpty)
                   Text(
@@ -441,7 +436,7 @@ class _BodyState extends State<_Body> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text('Delete ${plant.name}?'),
-        content: const Text('Its care history will be deleted too.'),
+        content: const Text('Its care history and photos will be deleted too.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -473,21 +468,6 @@ ButtonStyle _overImage(BuildContext context) => IconButton.styleFrom(
     context,
   ).colorScheme.surface.withValues(alpha: 0.85),
 );
-
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 4),
-    child: Semantics(
-      header: true,
-      child: Text(text, style: Theme.of(context).textTheme.titleMedium),
-    ),
-  );
-}
 
 class _GuideRow extends StatelessWidget {
   const _GuideRow({
@@ -620,30 +600,4 @@ class _StatusCard extends StatelessWidget {
       ),
     );
   }
-}
-
-int _calendarDays(DateTime from, DateTime to) {
-  final a = DateTime(from.year, from.month, from.day);
-  final b = DateTime(to.year, to.month, to.day);
-  return b.difference(a).inHours ~/ 24;
-}
-
-/// "Today", "Tomorrow", "In 5 days · Dec 1", "Overdue · 2 days".
-String relativeCheckLabel(DateTime when, DateTime now) {
-  final local = when.toLocal();
-  final days = _calendarDays(now, local);
-  if (local.isBefore(now) && days < 0) {
-    return days == -1 ? 'Overdue · 1 day' : 'Overdue · ${-days} days';
-  }
-  if (days <= 0) return 'Today';
-  if (days == 1) return 'Tomorrow';
-  return 'In $days days · ${formatMonthDay(local)}';
-}
-
-/// "today", "yesterday", "9 days ago".
-String relativeAgo(DateTime when, DateTime now) {
-  final days = _calendarDays(when.toLocal(), now);
-  if (days <= 0) return 'today';
-  if (days == 1) return 'yesterday';
-  return '$days days ago';
 }

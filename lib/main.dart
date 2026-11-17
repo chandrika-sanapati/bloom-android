@@ -229,8 +229,8 @@ class _BloomAppState extends State<BloomApp> with WidgetsBindingObserver {
           title: 'Bloom',
           debugShowCheckedModeBanner: false,
           scrollBehavior: const _NoStretchScrollBehavior(),
-          theme: ThemeData(colorScheme: lightScheme, useMaterial3: true),
-          darkTheme: ThemeData(colorScheme: darkScheme, useMaterial3: true),
+          theme: bloomTheme(lightScheme),
+          darkTheme: bloomTheme(darkScheme),
           themeMode: ThemeMode.system,
           home: _AuthGate(
             store: widget.store,
@@ -311,3 +311,35 @@ class _NoStretchScrollBehavior extends MaterialScrollBehavior {
   ScrollPhysics getScrollPhysics(BuildContext context) =>
       const ClampingScrollPhysics();
 }
+
+/// Shared component styling so every screen uses the same shapes and sizes.
+ThemeData bloomTheme(ColorScheme scheme) => ThemeData(
+  colorScheme: scheme,
+  useMaterial3: true,
+  cardTheme: CardThemeData(
+    elevation: 0,
+    color: scheme.surfaceContainerLow,
+    margin: EdgeInsets.zero,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+  ),
+  inputDecorationTheme: InputDecorationTheme(
+    filled: true,
+    fillColor: scheme.surfaceContainerHighest,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide.none,
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: scheme.primary, width: 2),
+    ),
+  ),
+  filledButtonTheme: FilledButtonThemeData(
+    style: FilledButton.styleFrom(minimumSize: const Size(64, 48)),
+  ),
+  outlinedButtonTheme: OutlinedButtonThemeData(
+    style: OutlinedButton.styleFrom(minimumSize: const Size(64, 48)),
+  ),
+  appBarTheme: const AppBarTheme(centerTitle: false),
+  snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating),
+);

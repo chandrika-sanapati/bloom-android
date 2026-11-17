@@ -347,7 +347,7 @@ void main() {
     await app(tester, state, notifications(client));
     await state.deletePlant('p');
     await tester.pumpAndSettle();
-    expect(find.text('Watering task unavailable'), findsOneWidget);
+    expect(find.text('Plant unavailable'), findsOneWidget);
     await tester.tap(find.text('Go to Home'));
     await tester.pumpAndSettle();
     expect(find.byType(CheckScreen), findsNothing);

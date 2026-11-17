@@ -52,13 +52,13 @@ void main() {
 
   Future<void> revealAcknowledgment(WidgetTester tester) async {
     await tester.scrollUntilVisible(
-      find.text('Light & placement'),
+      find.text('Light & placement · optional'),
       200,
       scrollable: _vertical,
     );
     await tester.pumpAndSettle();
     if (find.byType(CheckboxListTile).evaluate().isEmpty) {
-      await tester.tap(find.text('Light & placement'));
+      await tester.tap(find.text('Light & placement · optional'));
       await tester.pumpAndSettle();
     }
     await tester.scrollUntilVisible(
@@ -74,7 +74,7 @@ void main() {
   ) async {
     final store = GardenStore(garden: const Garden(), persist: (_) async {});
     await openSetup(tester, store);
-    await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Add plant'));
     await tester.pumpAndSettle();
     expect(store.garden.plants, hasLength(1));
     expect(store.garden.plants.single.lightPlacement, isNull);
@@ -101,7 +101,7 @@ void main() {
     await tester.tap(find.text(acknowledgmentLabel));
     await tester.pumpAndSettle();
     expect(snapshots, isEmpty);
-    await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Add plant'));
     await tester.pumpAndSettle();
     expect(snapshots, hasLength(1));
     expect(

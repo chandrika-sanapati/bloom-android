@@ -8,6 +8,7 @@ import '../domain/garden_store.dart';
 import '../domain/plant_identification.dart';
 import '../domain/models.dart';
 import 'catalog_screen.dart';
+import 'widgets.dart';
 
 class PhotoIdentificationScreen extends StatefulWidget {
   const PhotoIdentificationScreen({
@@ -117,13 +118,7 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
                     ..._resultsView(theme, photo, result),
                   if (_message case final message?) ...[
                     const SizedBox(height: 16),
-                    Semantics(
-                      liveRegion: true,
-                      child: Text(
-                        message,
-                        style: TextStyle(color: theme.colorScheme.error),
-                      ),
-                    ),
+                    MessageBanner(message),
                   ],
                 ],
               ),

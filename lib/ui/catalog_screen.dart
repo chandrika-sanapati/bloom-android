@@ -213,21 +213,28 @@ class _PlantSetupScreenState extends State<PlantSetupScreen> {
       saving: _saving,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Add ${widget.species.name}'),
+          title: const Text('Add a plant'),
           leading: const BackButton(),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: FilledButton(
-                onPressed: _saving ? null : _add,
-                child: Text(_saving ? 'Adding…' : 'Add'),
-              ),
-            ),
-          ],
+        ),
+        bottomNavigationBar: BottomAction(
+          child: FilledButton(
+            onPressed: _saving ? null : _add,
+            child: Text(_saving ? 'Adding…' : 'Add plant'),
+          ),
         ),
         body: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.asset(
+                widget.species.asset,
+                height: 180,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(height: 16),
             Text(widget.species.name, style: theme.textTheme.headlineSmall),
             Text(
               widget.species.scientific,
@@ -237,26 +244,13 @@ class _PlantSetupScreenState extends State<PlantSetupScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            Wrap(
-              spacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text('Last watered', style: theme.textTheme.titleSmall),
-                Text(
-                  'Optional',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
+            const SectionHeader('Last watered · optional'),
+            const SizedBox(height: 4),
             Card(
-              margin: EdgeInsets.zero,
               child: Column(
                 children: [
                   SwitchListTile(
-                    title: const Text('I know the last watered date'),
+                    title: const Text('I know when I last watered it'),
                     value: _knowsLastWatered,
                     onChanged: (value) =>
                         setState(() => _knowsLastWatered = value),

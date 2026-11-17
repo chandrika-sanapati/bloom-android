@@ -19,13 +19,13 @@ void main() {
 
   Future<void> revealCheckbox(WidgetTester tester) async {
     await tester.scrollUntilVisible(
-      find.text('Light & placement'),
+      find.text('Light & placement · optional'),
       220,
       scrollable: _vertical,
     );
     await tester.pumpAndSettle();
     if (find.byType(CheckboxListTile).evaluate().isEmpty) {
-      await tester.tap(find.text('Light & placement'));
+      await tester.tap(find.text('Light & placement · optional'));
       await tester.pumpAndSettle();
     }
     await tester.scrollUntilVisible(
@@ -135,7 +135,7 @@ void main() {
       await File(
         '${directory.path}/bloom-light-setup.png',
       ).writeAsBytes(await binding.takeScreenshot('light-placement-setup'));
-      await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Add plant'));
       await tester.pumpAndSettle();
       final plant = store.garden.plants.single;
       expect(plant.lightPlacement, isNull);
@@ -182,7 +182,7 @@ void main() {
     await tester.tap(find.text(label));
     await tester.pumpAndSettle();
     expect(await file.exists(), isFalse);
-    await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Add plant'));
     await tester.pumpAndSettle();
     final restored = GardenStore(
       garden: await repository.load(),

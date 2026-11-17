@@ -143,10 +143,10 @@ void main() {
       final store = makeStore();
       await open(tester, CheckScreen(store: store, plantId: 'p'));
 
-      expect(find.text('What did you find?'), findsNothing);
+      expect(find.text('How did the soil feel?'), findsNothing);
       await tester.tap(find.text('Checked — not watered'));
       await tester.pump();
-      expect(find.text('What did you find?'), findsOneWidget);
+      expect(find.text('How did the soil feel?'), findsOneWidget);
     },
   );
 
@@ -237,7 +237,12 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Remove record'));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(TextButton, 'Remove record'));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(TextButton, 'Remove record'),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(store.garden.soilCare, isEmpty);
       expect(find.text('No care recorded yet'), findsOneWidget);
@@ -280,7 +285,7 @@ void main() {
     await open(tester, SoilCareScreen(store: store, plantId: 'p'), large: true);
     await soilAction(tester, 'Refreshed potting mix');
     await tester.scrollUntilVisible(
-      find.text('Does the fresh mix contain fertilizer?'),
+      find.text('Fresh mix contains fertilizer?'),
       150,
       scrollable: find.byType(Scrollable).first,
     );

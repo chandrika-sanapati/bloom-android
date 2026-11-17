@@ -73,8 +73,14 @@ void main() {
       // Permission is granted to this isolated package by the external runner.
       expect(await notifications.hasPermission(), isTrue);
       await store.setTaskNotifications(true);
+      // Scheduling runs after the save on purpose; wait for that queued sync.
+      await notifications.sync(
+        enabled: store.garden.preferences.taskNotifications,
+        plants: store.garden.plants,
+        schedules: store.garden.schedules,
+      );
       expect(await plugin.pendingNotificationRequests(), hasLength(1));
-      await tester.tap(find.byTooltip('Preferences'));
+      await tester.tap(find.byTooltip('Profile'));
       await tester.pumpAndSettle();
       expect(find.text('Reminder time'), findsOneWidget);
       await binding.convertFlutterSurfaceToImage();
