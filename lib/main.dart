@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:dynamic_color/dynamic_color.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'data/garden_repository.dart';
@@ -107,7 +106,7 @@ class _TopRouteObserver extends NavigatorObserver {
 }
 
 class _BloomAppState extends State<BloomApp> with WidgetsBindingObserver {
-  static const _brandSeed = Color(0xFF007A73);
+  static const _brandSeed = Color(0xFF2E6B3A);
   final _navigator = GlobalKey<NavigatorState>();
   final _messenger = GlobalKey<ScaffoldMessengerState>();
   final _observer = _TopRouteObserver();
@@ -209,20 +208,19 @@ class _BloomAppState extends State<BloomApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return DynamicColorBuilder(
-      builder: (lightDynamic, darkDynamic) {
-        final lightScheme =
-            lightDynamic ??
-            ColorScheme.fromSeed(
-              seedColor: _brandSeed,
-              brightness: Brightness.light,
-            );
-        final darkScheme =
-            darkDynamic ??
-            ColorScheme.fromSeed(
-              seedColor: _brandSeed,
-              brightness: Brightness.dark,
-            );
+    return Builder(
+      builder: (context) {
+        // Fixed Bloom green; wallpaper-based dynamic color is not used.
+        final lightScheme = ColorScheme.fromSeed(
+          seedColor: _brandSeed,
+          brightness: Brightness.light,
+          dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+        );
+        final darkScheme = ColorScheme.fromSeed(
+          seedColor: _brandSeed,
+          brightness: Brightness.dark,
+          dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+        );
 
         return MaterialApp(
           navigatorKey: _navigator,

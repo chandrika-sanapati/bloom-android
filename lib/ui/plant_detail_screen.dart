@@ -70,8 +70,8 @@ enum _MenuAction { edit, delete }
 class _BodyState extends State<_Body> {
   bool _savingLight = false;
 
-  /// Light panel starts open until placement is confirmed.
-  late bool _lightOpen = widget.plant.lightPlacement == null;
+  /// Light panel stays collapsed until the user opens it.
+  bool _lightOpen = false;
 
   GardenStore get store => widget.store;
   Plant get plant => widget.plant;
