@@ -395,28 +395,6 @@ class _PreferencesScreenState extends State<PreferencesScreen>
               ),
               const SizedBox(height: 24),
             ],
-            if (widget.auth?.signedIn == true) ...[
-              Text('Privacy', style: theme.textTheme.titleMedium),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: _busy ? null : _deletePlantData,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.colorScheme.error,
-                ),
-                icon: const Icon(Icons.delete_forever_outlined),
-                label: const Text('Delete all plant data'),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: _busy ? null : _deleteAccountAndData,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.colorScheme.error,
-                ),
-                icon: const Icon(Icons.person_remove_outlined),
-                label: const Text('Delete account and all data'),
-              ),
-              const SizedBox(height: 24),
-            ],
             const SizedBox(height: 24),
             Text('Preferences', style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),
@@ -503,6 +481,33 @@ class _PreferencesScreenState extends State<PreferencesScreen>
               Semantics(
                 liveRegion: true,
                 child: Text(message, style: theme.textTheme.bodyMedium),
+              ),
+            ],
+            if (widget.auth?.signedIn == true) ...[
+              const SizedBox(height: 24),
+              ExpansionTile(
+                title: const Text('Privacy'),
+                subtitle: const Text('Manage or delete your Bloom data'),
+                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _busy ? null : _deletePlantData,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error,
+                    ),
+                    icon: const Icon(Icons.delete_forever_outlined),
+                    label: const Text('Delete all plant data'),
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: _busy ? null : _deleteAccountAndData,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error,
+                    ),
+                    icon: const Icon(Icons.person_remove_outlined),
+                    label: const Text('Delete account and all data'),
+                  ),
+                ],
               ),
             ],
           ],

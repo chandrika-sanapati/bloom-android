@@ -1,7 +1,7 @@
 # Bloom backend and identification plan
 
 **Decision:** Supabase Auth + Postgres + Storage + Edge Functions
-**Status:** Supabase project linked, `identify-plant` Edge Function deployed, Flutter provider/auth seams implemented, mandatory-auth gate, email/password and Google authentication, revision-guarded local-wins garden sync, and normalized candidate flow implemented; live email-confirmation QA, provider UI-state QA, and production-release verification remain. Migration/RLS schema checks are green.
+**Status:** Supabase project linked, `identify-plant`, `delete-garden`, and `delete-account` Edge Functions deployed, Flutter provider/auth seams implemented, mandatory-auth gate, email/password and Google authentication, OTP registration confirmation, revision-guarded local-wins garden sync, and normalized candidate flow implemented; live OTP email QA, provider UI-state QA, and production-release verification remain. Migration/RLS schema checks are green.
 **Last updated:** 17 November 2026
 
 ## Goals
@@ -31,7 +31,7 @@ The Flutter app must not call PlantNet directly. The PlantNet key is a secret an
 
 ### Auth
 
-- Use Supabase Auth with Google and email/password providers.
+- Use Supabase Auth with Google and email/password providers. Registration confirmation uses a one-time email OTP; later password sign-ins do not require OTP.
 - Native Android Google sign-in supplies an ID token to `signInWithIdToken`.
 - Store the Supabase session using the package's secure/session persistence strategy; never store Google client secrets in the app.
 - Login is mandatory in configured builds. Signed-out users remain local-only only when Supabase is not configured; sign-out preserves local data and stops authenticated writes.
@@ -85,6 +85,11 @@ RLS requirements:
 - Storage policies must require `auth.uid()` to match the path owner.
 - Identification uploads should not be stored permanently by default. Use an Edge Function multipart request or a short-lived private object with cleanup.
 - The UI must explain that a photo is uploaded for identification before sending it.
+
+### Email template requirement
+
+- The hosted Supabase **Confirm signup** template must send `{{ .Token }}` as a six-digit code rather than only `{{ .ConfirmationURL }}`. The Flutter app verifies the code with `verifyOtp(type: email)`.
+- The confirmation state supports resend and a Back arrow to return to registration. Successful verification signs the user in immediately.
 
 ### Edge Function: `identify-plant`
 
@@ -179,7 +184,7 @@ Project-specific values are intentionally not committed. Before enabling the fea
 4. Add the Android client configuration required by the chosen Flutter Google sign-in package.
 5. Add the Supabase URL and publishable key through Flutter build-time configuration, for example `--dart-define-from-file`; do not hard-code secrets.
 6. Add privacy policy and account deletion behavior before production release.
-7. Test sign-in cancellation, no network, expired sessions, confirmed sign-out, local-wins retry behavior, and reinstall.
+7. Test sign-in cancellation, OTP registration/resend/verification, no network, expired sessions, confirmed sign-out, local-wins retry behavior, and reinstall.
 
 ## PlantNet setup checklist
 

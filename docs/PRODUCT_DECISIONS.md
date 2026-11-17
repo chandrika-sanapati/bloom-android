@@ -14,7 +14,7 @@ The source material was the earlier Bloom product repository. SwiftUI, Xcode, iO
 
 ## Current implementation decisions
 
-- **Authentication:** Configured builds require Supabase authentication before Home. Users can register/sign in with email/password or sign in with Google when the Google Web Client ID is configured. Email confirmation is explained when required. Builds without Supabase configuration remain local-only.
+- **Authentication:** Configured builds require Supabase authentication before Home. Users can register/sign in with email/password or sign in with Google when the Google Web Client ID is configured. Registration uses a one-time six-digit email OTP and immediately signs the user in after verification; later email/password sign-ins do not require OTP. Builds without Supabase configuration remain local-only.
 - **Login UX:** Email/password is the primary login and registration path. Google is a secondary option when configured. The login page is context-independent and has no toolbar Back button; configured startup without a session renders the same page used for Profile sign-in.
 - **Sign-out UX:** Sign-out requires confirmation, preserves local data, stops authenticated cloud writes, and returns to the root login gate.
 - **Deletion UX:** Profile exposes two separate two-step privacy actions: **Delete all plant data** keeps the login account, while **Delete account and all data** removes the account. Server-side deletion succeeds before local data is cleared; failure preserves local data and offers retry.

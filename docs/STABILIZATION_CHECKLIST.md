@@ -22,7 +22,7 @@ This checklist is the active work queue during the feature freeze. It covers onl
 
 - [x] Configured builds gate Home behind Google/Supabase authentication.
 - [x] Configured builds offer Google and email/password sign-in and registration.
-- [x] Email confirmation-required registration is explained without creating a local session.
+- [x] OTP registration confirmation state supports code entry, resend, and immediate sign-in after verification.
 - [x] Local/test builds without cloud defines remain usable.
 - [x] Empty remote garden accepts the local garden on first sync.
 - [x] Non-empty remote differences are guarded-overwritten by the local garden.
