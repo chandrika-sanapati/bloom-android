@@ -48,13 +48,21 @@ void main() {
   }
 
   Future<void> revealAcknowledgment(WidgetTester tester) async {
-    await tester.scrollUntilVisible(find.text('Light & placement'), 200);
+    await tester.scrollUntilVisible(
+      find.text('Light & placement'),
+      200,
+      scrollable: _vertical,
+    );
     await tester.pumpAndSettle();
     if (find.byType(CheckboxListTile).evaluate().isEmpty) {
       await tester.tap(find.text('Light & placement'));
       await tester.pumpAndSettle();
     }
-    await tester.scrollUntilVisible(find.text(acknowledgmentLabel), 150);
+    await tester.scrollUntilVisible(
+      find.text(acknowledgmentLabel),
+      150,
+      scrollable: _vertical,
+    );
     await tester.pumpAndSettle();
   }
 
@@ -150,7 +158,11 @@ void main() {
             home: PlantDetailScreen(store: store, plantId: plant.id),
           ),
         );
-        await tester.scrollUntilVisible(find.text('Light & placement'), 200);
+        await tester.scrollUntilVisible(
+          find.text('Light & placement'),
+          200,
+          scrollable: _vertical,
+        );
         await tester.pumpAndSettle();
         expect(find.text(species.light.requirement), findsOneWidget);
         expect(
@@ -299,3 +311,9 @@ void main() {
     },
   );
 }
+
+final _vertical = find
+    .byWidgetPredicate(
+      (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+    )
+    .first;

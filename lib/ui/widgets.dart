@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -49,11 +51,13 @@ class PlantCard extends StatelessWidget {
     required this.plant,
     required this.schedule,
     required this.onTap,
+    this.store,
   });
 
   final Plant plant;
   final WateringSchedule? schedule;
   final VoidCallback onTap;
+  final GardenStore? store;
 
   @override
   Widget build(BuildContext context) {
@@ -70,12 +74,14 @@ class PlantCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Image.asset(
-                plant.asset,
-                height: 126,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+              store == null
+                  ? Image.asset(
+                      plant.asset,
+                      height: 126,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    )
+                  : PlantImage(store: store!, plant: plant, height: 126),
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
@@ -212,6 +218,11 @@ class HistoryRow extends StatelessWidget {
         Icons.eco_outlined,
         true,
       ),
+      PlantActivityKind.photo => (
+        'Growth photo',
+        Icons.photo_camera_outlined,
+        true,
+      ),
     };
     final showSoil = soil != null && soil != Soil.unknown;
     final lines = [
@@ -313,6 +324,40 @@ Future<void> pickNextCheck(
   if (!saved && context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Choose a time in the future.')),
+    );
+  }
+}
+
+/// The plant's chosen growth photo, or its catalog image.
+class PlantImage extends StatelessWidget {
+  const PlantImage({
+    super.key,
+    required this.store,
+    required this.plant,
+    required this.height,
+  });
+
+  final GardenStore store;
+  final Plant plant;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = Image.asset(
+      plant.asset,
+      height: height,
+      width: double.infinity,
+      fit: BoxFit.cover,
+    );
+    final cover = store.coverPhotoFor(plant);
+    if (cover == null) return fallback;
+    return Image.file(
+      File(cover.path),
+      height: height,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      cacheHeight: (height * 3).round(),
+      errorBuilder: (_, _, _) => fallback,
     );
   }
 }

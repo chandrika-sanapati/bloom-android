@@ -43,6 +43,8 @@ The current app supports:
 - On-demand Soil health checks, including drainage, plus separate or combined nutrient/mix-refresh/repotting records.
 - A dedicated Care timeline from each plant page, with soil-care correction/removal.
 - Native back arrows and confirmation before discarding unsaved form changes.
+- Growth photos per plant (camera or gallery), stored only on the device and never synced. Photos appear on the plant page and in its care timeline, can be chosen as the plant image, and Bloom nudges for a new one after 30 days.
+- Plant page kebab menu: Edit (name and plant image), Take a new photo, Delete.
 
 Current limitations and manual verification status are tracked in [`docs/STATUS.md`](docs/STATUS.md). In particular, arbitrary custom plants, exact notification timing, and several manual Android/accessibility checks remain outside the current scope.
 

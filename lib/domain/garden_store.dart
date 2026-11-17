@@ -181,6 +181,75 @@ class GardenStore extends ChangeNotifier {
     );
   });
 
+  /// Records a growth photo already saved to device storage.
+  Future<bool> addGrowthPhoto(GrowthPhoto photo) => _serial(() async {
+    if (plant(photo.plantId) == null ||
+        _garden.growthPhotos.any((p) => p.id == photo.id)) {
+      return false;
+    }
+    return _commit(
+      _garden.copyWith(growthPhotos: [..._garden.growthPhotos, photo]),
+      syncNotifications: false,
+    );
+  });
+
+  /// Removes a growth photo record; clears it as cover if selected.
+  Future<bool> removeGrowthPhoto(String photoId) => _serial(() async {
+    if (!_garden.growthPhotos.any((p) => p.id == photoId)) return false;
+    return _commit(
+      _garden.copyWith(
+        growthPhotos: _garden.growthPhotos
+            .where((p) => p.id != photoId)
+            .toList(),
+        plants: [
+          for (final p in _garden.plants)
+            p.coverPhotoId == photoId ? p.copyWith(clearCoverPhoto: true) : p,
+        ],
+      ),
+      syncNotifications: false,
+    );
+  });
+
+  /// Sets the plant's image to one of its photos, or back to the default.
+  Future<bool> setCoverPhoto(String plantId, String? photoId) =>
+      _serial(() async {
+        final current = plant(plantId);
+        if (current == null ||
+            (photoId != null &&
+                !_garden.growthPhotos.any(
+                  (p) => p.id == photoId && p.plantId == plantId,
+                ))) {
+          return false;
+        }
+        return _commit(
+          _garden.copyWith(
+            plants: [
+              for (final p in _garden.plants)
+                p.id != plantId
+                    ? p
+                    : photoId == null
+                    ? p.copyWith(clearCoverPhoto: true)
+                    : p.copyWith(coverPhotoId: photoId),
+            ],
+          ),
+          syncNotifications: false,
+        );
+      });
+
+  /// Growth photos for one plant, newest first.
+  List<GrowthPhoto> photosFor(String plantId) =>
+      _garden.growthPhotos.where((p) => p.plantId == plantId).toList()
+        ..sort((a, b) => b.takenAt.compareTo(a.takenAt));
+
+  GrowthPhoto? coverPhotoFor(Plant plant) {
+    final id = plant.coverPhotoId;
+    if (id == null) return null;
+    for (final p in _garden.growthPhotos) {
+      if (p.id == id) return p;
+    }
+    return null;
+  }
+
   Future<bool> removeSoilCare(String plantId, String eventId) =>
       _serial(() async {
         if (!_garden.soilCare.any(
@@ -289,6 +358,7 @@ class GardenStore extends ChangeNotifier {
       schedules: _garden.schedules.where((s) => s.plantId != id).toList(),
       records: _garden.records.where((r) => r.plantId != id).toList(),
       soilCare: _garden.soilCare.where((e) => e.plantId != id).toList(),
+      growthPhotos: _garden.growthPhotos.where((p) => p.plantId != id).toList(),
     ),
   );
 

@@ -97,7 +97,7 @@ class CloudGardenSync {
 
     status.value = CloudSyncStatus.syncing;
     message.value = null;
-    final localPayload = garden.toJson();
+    final localPayload = garden.toCloudJson();
     try {
       var remoteRevision = await backend.readCollectionRevision(userId) ?? 0;
       for (var attempt = 0; attempt < 3; attempt++) {

@@ -325,6 +325,7 @@ class _PopulatedHome extends StatelessWidget {
             itemBuilder: (context, index) {
               final plant = plants[index];
               return PlantCard(
+                store: store,
                 plant: plant,
                 schedule: store.scheduleFor(plant.id),
                 onTap: () => state._openPlant(plant),

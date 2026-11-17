@@ -87,7 +87,11 @@ void main() {
         },
       );
       await open(tester, PlantDetailScreen(store: store, plantId: 'p'));
-      await tester.scrollUntilVisible(find.text('Care timeline'), 250);
+      await tester.scrollUntilVisible(
+        find.text('Care timeline'),
+        250,
+        scrollable: _vertical,
+      );
       await tester.tap(find.text('Care timeline'));
       await tester.pumpAndSettle();
       expect(find.byType(PlantTimelineScreen), findsOneWidget);
@@ -165,6 +169,7 @@ void main() {
       await tester.scrollUntilVisible(
         find.text("I've placed it as suggested"),
         220,
+        scrollable: _vertical,
       );
       await tester.tap(find.text("I've placed it as suggested"));
       await tester.pumpAndSettle();
@@ -340,8 +345,18 @@ void main() {
         PlantTimelineScreen(store: store, plantId: 'p'),
         large: true,
       );
-      await tester.scrollUntilVisible(find.text(event.title), 120);
+      await tester.scrollUntilVisible(
+        find.text(event.title),
+        120,
+        scrollable: _vertical,
+      );
       expect(tester.takeException(), isNull);
     },
   );
 }
+
+final _vertical = find
+    .byWidgetPredicate(
+      (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+    )
+    .first;

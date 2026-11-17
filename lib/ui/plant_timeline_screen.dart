@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
 import '../domain/plant_activity.dart';
+import 'growth_photos.dart';
 import 'soil_care_screen.dart';
 import 'widgets.dart';
 
@@ -93,6 +94,11 @@ class PlantTimelineScreen extends StatelessWidget {
                       ].join('\n'),
                       Icons.eco_outlined,
                     ),
+                    PlantActivityKind.photo => (
+                      'Growth photo',
+                      '',
+                      Icons.photo_camera_outlined,
+                    ),
                   };
                   final local = entry.date.toLocal();
                   final date = MaterialLocalizations.of(
@@ -108,7 +114,9 @@ class PlantTimelineScreen extends StatelessWidget {
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(16),
-                      leading: Icon(icon),
+                      leading: entry.photo != null
+                          ? GrowthThumbnail(photo: entry.photo!, size: 56)
+                          : Icon(icon),
                       title: Text(title),
                       subtitle: Padding(
                         padding: const EdgeInsets.only(top: 6),
@@ -120,16 +128,20 @@ class PlantTimelineScreen extends StatelessWidget {
                                   ? date
                                   : '$date · $time',
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              entry.watering != null && isLatestWatering
-                                  ? '$detail\nTap to delete this latest watering record.'
-                                  : detail,
-                            ),
+                            if (detail.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                entry.watering != null && isLatestWatering
+                                    ? '$detail\nTap to delete this latest watering record.'
+                                    : detail,
+                              ),
+                            ],
                           ],
                         ),
                       ),
-                      onTap: entry.soilCare != null
+                      onTap: entry.photo != null
+                          ? () => openGrowthPhoto(context, store, entry.photo!)
+                          : entry.soilCare != null
                           ? () => Navigator.of(context).push(
                               MaterialPageRoute<void>(
                                 builder: (_) => SoilCareScreen(

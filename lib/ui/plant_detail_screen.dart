@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
 import '../domain/plant_activity.dart';
+import '../data/growth_photo_files.dart';
 import 'check_screen.dart';
+import 'growth_photos.dart';
 import 'check_route.dart';
 import 'light_placement_section.dart';
 import 'widgets.dart';
@@ -96,9 +98,7 @@ class _BodyState extends State<_Body> {
             tooltip: 'More options',
             onSelected: (action) => switch (action) {
               _MenuAction.edit => _editPlant(context),
-              _MenuAction.photo => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Growth photos are coming soon.')),
-              ),
+              _MenuAction.photo => addGrowthPhoto(context, store, plant.id),
               _MenuAction.delete => _confirmRemoval(context),
             },
             itemBuilder: (context) => [
@@ -138,12 +138,7 @@ class _BodyState extends State<_Body> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
-            child: Image.asset(
-              plant.asset,
-              height: 220,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
+            child: PlantImage(store: store, plant: plant, height: 220),
           ),
           const SizedBox(height: 16),
           Text(plant.name, style: theme.textTheme.headlineMedium),
@@ -177,6 +172,8 @@ class _BodyState extends State<_Body> {
                   ? species!.careCue
                   : null,
             ),
+          const SizedBox(height: 16),
+          GrowthSection(store: store, plant: plant),
           if (species case final profile? when profile.hasCareProfile) ...[
             const SizedBox(height: 16),
             LightPlacementSection(
@@ -250,37 +247,125 @@ class _BodyState extends State<_Body> {
   Future<void> _editPlant(BuildContext context) async {
     final controller = TextEditingController(text: plant.displayName ?? '');
     final defaultName = PlantSpecies.forPlant(plant)?.name ?? plant.name;
-    final result = await showDialog<String>(
+    final photos = store.photosFor(plant.id);
+    var coverId = store.coverPhotoFor(plant)?.id;
+    final result = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Edit plant'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          maxLength: 40,
-          decoration: InputDecoration(labelText: 'Name', hintText: defaultName),
-          onSubmitted: (value) => Navigator.of(dialogContext).pop(value),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(controller.text),
-            child: const Text('Save'),
-          ),
-        ],
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) {
+          Widget option(String? id, Widget image, String label) {
+            final selected = coverId == id;
+            return Semantics(
+              selected: selected,
+              button: true,
+              label: label,
+              child: GestureDetector(
+                onTap: () => setDialogState(() => coverId = id),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      width: 3,
+                      color: selected
+                          ? Theme.of(dialogContext).colorScheme.primary
+                          : Colors.transparent,
+                    ),
+                  ),
+                  child: image,
+                ),
+              ),
+            );
+          }
+
+          return AlertDialog(
+            title: const Text('Edit plant'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: controller,
+                    textCapitalization: TextCapitalization.words,
+                    maxLength: 40,
+                    decoration: InputDecoration(
+                      labelText: 'Name',
+                      hintText: defaultName,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Plant image',
+                    style: Theme.of(dialogContext).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 72,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        option(
+                          null,
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.asset(
+                              plant.asset,
+                              width: 62,
+                              height: 62,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          'Default image',
+                        ),
+                        for (final photo in photos)
+                          option(
+                            photo.id,
+                            GrowthThumbnail(photo: photo, size: 62),
+                            'Photo from ${formatDate(photo.takenAt.toLocal())}',
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (photos.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        'Add a growth photo to use it as the plant image.',
+                        style: Theme.of(dialogContext).textTheme.bodySmall,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Save'),
+              ),
+            ],
+          );
+        },
       ),
     );
+    final name = controller.text.trim();
     controller.dispose();
-    if (result == null || !context.mounted) return;
-    final name = result.trim();
+    if (result != true || !context.mounted) return;
     final updated = name.isEmpty || name == defaultName
         ? plant.copyWith(clearDisplayName: true)
         : plant.copyWith(displayName: name);
-    final saved = await store.savePlant(updated);
+    var saved = true;
+    if (updated.displayName != plant.displayName) {
+      saved = await store.savePlant(updated);
+    }
+    if (saved && coverId != plant.coverPhotoId) {
+      saved = await store.setCoverPhoto(plant.id, coverId);
+    }
     if (!saved && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Couldn't save changes. Try again.")),
@@ -312,7 +397,9 @@ class _BodyState extends State<_Body> {
       ),
     );
     if (confirmed != true || !context.mounted) return;
+    final photos = store.photosFor(plant.id);
     final removed = await store.deletePlant(plant.id);
+    if (removed) await GrowthPhotoFiles.deleteFiles(photos);
     if (removed && context.mounted) Navigator.of(context).pop();
   }
 }

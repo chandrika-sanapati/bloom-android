@@ -50,6 +50,7 @@ class Plant {
     String? legacySpecies,
     String? legacyAsset,
     this.lightPlacement,
+    this.coverPhotoId,
   }) : legacyName = legacyName ?? name,
        legacySpecies = legacySpecies ?? species,
        legacyAsset = legacyAsset ?? asset;
@@ -65,6 +66,9 @@ class Plant {
   final String? legacyAsset;
   final LightPlacementAcknowledgment? lightPlacement;
 
+  /// Device-only growth photo shown instead of the catalog image.
+  final String? coverPhotoId;
+
   Plant canonicalized() {
     final profile = PlantSpecies.forPlant(this);
     if (profile == null) return this;
@@ -73,6 +77,7 @@ class Plant {
       plantTypeId: profile.id,
       displayName: displayName,
       lightPlacement: lightPlacement,
+      coverPhotoId: coverPhotoId,
     );
   }
 
@@ -96,6 +101,8 @@ class Plant {
     LightPlacementAcknowledgment? lightPlacement,
     bool clearLightPlacement = false,
     bool clearDisplayName = false,
+    String? coverPhotoId,
+    bool clearCoverPhoto = false,
   }) => Plant(
     id: id,
     plantTypeId: plantTypeId ?? this.plantTypeId,
@@ -108,6 +115,7 @@ class Plant {
     lightPlacement: clearLightPlacement
         ? null
         : lightPlacement ?? this.lightPlacement,
+    coverPhotoId: clearCoverPhoto ? null : coverPhotoId ?? this.coverPhotoId,
   );
 
   Map<String, dynamic> toJson() => {
@@ -115,6 +123,7 @@ class Plant {
     'plantTypeId': plantTypeId,
     if (displayName != null) 'displayName': displayName,
     if (lightPlacement != null) 'lightPlacement': lightPlacement!.toJson(),
+    if (coverPhotoId != null) 'coverPhotoId': coverPhotoId,
   };
 
   factory Plant.fromJson(Map<String, dynamic> json) => Plant(
@@ -127,6 +136,7 @@ class Plant {
     lightPlacement: LightPlacementAcknowledgment.tryFromJson(
       json['lightPlacement'],
     ),
+    coverPhotoId: json['coverPhotoId'] as String?,
   );
 }
 
@@ -294,6 +304,7 @@ class Garden {
     this.schedules = const [],
     this.records = const [],
     this.soilCare = const [],
+    this.growthPhotos = const [],
     this.preferences = const AppPreferences(),
   });
 
@@ -301,6 +312,9 @@ class Garden {
   final List<WateringSchedule> schedules;
   final List<WateringRecord> records;
   final List<SoilCareEvent> soilCare;
+
+  /// Device-only; never included in the cloud payload.
+  final List<GrowthPhoto> growthPhotos;
   final AppPreferences preferences;
 
   Garden copyWith({
@@ -308,12 +322,14 @@ class Garden {
     List<WateringSchedule>? schedules,
     List<WateringRecord>? records,
     List<SoilCareEvent>? soilCare,
+    List<GrowthPhoto>? growthPhotos,
     AppPreferences? preferences,
   }) => Garden(
     plants: plants ?? this.plants,
     schedules: schedules ?? this.schedules,
     records: records ?? this.records,
     soilCare: soilCare ?? this.soilCare,
+    growthPhotos: growthPhotos ?? this.growthPhotos,
     preferences: preferences ?? this.preferences,
   );
 
@@ -322,8 +338,18 @@ class Garden {
     'schedules': schedules.map((s) => s.toJson()).toList(),
     'records': records.map((r) => r.toJson()).toList(),
     'soilCare': soilCare.map((r) => r.toJson()).toList(),
+    'growthPhotos': growthPhotos.map((p) => p.toJson()).toList(),
     'preferences': preferences.toJson(),
   };
+
+  /// Cloud payload: excludes device-only photo data.
+  Map<String, dynamic> toCloudJson() {
+    final json = toJson()..remove('growthPhotos');
+    json['plants'] = [
+      for (final plant in plants) plant.toJson()..remove('coverPhotoId'),
+    ];
+    return json;
+  }
 
   factory Garden.fromJson(Map<String, dynamic> json) => Garden(
     plants: (json['plants'] as List? ?? [])
@@ -341,10 +367,56 @@ class Garden {
               .whereType<SoilCareEvent>()
               .toList()
         : const [],
+    growthPhotos: json['growthPhotos'] is List
+        ? (json['growthPhotos'] as List)
+              .map(GrowthPhoto.tryFromJson)
+              .whereType<GrowthPhoto>()
+              .toList()
+        : const [],
     preferences: json['preferences'] == null
         ? const AppPreferences()
         : AppPreferences.fromJson(json['preferences'] as Map<String, dynamic>),
   );
+}
+
+/// A dated photo of a plant, stored as a file on this device.
+class GrowthPhoto {
+  const GrowthPhoto({
+    required this.id,
+    required this.plantId,
+    required this.takenAt,
+    required this.path,
+  });
+
+  final String id;
+  final String plantId;
+  final DateTime takenAt;
+  final String path;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'plantId': plantId,
+    'takenAt': takenAt.toUtc().toIso8601String(),
+    'path': path,
+  };
+
+  static GrowthPhoto? tryFromJson(Object? value) {
+    if (value is! Map ||
+        value['id'] is! String ||
+        value['plantId'] is! String ||
+        value['path'] is! String ||
+        value['takenAt'] is! String) {
+      return null;
+    }
+    final takenAt = DateTime.tryParse(value['takenAt'] as String);
+    if (takenAt == null) return null;
+    return GrowthPhoto(
+      id: value['id'] as String,
+      plantId: value['plantId'] as String,
+      takenAt: takenAt,
+      path: value['path'] as String,
+    );
+  }
 }
 
 /// Reviewed species content shared by setup and plant detail.

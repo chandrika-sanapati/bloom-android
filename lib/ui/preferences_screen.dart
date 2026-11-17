@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import '../data/growth_photo_files.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/auth_service.dart';
@@ -147,11 +149,13 @@ class _PreferencesScreenState extends State<PreferencesScreen>
     });
     try {
       await auth.deleteAccount();
+      final photos = widget.store.garden.growthPhotos;
       final cleared = await widget.store.replaceGarden(
         const Garden(),
         syncCloud: false,
       );
       if (!cleared) throw StateError('Local garden could not be cleared.');
+      await GrowthPhotoFiles.deleteFiles(photos);
       if (!mounted) return;
       Navigator.of(context).popUntil((route) => route.isFirst);
     } on AuthException catch (error) {

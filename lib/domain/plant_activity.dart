@@ -1,7 +1,7 @@
 import 'models.dart';
 import 'soil_care.dart';
 
-enum PlantActivityKind { watered, checked, placement, soilCare }
+enum PlantActivityKind { watered, checked, placement, soilCare, photo }
 
 class PlantActivity {
   const PlantActivity({
@@ -11,6 +11,7 @@ class PlantActivity {
     required this.kind,
     this.watering,
     this.soilCare,
+    this.photo,
   });
   final String id;
   final String plantId;
@@ -18,6 +19,7 @@ class PlantActivity {
   final PlantActivityKind kind;
   final WateringRecord? watering;
   final SoilCareEvent? soilCare;
+  final GrowthPhoto? photo;
 
   static List<PlantActivity> forPlant(Garden garden, String plantId) {
     final plants = garden.plants.where((p) => p.id == plantId);
@@ -48,6 +50,16 @@ class PlantActivity {
           date: event.occurredOn,
           kind: PlantActivityKind.soilCare,
           soilCare: event,
+        ),
+      for (final photo in garden.growthPhotos.where(
+        (p) => p.plantId == plantId,
+      ))
+        PlantActivity(
+          id: 'photo:${photo.id}',
+          plantId: plantId,
+          date: photo.takenAt,
+          kind: PlantActivityKind.photo,
+          photo: photo,
         ),
     ];
     entries.sort(_newestFirst);
