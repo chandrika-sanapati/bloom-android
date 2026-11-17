@@ -23,6 +23,65 @@ enum CloudSyncStatus {
   failed,
 }
 
+abstract interface class CloudGardenBackend {
+  String? get userId;
+  Future<Map<String, dynamic>?> readGarden(String userId);
+  Future<void> insertGarden(String userId, Map<String, dynamic> garden);
+  Future<int?> updateGarden(
+    String userId,
+    int expectedRevision,
+    Map<String, dynamic> garden,
+  );
+}
+
+class SupabaseCloudGardenBackend implements CloudGardenBackend {
+  SupabaseCloudGardenBackend(this.client);
+
+  final SupabaseClient client;
+
+  @override
+  String? get userId => client.auth.currentUser?.id;
+
+  @override
+  Future<Map<String, dynamic>?> readGarden(String userId) async => await client
+      .from('gardens')
+      .select('payload, revision')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+  @override
+  Future<void> insertGarden(String userId, Map<String, dynamic> garden) async {
+    await client.from('gardens').insert({
+      'user_id': userId,
+      'schema_version': 1,
+      'payload': garden,
+      'revision': 1,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    });
+  }
+
+  @override
+  Future<int?> updateGarden(
+    String userId,
+    int expectedRevision,
+    Map<String, dynamic> garden,
+  ) async {
+    final updated = await client
+        .from('gardens')
+        .update({
+          'payload': garden,
+          'schema_version': 1,
+          'revision': expectedRevision + 1,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('user_id', userId)
+        .eq('revision', expectedRevision)
+        .select('revision')
+        .maybeSingle();
+    return (updated?['revision'] as num?)?.toInt();
+  }
+}
+
 class CloudGardenConflict {
   const CloudGardenConflict({required this.payload, required this.revision});
 
@@ -31,6 +90,12 @@ class CloudGardenConflict {
 }
 
 class CloudGardenSync {
+  // Keep the injectable backend seam while retaining a private field.
+  CloudGardenSync({CloudGardenBackend? backend})
+    // ignore: prefer_initializing_formals
+    : _backend = backend;
+
+  final CloudGardenBackend? _backend;
   final status = ValueNotifier<CloudSyncStatus>(CloudSyncStatus.unavailable);
   final message = ValueNotifier<String?>(null);
   int? _lastSyncedRevision;
@@ -44,17 +109,23 @@ class CloudGardenSync {
     }
   }
 
+  CloudGardenBackend? get _activeBackend {
+    if (_backend != null) return _backend;
+    final client = _client;
+    return client == null ? null : SupabaseCloudGardenBackend(client);
+  }
+
   bool get configured => _client != null;
   bool get signedIn => _client?.auth.currentSession != null;
   CloudGardenConflict? get conflict => _conflict;
 
   Future<CloudSyncResult> sync(Garden garden) async {
-    final client = _client;
-    final user = client?.auth.currentUser;
-    if (client == null) {
+    final backend = _activeBackend;
+    final userId = backend?.userId;
+    if (backend == null) {
       return _set(CloudSyncResult.unavailable, 'Cloud sync is not configured.');
     }
-    if (user == null) {
+    if (userId == null) {
       return _set(CloudSyncResult.signedOut, 'Sign in to sync your garden.');
     }
 
@@ -63,20 +134,10 @@ class CloudGardenSync {
     final localPayload = garden.toJson();
     final localJson = jsonEncode(localPayload);
     try {
-      final remote = await client
-          .from('gardens')
-          .select('payload, revision')
-          .eq('user_id', user.id)
-          .maybeSingle();
+      final remote = await backend.readGarden(userId);
 
       if (remote == null) {
-        await client.from('gardens').insert({
-          'user_id': user.id,
-          'schema_version': 1,
-          'payload': localPayload,
-          'revision': 1,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        });
+        await backend.insertGarden(userId, localPayload);
         _remember(1, localJson);
         status.value = CloudSyncStatus.synced;
         return CloudSyncResult.synced;
@@ -104,26 +165,17 @@ class CloudGardenSync {
         );
       }
 
-      final updated = await client
-          .from('gardens')
-          .update({
-            'payload': localPayload,
-            'schema_version': 1,
-            'revision': remoteRevision + 1,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('user_id', user.id)
-          .eq('revision', remoteRevision)
-          .select('revision')
-          .maybeSingle();
-      if (updated == null) {
+      final revision = await backend.updateGarden(
+        userId,
+        remoteRevision,
+        localPayload,
+      );
+      if (revision == null) {
         return _set(
           CloudSyncResult.conflict,
           'Cloud data changed while saving. Local data was not overwritten.',
         );
       }
-      final revision =
-          (updated['revision'] as num?)?.toInt() ?? remoteRevision + 1;
       _remember(revision, localJson);
       status.value = CloudSyncStatus.synced;
       return CloudSyncResult.synced;
@@ -135,33 +187,24 @@ class CloudGardenSync {
   }
 
   Future<CloudSyncResult> resolveConflictKeepLocal(Garden garden) async {
-    final client = _client;
-    final user = client?.auth.currentUser;
+    final backend = _activeBackend;
+    final userId = backend?.userId;
     final conflict = _conflict;
-    if (client == null || user == null || conflict == null) {
+    if (backend == null || userId == null || conflict == null) {
       return CloudSyncResult.failed;
     }
     final payload = garden.toJson();
-    final updated = await client
-        .from('gardens')
-        .update({
-          'payload': payload,
-          'schema_version': 1,
-          'revision': conflict.revision + 1,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        })
-        .eq('user_id', user.id)
-        .eq('revision', conflict.revision)
-        .select('revision')
-        .maybeSingle();
-    if (updated == null) {
+    final revision = await backend.updateGarden(
+      userId,
+      conflict.revision,
+      payload,
+    );
+    if (revision == null) {
       return _set(
         CloudSyncResult.conflict,
         'Cloud data changed again. Review the conflict and try again.',
       );
     }
-    final revision =
-        (updated['revision'] as num?)?.toInt() ?? conflict.revision + 1;
     _remember(revision, jsonEncode(payload));
     _conflict = null;
     status.value = CloudSyncStatus.synced;

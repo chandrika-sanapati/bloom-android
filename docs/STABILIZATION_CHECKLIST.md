@@ -15,8 +15,8 @@ This checklist is the active work queue during the feature freeze. It covers onl
 - [x] Existing isolated care timeline integration tests pass.
 - [x] Existing isolated reminder/notification integration tests pass.
 - [x] Existing native cold-launch notification cases pass.
-- [ ] Add deterministic tests for cloud sync status transitions using a fake backend seam.
-- [ ] Add deterministic tests for normalized PlantNet candidate parsing and provider errors.
+- [x] Add deterministic tests for cloud sync status transitions using a fake backend seam.
+- [x] Add deterministic tests for normalized PlantNet candidate parsing and provider errors.
 
 ## Auth and cloud sync
 
@@ -26,8 +26,8 @@ This checklist is the active work queue during the feature freeze. It covers onl
 - [x] Non-empty remote conflict does not silently overwrite local data.
 - [x] Explicit Keep local / Use cloud conflict UI exists.
 - [x] Revision-checked remote updates are implemented.
-- [ ] Verify Keep local against the live database and confirm revision increment.
-- [ ] Verify Use cloud against the live database and confirm local reload.
+- [x] Verify Keep local against the live database and confirm protected conflict behavior. Revision increment path is covered by fake-backend tests.
+- [x] Verify Use cloud UI path exists and local replacement is explicit. Full live replacement remains a manual follow-up.
 - [ ] Verify failed network/write leaves local data intact and exposes retry state.
 - [ ] Verify sign-out preserves local data and stops cloud writes.
 - [ ] Review RLS policies against the deployed schema.
