@@ -34,7 +34,7 @@ async function handler(request: Request): Promise<Response> {
   if (!user.id) return json({ error: 'Authenticated user was not found' }, 401);
 
   const gardenResponse = await fetch(
-    `${supabaseUrl}/rest/v1/gardens?user_id=eq.${encodeURIComponent(user.id)}`,
+    `${supabaseUrl}/rest/v1/plant_collections?user_id=eq.${encodeURIComponent(user.id)}`,
     {
       method: 'DELETE',
       headers: {
