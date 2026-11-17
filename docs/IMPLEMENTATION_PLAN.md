@@ -1,9 +1,9 @@
 # Bloom Android implementation plan
 
-**Status:** Watering, Light & placement, Profile/Preferences, reminder navigation, permission recovery, Soil health, Care timeline, guarded Back, dynamic theming, latest-watering correction/Undo, Supabase auth/sync, local-wins cloud sync, PlantNet proxy, photo identification, and candidate confirmation are implemented. Latest verification is recorded in STATUS.md; manual OS/accessibility checks remain.
+**Status:** Check & water, Light & placement, Profile/Reminders, reminder navigation, permission recovery, record-only Soil care, plant history, guarded Back, the fixed Bloom green theme and shared component theme, latest-watering correction/Undo, growth photos, multi-select delete, Supabase auth/sync, local-wins cloud sync, PlantNet proxy, photo identification, and candidate confirmation are implemented. The 17 November 2026 UX overhaul is recorded in section 13. Latest verification is recorded in STATUS.md; manual OS/accessibility checks remain.
 **Platform:** Flutter Android.
 **Source of truth:** [`STATUS.md`](STATUS.md) for shipped behavior; [`PRD.md`](PRD.md) for product intent and scope.
-**Last updated:** 15 November 2026
+**Last updated:** 17 November 2026
 
 ## Scope freeze — no feature expansion
 
@@ -13,39 +13,41 @@ This plan is now stabilization-only. Do not implement new plant profiles, new ca
 
 Future ideas may be documented in `PRODUCT_DECISIONS.md`, but documentation is not authorization to implement them during the freeze.
 
+**Exception (17 November 2026):** the owner approved a bounded UX improvement list — plant page redesign, growth photos, multi-select delete, single account deletion, and the related Home, Add a plant, sign-in, identification, and theme work (section 13, D50–D62). The freeze otherwise remains in force.
+
 Read [`PRODUCT_DECISIONS.md`](PRODUCT_DECISIONS.md) before changing scope. It preserves the alternatives and tradeoffs behind the current cuts and future roadmap.
 
 ## 1. Implementation principle
 
-Bloom should make the next watering check clearer, faster, and more trustworthy. Keep schedule transitions centralized. The revised Light & placement proposal adds a species-specific suggestion and an optional saved action acknowledgment during setup and on plant detail. Placement acknowledgment leaves all watering dates and reminders unchanged in this release; watering stays the only recurring care system. The light-placement review gate in section 7 is complete. The reminder review gate in section 8 is also complete.
+Bloom should make the next Check & water clearer, faster, and more trustworthy. Keep schedule transitions centralized, and build screens from the shared theme and widgets (DESIGN_GUIDELINES.md). The revised Light & placement proposal adds a species-specific suggestion and an optional saved action acknowledgment during setup and on plant detail. Placement acknowledgment leaves all watering dates and reminders unchanged in this release; watering stays the only recurring care system. The light-placement review gate in section 7 is complete. The reminder review gate in section 8 is also complete.
 
 ## 2. Current architecture
 
 | Area | Current implementation |
 | --- | --- |
-| App entry | `lib/main.dart` loads the local garden, initializes notifications, and starts `BloomApp`. |
-| Domain model | `lib/domain/models.dart` contains `Plant`, `WateringSchedule`, `WateringRecord`, preferences, profiles, and timing enums. |
-| State transitions | `lib/domain/garden_store.dart` owns add, edit, completion, removal, notification preference, and persistence transitions. |
-| Persistence | `lib/data/garden_repository.dart` stores JSON under the application support directory using a temporary file replacement. |
+| App entry | `lib/main.dart` loads the local garden, initializes notifications, and starts `BloomApp`. It also defines the fixed green color schemes, `bloomTheme` (shared component theme), and the no-stretch scroll behavior. |
+| Domain model | `lib/domain/models.dart` contains `Plant` (including `displayName`, `coverPhotoId`), `WateringSchedule`, `WateringRecord`, `GrowthPhoto`, `Garden` (with `toCloudJson` excluding device-only photo data), preferences, profiles, and timing enums. `soil_care.dart` holds `SoilCareEvent`; `plant_activity.dart` projects history (watering, soil care, placement, photos). |
+| State transitions | `lib/domain/garden_store.dart` owns add, edit, completion, latest-watering delete/Undo, single and multi-plant deletion, growth photo/cover changes, notification preference, and persistence transitions. |
+| Persistence | `lib/data/garden_repository.dart` stores JSON under the application support directory using a temporary file replacement, and backs up an unreadable file as `garden.unreadable-<timestamp>.json` before using an empty garden. `growth_photo_files.dart` stores and deletes device-only photo files. |
 | Notifications | `lib/data/watering_notifications.dart` schedules future watering checks only and removes stale Bloom requests during sync. |
-| UI | `lib/ui/` contains Home, catalog/setup, plant detail, watering check, Profile/Preferences, photo identification, care screens, and shared widgets. |
-| Assets | `assets/images/` contains the five catalog plant images and the empty-state image. |
+| UI | `lib/ui/` contains Home, Add a plant (search/setup), plant page, Check & water, plant history, soil care, growth photos, Profile, sign-in, photo identification, the light placement section, the discard guard, and shared widgets (`widgets.dart`: SectionHeader, MessageBanner, BottomAction, PlantImage, HistoryRow, relative date helpers). |
+| Assets | `assets/images/` contains the five catalog plant images, the Bloom logo, and the garden image used on empty Home and sign-in. |
 
 ## 3. Completed baseline
 
 - Five supported catalog profiles with bounded ranges and deterministic starting intervals.
-- Material 3 dynamic light/dark color schemes through `dynamic_color` 1.9.0, with Bloom teal fallback.
+- Material 3 light/dark schemes from a fixed Bloom green seed (`#2E6B3A`, fidelity variant) and the shared `bloomTheme`. *Replaced 17 Nov 2026: `dynamic_color` wallpaper colors with a teal fallback.*
 - Optional last-watered date during setup, with a same-day baseline when it is unknown.
 - One active schedule per supported plant.
-- Today, Upcoming, and Overdue classification.
+- Today, Upcoming, and Overdue classification, shown as relative dates.
 - Explicit Watered and Checked — not watered outcomes.
 - Dry non-watering checks use a three-day follow-up; other checks use the profile interval.
 - Late completion schedules from the actual recorded time and retains the original scheduled time in the record.
-- Home Upcoming/Past activity, plant details, next-check editing, and plant removal.
-- Check Watering uses a full-width outlined secondary Edit next check action below the scheduled date.
+- Home Today card, plant grid, and Recent activity; plant page; next-check editing; single and multi-select plant deletion. *(Upcoming/Past replaced 17 Nov 2026.)*
+- Check & water shows **Edit next check** as a text button in the plant header, with Save pinned at the bottom.
 - Local persistence with failed-save protection at the store boundary.
 - Optional future-only Android notifications, permission-denied behavior, inexact scheduling, and non-blocking startup.
-- Labeled FAB menu, authenticated photo identification, normalized candidates, confirmation, and unsupported-identity safety.
+- Add plant bottom sheet (replacing the FAB menu), authenticated photo identification, normalized candidates with likelihood labels, confirmation, and unsupported-identity safety.
 - Canonical profile matching normalizes supported catalog/photo/provider aliases at the GardenStore boundary while preserving separate physical plant records.
 - Data-driven plant inventory is loaded from the bundled profile cache and refreshed from Supabase `plant_profiles` when available; user plants reference `plantTypeId` and no longer use discovery-specific care data.
 
@@ -70,7 +72,7 @@ Bloom should make the next watering check clearer, faster, and more trustworthy.
 - Complete Watered and confirm Last watered, Past, and the next schedule. **Verified on emulator and covered by domain tests.**
 - Complete Checked — not watered for dry, damp, and unknown soil. **Covered by domain tests and the current integration suite.**
 - Resolve an overdue task without creating a duplicate immediate task. **Covered by domain behavior and notification routing tests.**
-- Edit a future next-check date and confirm it changes Upcoming without creating history. **Verified on emulator.**
+- Edit a future next-check date and confirm it changes the next check without creating history. **Verified on emulator.**
 - Remove a plant and confirm its schedule and records are removed. **Covered by current store behavior and stale/deleted notification fallback tests.**
 - Deny notification permission and confirm in-app tasks remain intact. **Real OS permission-dialog check remains.**
 - Relaunch the app and confirm the garden, records, and preferences persist. **Verified on emulator.**
@@ -91,8 +93,9 @@ Do not add these to the watering baseline without a new product decision:
 - Arbitrary custom plant schedules or a fallback interval.
 - Per-plant interval editing, pause/resume, seasonal logic, or adaptive schedule changes.
 - Configurable reminder time and notification navigation are implemented under the reviewed scope in section 8.
-- Broader environmental context, live weather, sensors, recurring nutrition/repotting schedules, pruning, symptom diagnosis, or specialist routing. The approved on-demand Soil health flow is implemented; broader environmental behavior remains outside it.
-- Cloud sharing, analytics, or a separate watering-history destination. Authenticated local-wins normalized collection sync is implemented and remains in stabilization.
+- Soil-health assessment, broader environmental context, live weather, sensors, recurring nutrition/repotting schedules, pruning, symptom diagnosis, or specialist routing. Soil care is record-only.
+- Cloud sharing, analytics, photo upload, or a separate watering-history destination. Authenticated local-wins normalized collection sync is implemented and remains in stabilization.
+- Multiple-plants-of-one-type handling and water-frequency presentation (dropped by the owner on 17 November 2026).
 
 ## 6. Definition of done for the next milestone
 
@@ -222,14 +225,16 @@ The user authorized one global preference, automatic-only updates after today, c
 
 ## 9. Occasional care — implemented boundaries
 
-Follow PRD sections 16/18 and decisions D41–D47. The compact/expandable sunlight presentation and the approved **Soil health** section are implemented and verified. Soil health has three actions (Adding nutrients, Refresh potting mix, Repotting), conservative on-demand checks, combined local records, timeline correction/removal, and no recurring care schedules. Do not add new care schedules or content during the stabilization freeze.
+Follow PRD sections 16–18 and decisions D42, D51, D55. Light guidance is a collapsed Care guide row on the plant page. **Soil care** is record-only: three actions (Added nutrients, Refreshed potting mix, Repotted), combined local records, history correction/removal, and no recurring care schedules. The on-demand Soil health checks were removed on 17 November 2026. Do not add new care schedules, advice, or content during the stabilization freeze.
 
-Apply D42 to the hierarchy discussion: Light & placement is setup/occasional review, not another recurring care task. Do not add expiry, automatic acknowledgment resets, or light reminders. Preserve setup, acknowledgment behavior, and saved placement data. D44 / section 10 authorize compact summaries and expandable advice on detail; relocation under Other care remains outside scope.
+Apply D42 to the hierarchy discussion: Light & placement is setup/occasional review, not another recurring care task. Do not add expiry, automatic acknowledgment resets, or light reminders. Preserve setup, acknowledgment behavior, and saved placement data. D55 / section 13 define the current collapsed light row; relocation under Other care remains outside scope.
 
 
 ## 10. Compact light presentation — implemented and verified
 
-D44 / PRD section 17 authorize this refinement. Add an opt-in compact presentation to the shared LightPlacementSection and enable it only on detail; keep a single shared guidance/checkbox body and unchanged setup. Use Material ExpansionTile, default collapsed, with light requirement and report status always visible. Keep expansion local to the view; make no domain/model/storage/scheduling change.
+*Superseded 17 Nov 2026 (D55): the ExpansionTile card was replaced by the plant page's Care guide light row and `LightPlacementPanel` (scene, profile text, Yes, it is / Not yet, Change); setup still uses `LightPlacementSection` with the checkbox. The record below is historical.*
+
+D44 / PRD section 17 authorized this refinement. Add an opt-in compact presentation to the shared LightPlacementSection and enable it only on detail; keep a single shared guidance/checkbox body and unchanged setup. Use Material ExpansionTile, default collapsed, with light requirement and report status always visible. Keep expansion local to the view; make no domain/model/storage/scheduling change.
 
 Verify pending/acknowledged collapse/expand without writes, existing save/failure/correction, setup skip/acknowledgment, and narrow 2x-text dark layout. Update the isolated Android placement test to expand explicitly and assert initial compact state; capture a compact preview. Run host tests from a path without parentheses, analysis, isolated Android regression, and normal APK build. Back up and compare saved normal-app data; install normal APK with -r. Record actual results in STATUS.md and keep the six main docs aligned.
 
@@ -237,6 +242,8 @@ Validation: 55 host tests and both isolated Android placement tests passed, anal
 
 
 ## 11. Soil health — implemented release record
+
+*Superseded 17 Nov 2026 (D51): `SoilHealthSection`, `soil_assessment.dart`, and the assessment screen were removed. `SoilCareScreen` (**Record soil care** / **Edit soil care**) is opened from the plant page's **Soil care** quick action and from history. S2–S3 (event model, atomic persistence) remain current; S1, S4, and the assessment parts of S5 are historical.*
 
 **Stage:** Subsequently authorized under D48–D49, including integrated drainage. Implementation and verification are complete; evidence is in STATUS.md. [PRD section 18](PRD.md#18-soil-health--release-requirements) defines the confirmed scope, SH-01–12 requirements, content references, acceptance criteria, and remaining boundaries. D45–D47 remain as historical rationale; D49 is the adopted release decision.
 
@@ -275,6 +282,8 @@ After authorization and implementation, run relevant tests, analysis, and normal
 
 ## 12. Timeline and Back implementation
 
+*Revised 17 Nov 2026 (D54): `PlantTimelineScreen` is titled **<plant> history**, groups entries by month, includes growth photos (open viewer), and lets the latest watering record be deleted with Undo. `DiscardChangesGuard` now wraps setup, Check & water, and `SoilCareScreen`; the assessment screen no longer exists. SoilHealthSection references below are historical.*
+
 D48 / PRD 19–20 authorize a dedicated PlantTimelineScreen from plant detail plus native page back arrows. PlantActivity.forPlant projects watering records, current placement acknowledgment, and soil events without copying or mutating them. Filter by plant ID; use actual event dates; list all events lazily; link only soil events to their correction screen. Do not invent unsupported historical light events.
 
 Use one DiscardChangesGuard based on PopScope for setup, Check watering, SoilCareScreen, and partial SoilAssessmentScreen answers. Track draft equality and pending save state; permit programmatic success exit after the guard rebuilds. Keep the safe choice focused, deduplicate dialogs, and preserve draft values on Keep editing/dismiss. Root reminder fallback respects any protected route in the stack. Preferences/catalog are ordinary nested routes; Check watering no longer uses fullscreen-dialog navigation.
@@ -285,3 +294,33 @@ Validation: existing regression plus all seven non-empty soil action combination
 
 
 Current release validation (15 November 2026): 73 host tests passed; static analysis found no issues; the isolated care-timeline Android test passed end to end, including native Activity Back dispatch, Keep editing/Discard changes, combined event persistence/reload, unchanged watering, and nested return to plant details. Normal APK built and installed with -r; integration-only activity excluded. All four normal saved files matched the backup before update. The user subsequently confirmed saving a watering check; the new record and expected schedule change were verified while retaining plants/preferences/soil history and prior records. Post-launch binary equality is not claimed. Timeline fixture screenshot visually reviewed. Source hashes match the tested checkout. Full manual TalkBack and physical predictive-Back gesture audit remain separate checks. Details in STATUS.md.
+
+
+## 13. UX overhaul — implementation record (17 November 2026)
+
+Approved by the owner as a freeze exception; PRD section 21 is the contract and D50–D62 the rationale. Commits on main: theme and light row (`d8354af`), plant page (`567cdc7`, `9c63369`), growth photos (`5cab143`), multi-select delete (`a396969`), record-only soil care (`f10b7e5`), unreadable-garden backup (`04ea1c4`), Home and Profile (`913a60c`), Add a plant search (`3a0a346`), sign-in and identification (`af08e52`).
+
+### U1 — Shared design system
+
+- `bloomTheme` in `lib/main.dart`: flat cards (16dp, `surfaceContainerLow`), filled fields (14dp, primary focus border), 48dp buttons, floating snackbars, left-aligned app bar titles; `_NoStretchScrollBehavior` disables overscroll stretch.
+- `widgets.dart`: `SectionHeader`, `MessageBanner`, `BottomAction`, `PlantImage`, `HistoryRow`, `relativeCheckLabel`, `relativeAgo`. New screens must use these rather than local styling.
+
+### U2 — Screens
+
+- Home: greeting header, Today card, two-column plant grid with Add tile, Recent (three entries) and Recent activity page, multi-select via long-press/Select, Add plant bottom sheet.
+- Add a plant: live search (name prefix > name contains > scientific name > aliases), five fixed popular plants, setup with Add plant pinned.
+- Plant page: `SliverAppBar` hero with `PlantImage`, ⋮ Edit (name, plant image)/Delete, photo-count chip, status card, Add photo/Soil care, Care guide, History (five).
+- Check & water: header with Edit next check, choice cards, conditional soil feel, Save pinned, snackbar with next check date.
+- Profile: avatar header with plant/sync status, Reminders, Account (single Delete account).
+- Sign-in and email confirmation; photo identification with likelihood labels and one Add button.
+
+### U3 — Data
+
+- `GrowthPhoto` list and `Plant.coverPhotoId` in garden JSON, both excluded from `Garden.toCloudJson`. Photo files live in app storage via `GrowthPhotoFiles` and are deleted after the plant(s) or account are deleted.
+- `GardenStore.deletePlants` removes several plants and their schedules, records, soil care, and photo entries in one write.
+- Plant-data-only cloud deletion was removed from the UI; Delete account uses the existing `delete-account` function.
+- `GardenRepository` copies an unreadable `garden.json` to `garden.unreadable-<timestamp>.json` before falling back to an empty garden.
+
+### U4 — Verification
+
+Tests were updated or added for growth photos, multi-delete, repository backup, light placement UI, login, reminders, soil care, and timeline navigation. Record actual host, integration, analysis, and build results in STATUS.md only; manual TalkBack, large-text, and dark-theme review of the new screens remains.

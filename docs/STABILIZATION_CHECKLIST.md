@@ -6,15 +6,17 @@
 
 This checklist is the active work queue during the feature freeze. It covers only behavior already present in the app. Do not add new product capabilities while these items are open.
 
+The owner-approved UX overhaul exception (17 November 2026) is complete; the items below now refer to the redesigned screens.
+
 ## Automated checks
 
 - [x] `flutter analyze` reports zero findings.
-- [x] Host/widget/domain tests pass.
+- [x] Host/widget/domain tests pass (111 tests, 17 November 2026).
 - [x] Normal debug APK builds with the Android Studio JDK.
-- [x] Existing isolated placement integration tests pass.
-- [x] Existing isolated care timeline integration tests pass.
-- [x] Existing isolated reminder/notification integration tests pass.
-- [x] Existing native cold-launch notification cases pass.
+- [x] Existing isolated placement integration tests pass (re-run after the UX overhaul).
+- [x] Existing isolated care timeline integration tests pass (re-run after the UX overhaul).
+- [x] Existing isolated reminder/notification integration tests pass (re-run after the UX overhaul).
+- [x] Existing native cold-launch notification cases pass (not re-run after the UX overhaul).
 - [x] Add deterministic tests for cloud sync status transitions using a fake backend seam.
 - [x] Add deterministic tests for local-save/cloud-sync boundaries, signed-out writes, ordered snapshots, and provider errors.
 
@@ -22,7 +24,9 @@ This checklist is the active work queue during the feature freeze. It covers onl
 
 - [x] Configured builds gate Home behind Google/Supabase authentication.
 - [x] Configured builds offer Google and email/password sign-in and registration.
-- [x] OTP registration confirmation state supports code entry, resend, and immediate sign-in after verification.
+- [x] Configured release build from `config/prod.json` reaches the Google account picker on the emulator.
+- [ ] Create a real release signing key and register its SHA-1 with the Android OAuth client (release builds are currently signed with the debug key).
+- [x] OTP registration confirmation state supports six-box code entry with auto-verify, resend after a 45-second countdown, and immediate sign-in after verification.
 - [x] Local/test builds without cloud defines remain usable.
 - [x] Empty remote garden accepts the local garden on first sync.
 - [x] Non-empty remote differences are guarded-overwritten by the local garden.
@@ -41,7 +45,7 @@ This checklist is the active work queue during the feature freeze. It covers onl
 - [x] Photo intake supports camera/gallery, preview, removal, and cancel/back.
 - [x] Authenticated Edge Function request reaches PlantNet.
 - [x] Edge Function validates JWT, image count/type/size, and provider errors.
-- [x] Normalized candidate results render in Flutter.
+- [x] Normalized candidate results render in Flutter with likelihood labels.
 - [x] Reviewed candidates route into existing setup.
 - [x] Unreviewed candidates can be added without an invented schedule.
 - [x] Add deterministic provider coverage for HTTP failure, timeout boundary, empty-result, and malformed-result handling. Live UI state verification remains manual.
@@ -50,16 +54,16 @@ This checklist is the active work queue during the feature freeze. It covers onl
 
 ## Existing UI/data reliability
 
-- [ ] Complete TalkBack review for login, Profile/Preferences, FAB menu, photo flow, timeline, correction, and watering choices.
+- [ ] Complete TalkBack review for login, Home (Today card, grid, multi-select), Add plant sheet, Profile, photo identification, plant page, growth photos, timeline, correction, and Check & water choices.
 - [ ] Review large text, narrow layout, dark theme, and reduced-motion behavior on the existing screens.
 - [ ] Verify Android Back and predictive Back for all dirty forms.
 - [ ] Verify notification permission denial/re-enable and long-idle/inexact delivery behavior.
-- [ ] Review old garden JSON migration and malformed optional fields.
+- [ ] Review old garden JSON migration and malformed optional fields. (An unreadable `garden.json` is now backed up to `garden.unreadable-<timestamp>.json` before an empty garden is used.)
 - [ ] Rotate credentials that were shared during setup.
 - [x] Confirm no high-risk credentials are present in tracked files; Edge Function logs contain no tokens, garden payloads, or photo contents by inspection.
 - [x] Deploy and verify authenticated `delete-garden` and `delete-account` Edge Function boundaries.
-- [ ] Manually confirm plant-data deletion keeps the account and removes local/cloud plant data.
-- [ ] Manually confirm account deletion removes the account and local/cloud plant data.
+- [x] ~~Manually confirm plant-data deletion keeps the account and removes local/cloud plant data.~~ Superseded 17 November 2026: plant-data-only deletion was removed from the app.
+- [ ] Manually confirm account deletion removes the account, local/cloud plant data, and device growth photos.
 
 ## Explicitly frozen
 

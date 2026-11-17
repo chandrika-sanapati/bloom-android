@@ -1,12 +1,12 @@
 # Bloom product decisions and tradeoffs
 
-**Status:** Watering, Light & placement, Profile/Preferences, reminder preferences/navigation, Soil health, Care timeline, guarded Back, authenticated Supabase/PlantNet integration, email/password and Google authentication, and local-wins cloud sync implemented; reviewed authorization and final decisions remain historical context.
+**Status:** Check & water, Light & placement, Profile/Reminders, reminder preferences/navigation, record-only Soil care, plant history, growth photos, multi-select delete, guarded Back, authenticated Supabase/PlantNet integration, email/password and Google authentication, and local-wins cloud sync implemented. Section 16 records the 17 November 2026 UX overhaul; earlier decisions it replaces are marked **Superseded 17 Nov 2026**.
 **Last reviewed:** 17 November 2026
 **Decision scope:** Product, UX, content safety, and roadmap choices
 
 ## Current implementation constraint
 
-Bloom is currently under a **stabilization-only feature freeze**. The implemented product surface is the scope to harden; the roadmap and future decisions below are not implementation authorization. Do not add capabilities until the freeze is explicitly lifted.
+Bloom is currently under a **stabilization-only feature freeze**. The implemented product surface is the scope to harden; the roadmap and future decisions below are not implementation authorization. Do not add capabilities until the freeze is explicitly lifted. On 17 November 2026 the owner approved the UX improvement list in section 16 as an explicit, bounded exception.
 
 This document preserves the product reasoning that led to Bloom's focused watering MVP. It is intentionally separate from the implementation plan: it records **why** a choice was made, not only what code should do.
 
@@ -15,10 +15,10 @@ The source material was the earlier Bloom product repository. SwiftUI, Xcode, iO
 ## Current implementation decisions
 
 - **Authentication:** Configured builds require Supabase authentication before Home. Users can register/sign in with email/password or sign in with Google when the Google Web Client ID is configured. Registration uses a one-time six-digit email OTP and immediately signs the user in after verification; later email/password sign-ins do not require OTP. Builds without Supabase configuration remain local-only.
-- **Login UX:** Email/password is the primary login and registration path. Google is a secondary option when configured. The login page is context-independent and has no toolbar Back button; configured startup without a session renders the same page used for Profile sign-in.
+- **Login UX (revised 17 Nov 2026, D59):** The login page is context-independent and has no toolbar Back button; configured startup without a session renders the same page used for Profile sign-in. **Continue with Google** comes first when configured, then **or use email** with a Sign in / Create account switch. *Superseded 17 Nov 2026: email/password as the primary path with Google secondary below it.*
 - **Sign-out UX:** Sign-out requires confirmation, preserves local data, stops authenticated cloud writes, and returns to the root login gate.
 - **Deletion UX (revised 17 Nov 2026):** Profile exposes one **Delete account** action that removes the account and all plant data together after a confirmation. The separate plant-data-only deletion was removed. Server-side deletion succeeds before local data is cleared; failure preserves local data and offers retry.
-- **Profile:** The Home account action is labeled **Profile** and uses a user icon. Profile contains account controls and a focused **Preferences** section for notifications and reminder time; cloud synchronization remains background behavior.
+- **Profile (revised 17 Nov 2026, D53):** Home opens Profile through an avatar with the email initial. Profile shows an avatar header with the email and plant count/sync status, a **Reminders** section (Notifications, Reminder time), and an **Account** section (Sign out, Delete account). *Superseded 17 Nov 2026: user icon and a **Preferences** section.*
 - **Cloud ownership:** The local garden is authoritative. Successful local persistence is never blocked by cloud sync. Every saved garden queues asynchronous sync; differing cloud payloads are overwritten using a revision guard, with bounded retry if another write races.
 - **Identification boundary:** PlantNet is called only through the authenticated Supabase Edge Function. Results are possible matches, not diagnoses or automatic care guidance. Confirmed unsupported identities do not receive invented schedules.
 - **Canonical plant types:** Search/catalog and photo identification resolve to the same reviewed `PlantSpecies` inventory. Matching physical plants retain separate IDs and history; their care behavior comes from the canonical type, never from the discovery path or provider-specific asset/name.
@@ -73,7 +73,7 @@ Bloom should remember dates and history, but the user should inspect the plant a
 
 ### Scheduled does not mean watered
 
-A due or overdue task means **check this plant**. It must never imply “pour water without looking.” This is why the primary task is named **Check watering** rather than **Water now**.
+A due or overdue task means **check this plant**. It must never imply “pour water without looking.” This is why the primary task is named **Check & water** (originally **Check watering**; renamed 17 Nov 2026, D52) rather than **Water now**.
 
 ### Record reality, including non-watering
 
@@ -172,7 +172,7 @@ Should every non-watering check use the normal interval, always use a short inte
 
 Use a three-day follow-up for a dry or concerning check. Use the normal plant interval when soil is damp or unknown. The current Android implementation uses the three-day default; the older 2–5 day editing window remains a future enhancement.
 
-The Check watering UI asks for soil condition only for **Checked — not watered**. A **Watered** outcome does not require a soil selection because soil does not alter that outcome's schedule.
+The Check & water UI asks for soil condition only for **Checked — not watered**. A **Watered** outcome does not require a soil selection because soil does not alter that outcome's schedule.
 
 #### Why
 
@@ -287,6 +287,8 @@ Deferral adds another history type, date semantics, notification transitions, an
 
 Keep both completed outcomes in Activity → Past. Keep the default view compact, with the most recent five records on Home. Untouched overdue tasks and schedule configuration changes are not history records.
 
+**Superseded 17 Nov 2026 (D53):** Activity → Upcoming / Past was removed. Both outcomes still appear as distinct history entries — on Home **Recent** (last three across plants, **See all**) and in each plant's History (last five) and full history page.
+
 #### Why
 
 Showing only Watered loses the distinction between a plant that was checked and intentionally left dry and a plant that was never checked. A separate history destination adds navigation and mental overhead. Progressive disclosure keeps the distinction without creating another system.
@@ -297,7 +299,7 @@ If the feed becomes dense, try grouping or filtering before creating a separate 
 
 ### D9 — Delete the most recent mistaken record rather than edit history in place
 
-**Status:** Designed; Android implementation deferred
+**Status:** Implemented: the latest watering record can be deleted from the plant history after confirmation, with a snackbar **Undo**.
 
 #### Options considered
 
@@ -351,7 +353,7 @@ Environmental checks should distinguish light, airflow, humidity, drafts, and te
 
 ### D11 — Nutrition must distinguish materials and avoid universal remedies
 
-**Status:** Soil health is implemented for the approved on-demand scope; broader nutrition guidance remains deferred.
+**Status:** Soil care is record-only since 17 Nov 2026 (D51); nutrition guidance remains deferred.
 
 #### Product reasoning
 
@@ -359,7 +361,7 @@ Coco coir primarily changes medium structure and water-holding behavior; it is n
 
 #### Decision
 
-The implemented Soil health experience distinguishes **Adding nutrients** from **Refresh potting mix** and **Repotting**, supports explicitly recorded overlapping actions, and does not create a nutrition schedule or claim a measured health score. Any broader nutrition guidance must distinguish **changed growing medium** from **fed**, capture only useful product/material context, encourage following the product label, and avoid treating pale leaves alone as proof of nutrient deficiency.
+The implemented Soil care record distinguishes **Added nutrients** from **Refreshed potting mix** and **Repotted**, supports explicitly recorded overlapping actions, and does not create a nutrition schedule, assess need, or claim a measured health score. Any broader nutrition guidance must distinguish **changed growing medium** from **fed**, capture only useful product/material context, encourage following the product label, and avoid treating pale leaves alone as proof of nutrient deficiency.
 
 #### Options rejected
 
@@ -373,7 +375,7 @@ Earlier exploration considered Fed, Changed growing medium, Checked — no amend
 
 ### D12 — Repotting should be evidence-led, not routine
 
-**Status:** Implemented inside the approved on-demand Soil health scope; recurring or chemistry-heavy guidance remains deferred.
+**Status:** The guided inspection was implemented inside Soil health on 15 Nov 2026. **Superseded 17 Nov 2026 (D51):** the inspection was removed; Repotted is a record-only action. Recurring or chemistry-heavy guidance remains deferred.
 
 #### Options considered
 
@@ -483,7 +485,7 @@ Future domains that record a care action must not be conflated with watering his
 
 - First launch opens directly to Home.
 - Empty Home names the next action: add a plant.
-- The one-time Add plant hint introduces only the primary control.
+- The one-time Add plant hint introduced only the primary control. *Superseded 17 Nov 2026: no hint is shown; the empty Home names the action (**Add your first plant**) and Home's **+** is always visible.*
 - Notifications remain secondary until the user has a plant.
 - Optional details should not block adding a plant or reaching the first check.
 
@@ -582,7 +584,7 @@ These alternatives and their tradeoffs remain documented so the reason for the s
 
 ### D28 — Show one species suggestion and ask only whether the user acted
 
-**Status:** User-supplied direction implemented and verified. The control is an optional checkbox labelled **I've placed it as suggested**.
+**Status:** User-supplied direction implemented and verified. The control is an optional checkbox labelled **I've placed it as suggested**. *Partly superseded 17 Nov 2026 (D55): setup keeps the checkbox; the plant page now asks **Is it in a spot like this?** (**Yes, it is** / **Not yet**) inside the Care guide light row.*
 
 #### Decision
 
@@ -600,7 +602,7 @@ Use reviewed light requirements, not a rigid rule that all plants either require
 
 ### D29 — Persist the acknowledgment as plant state
 
-**Status:** Implemented: optional timestamp/version state, immediate detail persistence, correction with the same checkbox, and backward-compatible loading.
+**Status:** Implemented: optional timestamp/version state, immediate detail persistence, and backward-compatible loading. *Superseded 17 Nov 2026 (D55): on the plant page, correction uses **Change** rather than unchecking the same checkbox.*
 
 #### Decision
 
@@ -631,7 +633,7 @@ For this release, save the optional placement acknowledgment without changing wa
 #### Implementation consequences
 
 - Use the same sourced species suggestion in setup and detail, and one optional unchecked acknowledgment.
-- Save acknowledgment timestamp and guidance version per plant. Detail writes save immediately; the same control can clear it. Preserve older-version acknowledgments with inline context and no expiry or forced prompt.
+- Save acknowledgment timestamp and guidance version per plant. Detail writes save immediately; the same control can clear it. Preserve older-version acknowledgments with inline context and no expiry or forced prompt. *Revised 17 Nov 2026 (D55): when the version differs, the expanded light row asks again (**The advice was updated. Is it still in a spot like this?**); it is still never a notification or automatic prompt.*
 - During setup save the selected state together with the plant and its normal starting schedule on Add; Cancel writes nothing.
 - Do not synchronize reminders for placement-only writes. Repeated confirmations do not rewrite the timestamp or any watering state.
 - Save failures preserve committed state and allow retry. No added recurring light reminders, assessment questionnaire, or light activity history.
@@ -641,7 +643,7 @@ D27's review-and-authorization gate has been satisfied for this scope. New sched
 
 ### D32 — Label both optional setup sections consistently
 
-**Status:** Confirmed by the user and implemented on 15 November 2026.
+**Status:** Confirmed by the user and implemented on 15 November 2026. *Restyled 17 Nov 2026: both headers now read **Last watered · optional** and **Light & placement · optional** (sentence case, SectionHeader); the consistency rule is unchanged.*
 
 Show **Optional** next to both **Last watered** and **Light & placement** in Add a plant, with matching secondary typography, spacing, and wrapping. Labelling only one optional section can make the other appear required. The user preferred showing the label in both rather than removing it from both. This is a presentation change; both inputs remain skippable and all persistence/watering behavior stays the same.
 
@@ -671,7 +673,7 @@ Recorded on 15 November 2026. Feature selection and protection rules were review
 
 ### D33 — Put one global reminder time in Profile → Preferences
 
-**Status:** Selected, reviewed, and implemented under D39.
+**Status:** Selected, reviewed, and implemented under D39. *Renamed 17 Nov 2026: the section is now **Reminders** and the switch is labelled **Notifications**.*
 
 Offer one Reminder time row beside the existing Watering notifications switch, native time picker, existing 09:00 fallback, and local 12/24-hour display. Save on final picker confirmation with inline scope explanation. No new plant-setup fields or per-plant recurring preferences.
 
@@ -752,7 +754,7 @@ Timezone refresh converts pending requests using the current device zone while p
 
 ### D41 — Assess occasional care needs on demand; disclose progressively
 
-**Status:** User-confirmed product direction on 15 November 2026; detailed requirements remain under discussion. No implementation authorization for these domains.
+**Status:** User-confirmed product direction on 15 November 2026. **Superseded 17 Nov 2026 (D51):** Bloom no longer assesses whether occasional soil care is needed; it only records what the user did.
 
 Use **Adding nutrients** as customer-facing wording rather than Feeding. The user wants a way to check whether adding nutrients or pot/soil work is needed before taking action, rather than simply creating recurring schedules. Watering remains the primary, most frequent care journey. Develop the occasional-care requirements step by step, starting with Adding nutrients.
 
@@ -777,7 +779,7 @@ Recommend reviewing and finishing this small presentation refinement before refi
 
 ### D44 — Authorize compact, expandable light guidance on plant detail
 
-**Status:** Explicitly authorized, implemented, and verified on 15 November 2026 after agreeing the sunlight-first refinement. Supersedes the presentation-review gate in D42/D43 for this scope only.
+**Status:** Explicitly authorized, implemented, and verified on 15 November 2026 after agreeing the sunlight-first refinement. Supersedes the presentation-review gate in D42/D43 for this scope only. **Superseded 17 Nov 2026 (D55):** the separate collapsed card and its summary strings were replaced by the Care guide light row with a room-scene illustration and a Yes/Not yet question; collapsed-by-default and write-free expansion are kept.
 
 Implement the reviewed compact Light & placement section on plant detail, keeping setup fully visible and watering primary. New detail pages start collapsed in both pending and acknowledged states. Show the species requirement plus a neutral saved-state summary, with Material expansion revealing existing advice/checkbox. Use Not recorded · Optional, You've placed it as suggested, or Placement recorded for earlier advice; none implies measured adequacy.
 
@@ -788,7 +790,7 @@ Expansion is temporary UI state and writes nothing. Preserve optional setup, per
 
 ### D45 — One Soil health section, three distinct actions, overlap permitted
 
-**Status:** Explicit user direction on 15 November 2026; formalized in PRD section 18. Documentation only, not app implementation authorization.
+**Status:** Explicit user direction on 15 November 2026; formalized in PRD section 18. *Partly superseded 17 Nov 2026 (D51): the three distinct, overlapping actions remain as record labels (Added nutrients, Refreshed potting mix, Repotted); the assessment-first Soil health section was removed.*
 
 Group **Adding nutrients**, **Refresh potting mix**, and **Repotting** within a separate Soil health section. The user accepted the distinction between nutrient replenishment, renewing growing mix, and removing/replanting for pot/root-space needs. Refreshing mix does not necessarily require another pot; repotting does not always require a larger pot. Actions can overlap in one real-world job and must remain distinguishable.
 
@@ -796,7 +798,7 @@ Keep watering primary and these features occasional, assessment-first, and progr
 
 ### D46 — Draft assessment and combined-record behavior for review
 
-**Status:** Proposed requirements, not yet user-approved interaction or content rules.
+**Status:** Proposed requirements, later adopted under D49. **Superseded 17 Nov 2026 (D51)** for the assessment parts; combined-record behavior remains.
 
 PRD 18 proposes on-demand focused checks, explicit no-action/unknown outcomes, and optional recording afterward. One event can contain one or more user-selected actions so a combined job need not be logged repeatedly. No action is automatically inferred from another, and nutrient-containing mix must not silently become a fertilizer application record. Missing historical facts stay unknown. Read-only checks and abandoned guidance create no treatment record.
 
@@ -804,7 +806,7 @@ The proposed first release keeps watering/light/reminders unchanged, uses local 
 
 ### D47 — Drainage belongs with Soil health checks — recommendation pending review
 
-**Status:** Initially recommended, then explicitly confirmed by the user on 15 November 2026: include drainage in the checks while retaining three actions. D49 records implementation authorization.
+**Status:** Initially recommended, then explicitly confirmed by the user on 15 November 2026: include drainage in the checks while retaining three actions. D49 records implementation authorization. **Superseded 17 Nov 2026 (D51):** drainage checks were removed with the assessment.
 
 Recommend integrating drainage as a cross-cutting optional check about pot, mix, and water context, rather than a fourth care action or another recurring task. A simple drainage correction may require none of the three actions; do not force repotting/mix refresh or invent an event to make it fit the taxonomy. A future drainage-adjustment action needs its own product decision.
 
@@ -813,7 +815,7 @@ Aeration/compaction are closely related observations for consideration. Salt bui
 
 ### D48 — Authorize a dedicated plant timeline and guarded Back navigation
 
-**Status:** Explicitly requested, implemented, and verified on 15 November 2026.
+**Status:** Explicitly requested, implemented, and verified on 15 November 2026. *Revised 17 Nov 2026 (D54): the page is titled **<plant> history**, grouped by month, includes growth photos, and allows deleting the latest watering record with Undo; the assessment page no longer exists, so the discard guard covers setup, Check & water, and soil care.*
 
 Open Care timeline as a nested page from plant details, rather than expanding detail into a long feed. Combine existing watering outcomes and future/current soil-care records in one read projection per plant; a combined soil job stays one entry. Show the existing light acknowledgment only as an honestly labelled current confirmation snapshot, not a fabricated movement/history log. Historical light changes are unavailable under current storage.
 
@@ -821,8 +823,91 @@ The user requested back arrows instead of Close, then explicitly required confir
 
 ### D49 — Authorize Soil health after timeline/navigation; include drainage
 
-**Status:** Implemented and verified after the user requested Soil health following timeline/navigation and explicitly selected integrated drainage on 15 November 2026. Supersedes documentation-only gates in D45/D46 and the pending drainage scope in D47 for this release.
+**Status:** Implemented and verified after the user requested Soil health following timeline/navigation and explicitly selected integrated drainage on 15 November 2026. Supersedes documentation-only gates in D45/D46 and the pending drainage scope in D47 for this release. **Superseded 17 Nov 2026 (D51)** for the advisory checks and drainage; the recording defaults (combined event, date-only care date, optional context, edit/remove) remain current.
 
 Adopt the documented compact Soil health section, focused advisory checks, three explicit action types with one combined record, optional actual-date/context recording, and correction/removal of soil events through the timeline. Keep watering, placement, and reminders unchanged; add no automatic schedules. Version-1 rules are conservative observations for the existing five foliage profiles, not a diagnosis or product recommendation engine; PRD 18.11 specifies early exits and unknown handling.
 
 Implementation defaults resolve the previous recording questions: date-only actual care date plus UTC recording timestamp; optional product/mix/notes fields; edit and confirmed removal for soil records only. No universal feed dose/interval, health score, fourth drainage action, pH/salt treatment, environmental assessment, or pest diagnosis is included. Future content can expand after separate review. The prior upstream push covered reminder/light work. After this release was completed and verified, the user explicitly requested committing and pushing it upstream.
+
+
+## 16. UX overhaul decisions — 17 November 2026
+
+Approved by the owner on 17 November 2026 as an explicit exception to the stabilization freeze. [PRD section 21](PRD.md#21-ux-overhaul--current-screen-contract-17-november-2026) is the screen contract; DESIGN_GUIDELINES.md holds the shared design system. The rationale throughout: one clear next action, less visual noise, consistent patterns across screens, and no new care advice.
+
+### D50 — Fixed Bloom green theme and one shared component theme
+
+**Status:** Implemented.
+
+Use a fixed dark forest green seed (`#2E6B3A`, fidelity variant) for light and dark schemes; Android wallpaper dynamic color is no longer used. Shared component styling lives in `bloomTheme` (`lib/main.dart`): flat cards, filled rounded fields, 48dp buttons, floating snackbars, and no overscroll stretch. *Supersedes the dynamic-color-with-teal-fallback direction.* Rationale: a consistent brand look and predictable contrast for status colors, independent of the user's wallpaper.
+
+### D51 — Soil care records what was done; Bloom does not diagnose soil health
+
+**Status:** Implemented. Supersedes the advisory parts of D41, D45–D47, and D49, and the inspection in D12.
+
+Remove the Soil health questionnaire (nutrient, mix, root-space, and drainage checks and their results). The **Soil care** form records only what the user did: Added nutrients, Refreshed potting mix, Repotted (any combination), optional product, fertilizer-in-mix, notes, and the date. Rationale: the checks added friction and implied a diagnosis Bloom cannot make from user answers; recording remains useful and safe.
+
+### D52 — Name the watering task "Check & water"
+
+**Status:** Implemented.
+
+Use **Check & water** for the plant-page button, check screen title, and notification title (Home rows use **Check**). The order signals that a check comes first and watering happens only if needed. Use **Soil care** for the secondary care action and **Reminders** for the Profile section. *Supersedes the **Check watering** label.*
+
+### D53 — Home answers "what needs doing today?"
+
+**Status:** Implemented. Supersedes D8's Activity → Upcoming / Past feed and the labeled FAB menu.
+
+Greeting header with **+** and avatar; a **Today** card listing due/overdue plants with a **Check** button each, or **Nothing to check today**; a **My plants · N** two-column photo grid with an Add plant tile; and **Recent** (last three activities, **See all**). **+** opens a bottom sheet with Search by name / Identify from a photo. Rationale: due work first, plants recognizable by photo, and history available without a separate toggle.
+
+### D54 — Plant page built around one status card and one history
+
+**Status:** Implemented.
+
+Collapsing hero photo; ⋮ menu for Edit (name, plant image) and Delete; status card with **Next check** (tap to change), **Last watered N days ago**, and the primary **Check & water**, tinted only when due; quick actions **Add photo** and **Soil care**; Care guide; History (last five, **See all**). The full **<plant> history** is grouped by month; soil care opens edit, the latest watering record can be deleted with Undo, and photos open the viewer. Rationale: one primary action, destructive actions out of the main flow, one place for history.
+
+### D55 — Light guidance as a collapsed Care guide row with a plain question
+
+**Status:** Implemented. Supersedes D44's presentation and the detail-page checkbox from D28/D29.
+
+The light row is collapsed by default. Expanded, it shows a room-scene illustration (by the window / a few steps in / deeper in the room, mapped from the profile's light requirement), the profile's placement text, and **Is it in a spot like this?** — **Yes, it is** / **Not yet**. Confirmed: **In a good spot · Confirmed <date>** with **Change**. It asks again when the guidance version changes. No advice beyond the profile text. Watering stays unchanged (D31).
+
+### D56 — Growth photos are device-only
+
+**Status:** Implemented.
+
+Add photos from the camera or gallery; view, delete, and **Use as plant image**; browse a per-plant gallery. A dot badge on **Add photo** appears when there is no photo in 30 days — a gentle cue, not a task or notification. Photos and the cover choice are never synced; files are deleted with the plant or account. Rationale: useful progress tracking without new cloud storage, privacy, or quota questions.
+
+### D57 — Multi-select delete on Home
+
+**Status:** Implemented.
+
+Long-press or **Select** enters selection; one confirmation deletes all selected plants with their history and photos. Rationale: removing several plants should not need several round trips.
+
+### D58 — One account deletion action
+
+**Status:** Implemented (see Deletion UX above).
+
+**Delete account** removes the account and all plant data, on the device and in the cloud. The plant-data-only deletion was removed because two similar destructive actions were confusing.
+
+### D59 — Sign-in and email confirmation
+
+**Status:** Implemented. Supersedes the earlier Login UX ordering.
+
+Welcome image header; **Continue with Google** first (when configured); **or use email**; Sign in / Create account segmented switch; filled fields with icons; password strength bar while registering; inline MessageBanner; primary button pinned. Email confirmation uses six digit boxes, verifies automatically on the sixth digit, and allows resending after a 45-second countdown.
+
+### D60 — Photo identification shows likelihood words, not percentages
+
+**Status:** Implemented.
+
+**What plant is this?** with Take a photo / Choose from gallery; the chosen photo with **Change photo** and in-place progress; results with a thumbnail and **Retake**, a featured best match (catalog image when the species is in Bloom) and compact rows. Labels: **Very likely** (≥ 60%), **Possible** (≥ 25%), **Less likely**. Matches without a profile say **no care guide yet**. One **Add <name>** button. Rationale: percentages implied false precision; the likelihood words still separate strong from weak matches.
+
+### D61 — Add a plant by search with curated popular plants
+
+**Status:** Implemented.
+
+Live search across common name, scientific name, and aliases, ranking name matches first. Before typing, show five curated **Popular plants**; they are fixed, not usage-based, because Bloom has no analytics. Setup keeps optional last-watered date and Light & placement, with **Add plant** pinned.
+
+### D62 — Data safety and dropped items
+
+**Status:** Implemented / Deferred.
+
+An unreadable `garden.json` is backed up as `garden.unreadable-<timestamp>.json` before an empty garden is used, so a corrupt file is never silently overwritten. Dropped by the owner for now: handling multiple plants of the same type, a water-frequency presentation, and the "Babbu" item. They need a new decision before any work.

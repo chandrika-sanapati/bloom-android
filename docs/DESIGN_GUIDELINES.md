@@ -1,137 +1,117 @@
 # Bloom Android interface guidelines
 
-These guidelines apply to the Flutter Android app. They replace the former iOS/SwiftUI-specific guidance while preserving the product principles: calm hierarchy, explicit outcomes, progressive disclosure, and trustworthy history.
+These guidelines apply to the Flutter Android app and describe the shared design system as of the 17 November 2026 UX overhaul (D50–D62, [PRD section 21](PRD.md#21-ux-overhaul--current-screen-contract-17-november-2026)). They preserve the product principles: calm hierarchy, explicit outcomes, progressive disclosure, and trustworthy history. New screens should reuse the pieces below rather than restyling locally.
 
-## Platform and typography
+## Theme and typography
 
 - Use Flutter Material 3 components and Android interaction conventions.
-- Use the Android dynamic color scheme when available; fall back to Bloom teal on unsupported devices. Keep semantic statuses such as overdue/caution distinguishable from the theme's primary action color.
-- Use the theme's system sans-serif typography and semantic `TextTheme` roles. Do not introduce arbitrary text sizes for emphasis.
-- Allow Android font scaling to reflow content. Never truncate the primary action, outcome labels, dates, or error guidance to preserve a single-line layout.
-- Use `headlineSmall` or `headlineMedium` for the screen title, `titleMedium`/`titleSmall` for sections, `bodyLarge`/`bodyMedium` for content, and `bodySmall`/`labelLarge` for supporting metadata.
-- Keep common and scientific plant names together, with the scientific name italicized and visually secondary.
+- Color comes from a fixed Bloom forest green seed (`#2E6B3A`, `DynamicSchemeVariant.fidelity`) for both light and dark schemes, following the system theme mode. Android wallpaper dynamic color is not used.
+- Shared component styling lives in `bloomTheme` in `lib/main.dart`. Do not override these per screen:
+  - Cards: flat (elevation 0), `surfaceContainerLow`, 16dp corner radius, no margin.
+  - Text fields: filled (`surfaceContainerHighest`), 14dp radius, no border; a 2dp primary border on focus. Add a leading icon where it helps recognition (sign-in fields).
+  - Filled and outlined buttons: 48dp minimum height. Pinned primary flow buttons may be 52dp.
+  - App bar titles are left-aligned. Snackbars float.
+  - Overscroll stretch is disabled app-wide (clamping scroll).
+- Use the theme's `TextTheme` roles; do not introduce arbitrary text sizes. Typical roles: `headlineMedium` for a plant name or welcome title, `headlineSmall` for a key value (next check), `titleMedium` for section headers, `bodyLarge`/`bodyMedium` for content, `bodySmall`/`labelLarge` for metadata.
+- Keep common and scientific plant names together, with the scientific name italicized and `onSurfaceVariant`.
+- Allow font scaling to reflow content. Never truncate the primary action, outcome labels, dates, or error guidance.
 
 ## Color and meaning
 
-- Teal is the primary action and selected-state color.
-- Blue/teal may identify watering information; amber may identify overdue or caution states.
-- Neutral colors are for metadata, unselected controls, and empty states.
-- Never communicate a state by color alone. Pair color with text, icon shape, or control state.
-- Maintain readable contrast in light and dark themes where supported by the Material theme.
+- Primary green is for the one primary action, selected states, and the Home **Today** card (filled primary with `onPrimary` text).
+- Tint a status surface only when it needs attention: the plant status card uses `primaryContainer` when the check is due or overdue, otherwise `surfaceContainerHigh`.
+- Red (`error`) is reserved for overdue status text and destructive actions. Do not use it for emphasis.
+- Neutral `onSurfaceVariant` is for metadata, hints, and empty states.
+- Never communicate a state by color alone. Pair color with text (**Overdue · 2 days**), an icon, or control state.
+
+## Shared components (`lib/ui/widgets.dart`)
+
+| Component | Use |
+| --- | --- |
+| `SectionHeader(title, action:, onAction:)` | Every section title, in sentence case (**My plants · 3**, **Care guide**, **What did you do?**). Optional trailing text action such as **See all** or **Select**. Marked as a heading for TalkBack. |
+| `MessageBanner(message, isError:)` | Inline status or error: tinted container (`errorContainer` or `secondaryContainer`), icon, live region. Use for form and flow errors instead of dialogs. |
+| `BottomAction(child:)` | The single primary action pinned above the system bar on form and flow screens, full width with 20dp side insets. |
+| `PlantImage(store:, plant:, height:)` | The plant's chosen growth photo, falling back to the catalog image. Use wherever a plant is pictured. |
+| `HistoryRow(plant:, entry:)` | One activity entry: round icon badge (highlighted for watering, soil care, photos), or a photo thumbnail for growth photos; title, optional plant name/soil line, and a short date. |
+| `relativeCheckLabel(when, now)` | Next-check text: **Today**, **Tomorrow**, **In N days · Dec 1**, **Overdue · N days**. |
+| `relativeAgo(when, now)` | Past text: **today**, **yesterday**, **N days ago**. |
+| `EmptyActivityCard`, `pickNextCheck` | Empty-history card; shared next-check date/time picker that rejects past times. |
+
+Other shared pieces: `DiscardChangesGuard` (dirty-form Back), `LightPlacementSection`/`LightPlacementPanel`/`LightPlacementScene` (setup and plant-page light guidance), and `growth_photos.dart` (add, view, gallery, thumbnails).
 
 ## Actions and navigation
 
-- Give each screen one clear primary action.
-- Use text-labelled buttons for commands such as **Add**, **Save**, **Check watering**, and **Remove plant**.
-- Keep secondary actions explicit, such as **Edit next check** and **Cancel**; do not hide important commands behind an icon-only menu.
-- Use standard Android back navigation and Flutter `Navigator` behavior. Screen titles should identify the current context without repeating the plant name unnecessarily.
-- Do not preselect **Watered**. A save action must remain disabled or explain the missing outcome until the user chooses one.
-- Use confirmation dialogs for destructive actions and state exactly what will be removed.
-- Use a labeled FAB menu for related plant-entry choices. Keep **Search by name** and **Identify from a photo** explicit; do not rely on icon-only discovery.
+- One primary filled action per screen. On forms and flows, pin it at the bottom with `BottomAction`: **Save** (Check & water, Soil care), **Add plant** (setup), **Sign in / Create account / Verify**, **Identify** / **Add <name>**. Disable it until the required input exists, and show **Saving…** / **Adding…** while in flight.
+- Secondary actions are outlined or tonal buttons, or text buttons (**Edit next check**, **Change**, **See all**).
+- Destructive actions live in a ⋮ menu (plant **Delete**) or as red text (**Delete account**), and always confirm with a dialog that states what will be removed. The confirm button is red text, not the default focus.
+- Prefer a bottom sheet for a small set of entry choices (**Search by name** / **Identify from a photo**).
+- Use standard Android back arrows and `Navigator`. Dirty forms use `DiscardChangesGuard` (**Discard changes?** — **Keep editing** / **Discard changes**).
+- Toolbar icons over photos (plant-page Back and ⋮) get a translucent round background so they stay visible on any image.
+- Do not preselect **Watered**.
 
-## Layout and components
+## Layout
 
-- Use the existing 20dp page inset and an 8dp spacing rhythm where practical.
-- Keep cards visually quiet with consistent padding and rounded corners. Do not turn every row into a competing card.
-- Label optional setup sections consistently: both **Last watered** and **Light & placement** show **Optional** beside the heading with matching secondary typography, spacing, and wrapping.
-- Use `ListTile`, `SegmentedButton`, `RadioListTile`, `SwitchListTile`, `FilledButton`, and native date/time pickers consistently with the existing app.
-- Keep plant identity, schedule state, and the primary check action near the top of plant details.
-- Home should prioritize **My plants** and **Activity → Upcoming / Past**. Upcoming tasks are action-first; Past contains completed records only.
-- Keep task copy concise: **Check watering**, plant name, and the due state/date are usually sufficient.
+- 20dp page inset and an 8dp spacing rhythm; 24–28dp between sections.
+- Plant photos use 16dp rounded corners (12dp for small thumbnails). Home uses a two-column photo grid.
+- Keep cards quiet; do not turn every row into a competing card. Group related rows in one card separated by inset dividers (Profile).
+- Optional sections say so in the header: **Last watered · optional**, **Light & placement · optional**.
+- Reveal occasional content progressively: the Care guide light row is collapsed by default; History shows five entries with **See all**.
 
-## Watering language
+## Dates and status
 
-- Say **Check watering** or **Check the soil**, not “Water now,” for an unresolved task.
-- Explain that a schedule is a starting point and actual conditions matter.
-- Use exactly two completion outcomes: **Watered** and **Checked — not watered**.
-- Ask for soil condition only after **Checked — not watered** is selected. Keep the **Watered** path focused and immediately saveable.
-- A dry or concerning non-watering check may receive a shorter follow-up. This is another check, not an instruction or a recovery promise.
-- Use **Overdue** without blame. An overdue task remains visible until the user completes it or explicitly edits its next date.
+- Show relative dates instead of timestamps in lists and status: next checks with `relativeCheckLabel`, last watering with `relativeAgo` (**Last watered 9 days ago**). Month headers group the full history.
+- Use full dates only where precision matters (history rows, pickers, confirmations).
+- Use **Overdue** without blame. An overdue check remains visible until completed or explicitly rescheduled.
+
+## Care language
+
+- The task is **Check & water**: check first, water only if needed. Home rows use **Check**. Never say “Water now.”
+- Exactly two outcomes: **Watered** and **Checked — not watered**, as choice cards. Ask **How did the soil feel?** (Dry / Damp / Not sure) only after **Checked — not watered**.
+- **Soil care** records what the user did (**Select everything you did.**). Do not present advice, results, or a health score.
+- Show only the plant profile's own care text (watering cue, light requirement, placement). Do not add new advice in UI copy.
+- Photo identification shows likelihood words (**Very likely / Possible / Less likely**), never percentages, and says **no care guide yet** when Bloom has no profile.
 
 ## Accessibility
 
-- Target at least 48dp for interactive controls, matching Android Material guidance.
-- Ensure controls have useful TalkBack labels and expose selected, disabled, and error states semantically.
-- Test at large Android font sizes and narrow widths. Rows should wrap or stack rather than overflow.
-- Keep dates readable and provide enough context for a screen reader, including whether a date is a scheduled check or a recorded event.
-- Respect Android system animation settings and avoid decorative motion.
-- Do not rely on swipe-only discovery. Horizontal plant cards need visible identity and a tappable surface.
+- Target at least 48dp for interactive controls.
+- Give icon buttons tooltips (Add plant, Profile, More options, Delete photo) and images meaningful semantics (the room scene names the best spot).
+- Announce inline status with `MessageBanner`'s live region; expose selected, disabled, and error states.
+- Test at large font sizes, narrow widths, and dark theme. Rows wrap or stack rather than overflow.
+- Respect system animation settings; motion is limited to short size transitions.
+- Do not rely on long-press alone: Home multi-select is also reachable with **Select**.
 
 ## Empty, error, and permission states
 
-- Empty Home should name the next action: add a supported plant.
-- Empty Upcoming should explain how to create the first check.
-- Empty Past should explain that completed checks will appear there.
-- Persistence failures must leave the in-memory garden unchanged and show actionable feedback.
-- Notification denial must explain that in-app tasks remain available. Do not repeatedly prompt without an explicit user action.
-- Missing or unavailable task data should fail safely with a clear recovery path.
+- Empty Home: image, **Add your first plant**, one line of context, and **Add plant**.
+- Nothing due: the Today card says **Nothing to check today**.
+- Empty history: **No care recorded yet** — **Checks, care and photos will appear here.**
+- Missing plant targets show **Plant unavailable** with **Go to Home**.
+- Persistence failures leave the garden unchanged and show inline, retryable feedback.
+- Notification denial explains that checks stay in Bloom; when Android notifications are blocked, Profile shows **Open Android settings**. Do not prompt repeatedly.
 
 ## Product boundaries
 
-Do not add custom plant intervals, diagnosis, environmental inference, live weather, cloud merge/sharing, or additional recurring care domains to the watering flow. Preserve the implemented local-wins cloud sync as a separate authenticated service.
+Do not add custom plant intervals, diagnosis, environmental inference, live weather, cloud merge/sharing, photo upload, or additional recurring care domains. Preserve the implemented local-wins cloud sync as a separate authenticated service. Multiple-plants-of-one-type handling and water-frequency presentation are out of scope for now.
 
 ## Light & placement
 
-**State:** Approved flow implemented on 15 November 2026; verification evidence and remaining checks in STATUS.md. Follow [PRD section 14](PRD.md#14-light--placement--release-requirements) and current decisions D28–D31. The earlier concern-picker flow is superseded. The user has reviewed the proposal and explicitly authorized this scope; adaptation is deferred.
+Follow [PRD sections 14 and 17](PRD.md#14-light--placement--release-requirements) and D28–D31, D55.
 
-- Add the Light & placement section inside the existing Add a plant screen alongside Last watered, with no extra page. Show a short species light requirement and practical placement suggestion immediately.
-- Show the same suggestion near Watering on plant detail, including the current saved acknowledgment state.
-- Use one optional, initially unchecked control labelled **I've placed it as suggested**. It means acted rather than read. Adding a plant must remain possible without checking it; no separate Skip action is necessary.
-- A user who skipped setup can acknowledge on detail later. The control saves immediately, shows saving/error feedback, and supports correction through the same control. No separate placement-save page or required date edit.
-- Remove dim/bright choices, a third uncertainty route, concern-specific response branches, and location/light questionnaires. Additional inputs to resolve insufficient light data would add complexity; this release asks only about action on the species suggestion.
-- Treat absence of acknowledgment as unconfirmed, not unsuitable light. Do not claim measured/verified exposure, an exact movement date, or diagnose damage. Use source-reviewed copy with species-specific nuance around direct sun.
-- Checking/unchecking affects only placement acknowledgment. No watering-date effect, additional confirmation, or adaptation control in this release. Keep an old-version acknowledgment as earlier guidance with a quiet inline note; never expire it or prompt automatically.
-- Keep Watered, Checked — not watered, Last watered, and existing watering controls understandable. Placement acknowledgment is a different fact and must not appear as a watering completion.
-- No new recurring light reminders, light activity tasks, repeated acknowledgment nudges, or automatic onboarding prompts. A user can leave the input unacknowledged indefinitely.
-- Use 48dp targets, text with icons, dynamic light/dark themes, reflowing content, TalkBack selected/saving/error states, and ordinary Android back navigation.
+- Setup: requirement, room-scene illustration, placement text, and the optional **I've placed it as suggested** checkbox. Adding remains possible without it.
+- Plant page: a collapsed Care guide row (requirement, check mark when confirmed). Expanded: scene, placement text, and **Is it in a spot like this?** — **Yes, it is** / **Not yet**; confirmed shows **In a good spot · Confirmed <date>** with **Change**. When the guidance version changes, ask again only inside the row.
+- Confirmation means the user reports the plant is in such a spot; never present it as measured light. It never changes watering dates or reminders. No light reminders, expiry, or nudges.
 
-## Reminder preferences and notification navigation
+## Reminders, Profile, and sign-in
 
-**State:** Reviewed, authorized, and implemented on 15 November 2026. Follow [PRD section 15](PRD.md#15-reminder-preferences-and-notification-navigation--requirements) and decisions D33–D40. Verification evidence and remaining manual accessibility checks are in STATUS.md.
+Follow [PRD section 15](PRD.md#15-reminder-preferences-and-notification-navigation--requirements) and D33–D40, D58–D59.
 
-- Keep Profile compact: account first, followed by a Reminders section containing the Notifications switch plus one Reminder time row. Do not expose implementation-level cloud-sync status as a separate section. Show device-formatted local time and use the native picker with one final confirmation, not another settings page or dialog.
-- Keep authentication compact and consistent: use one email-first login page for both the startup gate and Profile sign-in, place Google below it as a secondary option when configured, and do not add a toolbar Back button. Sign-out uses an explicit confirmation and returns to the root login gate.
-- Use the existing Snake Plant artwork consistently as the Bloom brand mark in the Home title, login page, and Android launcher icon. Keep the artwork readable at small launcher sizes.
-- Registration confirmation is a separate positive verification state with a six-digit code field, Verify email, Send code again, and a Back arrow to return to registration.
-- Offer one destructive **Delete account** control in a clearly labeled Data & privacy section. It removes the account and all plant data after one explicit confirmation that states what is removed; preserve data if server deletion fails.
-- Explain the scope simply: **Applies to automatic checks after today. Custom times and today's checks stay unchanged.** Preserve calendar dates and overdue checks as specified in PRD 15.4. Do not offer bulk overwrite of user-set times.
-- Proposed legacy safeguard: when an older saved check's origin is unknown, preserve its time and explain only when relevant. Do not ask users to classify their garden. Custom provenance is internal state, not a new required field or recurring per-plant settings flow.
-- Keep the row usable with notifications off/denied and explain that enabling notifications is separate. Changing time alone never opens a permission prompt.
-- Distinguish a failed save from a saved preference with unavailable notifications. Use brief inline/snackbar feedback, preserve the last committed state, and avoid repeated taps while saving.
-- State that Android may deliver later; do not show an exact-delivery guarantee or add technical alarm/permission controls to the flow.
-- Notification copy names the plant and asks for a soil check. A valid tap opens Check watering with neither outcome selected; no lock-screen action records care in this scope.
-- Cold-entry Back/Cancel goes to Home. Warm entry preserves the existing stack and unfinished inputs; duplicate delivery reuses an open identical check.
-- Old/rescheduled reminders with an existing plant open its current detail with concise out-of-date feedback. Removed/malformed targets recover to Home. Always offer normal Back/Home recovery; avoid blocking error dialogs.
-- Respect TalkBack, large text, system 12/24-hour preferences, dynamic themes, and 48dp targets. This feature adds no plant setup input, recurring reminder category, or repeated nudge.
+- Profile: avatar header (email initial, email, **N plants · Synced / Syncing… / Sync pending**), **Reminders** (Notifications switch, Reminder time with native picker), **Account** (Sign out, red **Delete account** with subtitle). Show the scope line under Reminders: **Applies to future checks. Custom check times stay as they are.**
+- Changing the reminder time never requests permission or enables notifications.
+- Notification title **Check & water**; body names the plant and asks for a soil check. A tap opens Check & water with no outcome selected.
+- Sign-in: welcome image header, **Continue with Google** first when configured, **or use email**, Sign in / Create account segmented switch, filled fields with icons, password strength bar while registering, inline `MessageBanner`, primary button pinned. No toolbar Back. Email confirmation: six digit boxes, auto-verify on the sixth digit, **Resend code** after a 45-second countdown.
 
-## Occasional care — direction under discussion
+## Soil care, history, and growth photos
 
-The Soil health release groups Adding nutrients, Refresh potting mix, and Repotting as three distinct, potentially overlapping actions with on-demand checks and progressive disclosure, keeping watering primary (D41/D45 / PRD section 18). Do not expose a large mandatory setup form or default recurring care obligations. D49 / PRD 18.11 define the implemented version-1 questions and early exits; later content changes require review. Reading guidance or answering a question must not automatically record treatment or imply proven nutrient sufficiency.
-
-Light & placement is also occasional care (D42). Initial guidance should help the user settle the plant; subsequent access is for voluntary review, without repeated relocation/confirmation prompts. Keep watering visually primary. The compact saved-state summary with expandable guidance is approved under D44 / PRD section 17. Preserve existing setup and acknowledgment semantics. Acknowledgment must not be presented as verified adequate light.
-
-
-## Approved compact light presentation
-
-Implemented and verified under D44 / PRD section 17: a collapsed Light & placement card on detail, showing the species requirement and a neutral report summary. Pending uses **Not recorded · Optional**; saved uses **You've placed it as suggested**; older versions use **Placement recorded for earlier advice**. Expand to see advice and the optional acknowledgment/correction control; preserve Material expansion semantics and wrapping at large text sizes. Setup continues to show full guidance. No Other care container or recurring light obligation is introduced. Earlier presentation-review gates are superseded for this scope.
-
-
-## Soil health — design contract
-
-Follow [PRD section 18](PRD.md#18-soil-health--release-requirements) and decisions D45–D47. Confirmed direction: a separate Soil health section, three distinct actions, overlap allowed, assessment-first help, and occasional use. D48–D49 / PRD 18–20 record the adopted UI/assessment/correction details; implementation and verification are recorded in STATUS.md.
-
-- Hierarchy: a compact Soil health section on plant detail below watering/light; no new setup requirement, Home obligation, health score, or overdue badge.
-- Disclose only the selected concern's relevant questions. Allow unknown and exit; show a brief reason/next step, including valid no-action or inspect-first outcomes. Advice must not look like a diagnosis or a completed action.
-- Use Adding nutrients, Refresh potting mix, and Repotting consistently. Combined recording allows explicit multi-selection in one save; do not preselect related actions or make the user log one job several times. Record only what happened.
-- Distinguish no history from no need; distinguish user-reported work from verified soil health. Keep product context optional at recording time and explain later uncertainty without forcing a detailed setup form.
-- Preserve readable labels, native selection semantics, large-text wrapping, Back, cancellation, save/retry, and clear result states. Do not introduce universal fertilizer/mix recipes in UI copy.
-- Drainage is included as an integrated optional condition check, not a fourth action. Aeration/compaction are related observations; pH/salts, environmental care, and pest diagnosis remain separate review/future topics. A simple drainage correction must not require an invented completed-care selection.
-
-
-## Approved Soil health, timeline, and Back navigation
-
-D48–D49 / PRD 18–20 supersede the earlier proposal-only gates for these features. Soil health remains compact and occasional; expand to choose one check or record work already done. Ask one question at a time, finish early when possible, and show concise no-action/uncertain/may-help guidance without a numeric health score. Drainage is integrated, not a fourth action. Keep three record actions unselected until the user chooses them; permit overlap in one job, with optional context disclosed only when relevant.
-
-Open Care timeline on a separate page from the plant. Show the plant name, newest-first recorded events, real date precision, and wrapped labels/context. Combined jobs appear once. The current light acknowledgment is explicitly a saved confirmation snapshot; old changes must not appear invented. Soil rows open correction; other records remain read-only. Full history does not crowd plant details.
-
-Use native back arrows for pages and normal nested routes. Dirty forms ask Discard changes? with Keep editing / Discard changes; dismiss keeps work. Do not pre-focus the destructive action. Native picker/dialog cancellation stays conventional. A pending save shows waiting feedback and cannot be discarded as though nothing committed. Success exits without another prompt. Preserve readable/announced states, touch targets, large-text wrapping, dark themes, and the parent navigation context.
+- Soil care: action checkboxes, **When**, optional **Details** revealed per selected action, **Save** pinned. Editing adds **Remove record** with confirmation.
+- History: plant page shows five `HistoryRow`s; **<plant> history** groups by month, marks tappable rows with a chevron (soil care → edit, latest watering → delete with Undo, photo → viewer).
+- Growth photos: device-only. **Add photo** shows a small dot badge after 30 days without a photo — a cue, not a task. Viewer offers delete and **Use as plant image**. Make clear deletion removes the photo from this device.

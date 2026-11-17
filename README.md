@@ -8,44 +8,25 @@ The Android app is local-first: garden data is stored on the device and watering
 
 Bloom uses the existing Snake Plant artwork as its in-app brand mark and Android launcher icon.
 
-Bundled offline profile catalog includes the current 50-profile test inventory; Supabase is the managed profile source when available.
-
-Supported reviewed examples:
-
-- Snake Plant — *Dracaena trifasciata*
-- Monstera — *Monstera deliciosa*
-- Rubber Plant — *Ficus elastica*
-- Pothos — *Epipremnum aureum*
-- Spider Plant — *Chlorophytum comosum*
+The bundled offline profile catalog holds the current 50-profile test inventory; all 50 are marked reviewed and searchable in Add a plant. Supabase is the managed profile source when available. The five curated **Popular plants** shown before typing are Pothos, Snake Plant, Monstera, Spider Plant, and Rubber Plant.
 
 The current app supports:
 
-- Adding one of the five reviewed catalog plants.
-- Optionally supplying a last-watered date during setup.
-- A plant-type starting check interval.
-- Home with **My plants** and **Activity → Upcoming / Past**.
-- **Watered** and **Checked — not watered** outcomes.
-- Soil context: Dry, Damp, or Not sure.
-- A three-day follow-up after a dry, non-watering check.
-- Editing the next check date and time.
-- Removing a plant and its local watering history.
-- Local JSON persistence and optional future-check notifications.
-- Android notification permission handling that leaves in-app tasks available when permission is denied.
-- Notifications use best-effort inexact Android scheduling and never block app startup.
-- Denied notification permission is recoverable from Profile → Preferences through Android settings; in-app checks remain available.
-- Material 3 light/dark themes using Android dynamic colors when available, with Bloom teal as the fallback.
-- A labeled FAB menu for Search by name and Identify from a photo.
-- Photo identification through the authenticated Supabase Edge Function, normalized candidate results, candidate confirmation, and safe unsupported-identity handling.
-- Plants added through catalog/search or photo identification use the same canonical care profile when the type matches; separate plants keep separate histories.
-- Plant profiles are data-driven: Supabase manages the catalog and aliases, while the bundled profile JSON keeps the app usable offline.
-- Species-specific light/placement advice during setup and on plant detail.
-- Optional saved acknowledgment that the user placed the plant as suggested; watering dates stay unchanged.
-- On-demand Soil health checks, including drainage, plus separate or combined nutrient/mix-refresh/repotting records.
-- A dedicated Care timeline from each plant page, with soil-care correction/removal.
+- **Theme:** a fixed dark-forest-green Material 3 light/dark theme (seed `#2E6B3A`, fidelity variant); Android wallpaper dynamic color is not used. Shared component styling lives in `bloomTheme` in `lib/main.dart`; overscroll stretch is disabled app-wide.
+- **Home:** greeting header with **+** (add plant) and an avatar initial that opens Profile; a **Today** card listing due/overdue plants with a **Check** button each (or "Nothing to check today"); a **My plants · N** two-column photo grid with an Add plant tile; **Recent** (last three activities across plants, all care types, with See all).
+- **Add a plant:** a bottom sheet offers **Search by name** or **Identify from a photo**. Search filters live by common name, scientific name, and aliases (name matches first). Setup shows the species photo, an optional last-watered date, Light & placement with a room-scene illustration and an optional "I've placed it as suggested" checkbox, and **Add plant** pinned at the bottom.
+- **Plant page:** collapsing hero photo with Back and a ⋮ menu (Edit name and plant image; Delete); a photo-count chip opens the growth gallery. A status card shows **Next check** (tap to change), **Last watered**, and the primary **Check & water** button, tinted only when due. Quick actions: **Add photo** (dot badge when no photo in 30 days) and **Soil care**. The care guide shows the watering cue and a collapsed light row that expands to a room-scene illustration, placement text, and "Is it in a spot like this?" (Yes / Not yet); it asks again when the guidance version changes. History shows the last five entries with See all.
+- **Check & water:** **Watered** and **Checked — not watered** outcome cards; soil feel (Dry, Damp, Not sure) is asked only when not watered; Save pinned at the bottom, with a snackbar showing the next check date. A dry, non-watering check schedules a three-day follow-up. Edit next check is available from the check screen and the plant page.
+- **Full timeline** ("<plant> history"): grouped by month; tap a soil-care entry to edit, the latest watering record to delete (with Undo), or a photo to view it.
+- **Soil care:** records care the user did (adding nutrients, refreshed mix, repotting; combinable in one record). Bloom no longer runs a soil-health questionnaire.
+- **Growth photos:** camera or gallery, stored only in app-private storage and never synced; viewer with delete and "Use as plant image"; deleted with the plant or account.
+- **Multi-select delete on Home:** long-press a plant (or tap Select), then delete several plants with one confirmation, including their history and photos.
+- **Profile:** avatar header with email and "N plants · Synced / Syncing… / Sync pending"; **Reminders** (Notifications switch, Reminder time); **Account** (Sign out, Delete account).
+- Local JSON persistence; an unreadable `garden.json` is backed up as `garden.unreadable-<timestamp>.json` before Bloom starts with an empty garden.
+- Optional, best-effort inexact Android notifications ("Check & water") that never block startup; denied permission is recoverable from Profile through Android settings, and in-app checks remain available.
+- Photo identification through the authenticated Supabase Edge Function, with likelihood labels (Very likely, Possible, Less likely) and safe handling of identities without a Bloom care guide.
+- Plants added through search or photo identification share the canonical care profile when the type matches; separate plants keep separate histories.
 - Native back arrows and confirmation before discarding unsaved form changes.
-- Growth photos per plant (camera or gallery), stored only on the device and never synced. Photos appear on the plant page and in its care timeline, can be chosen as the plant image, and Bloom nudges for a new one after 30 days.
-- Plant page kebab menu: Edit (name and plant image), Take a new photo, Delete.
-- Multi-select delete on Home: long-press a plant card (or tap Select) to choose several plants and delete them together with their history and photos.
 
 Current limitations and manual verification status are tracked in [`docs/STATUS.md`](docs/STATUS.md). In particular, arbitrary custom plants, exact notification timing, and several manual Android/accessibility checks remain outside the current scope.
 
@@ -57,7 +38,7 @@ The user confirmed that placement acknowledgment will leave watering schedules u
 
 ## Reminder time and notification navigation
 
-Profile contains account controls and a focused Preferences section with a global **Reminder time** native time picker. Cloud synchronization runs in the background and is not shown as a separate section. Changes update automatic checks after today; custom, today's, overdue, and unclassified older check times are preserved. First/completed automatic checks use the preferred local clock. Notification taps open the specific current watering check; stale/legacy reminders open plant detail, and unavailable targets return Home. See [PRD section 15](docs/PRD.md#15-reminder-preferences-and-notification-navigation--requirements), [D33–D40](docs/PRODUCT_DECISIONS.md#14-reminder-preferences-and-navigation-decisions), and [implementation plan section 8](docs/IMPLEMENTATION_PLAN.md#8-reminder-preferences-and-navigation--implementation-plan).
+Profile contains a **Reminders** section (Notifications switch and a global **Reminder time** native time picker) and an **Account** section. Cloud synchronization runs in the background; Profile shows only a short sync status next to the plant count. Changes update automatic checks after today; custom, today's, overdue, and unclassified older check times are preserved. First/completed automatic checks use the preferred local clock. Notification taps open the specific current watering check; stale/legacy reminders open plant detail, and unavailable targets return Home. See [PRD section 15](docs/PRD.md#15-reminder-preferences-and-notification-navigation--requirements), [D33–D40](docs/PRODUCT_DECISIONS.md#14-reminder-preferences-and-navigation-decisions), and [implementation plan section 8](docs/IMPLEMENTATION_PLAN.md#8-reminder-preferences-and-notification-navigation--implementation-plan).
 
 ## Requirements
 
@@ -75,7 +56,7 @@ flutter pub get
 flutter run
 ```
 
-Build a debug APK:
+Build a debug APK (local-only, no cloud configuration):
 
 ```sh
 flutter build apk --debug
@@ -88,14 +69,14 @@ flutter analyze
 flutter test
 ```
 
-The domain/widget suite covers watering, placement, reminder timing, soil health, care timeline, and notification navigation. Run `sh tool/test_android.sh -d emulator-5554` for placement, or set `BLOOM_TEST_TARGET` to `integration_test/care_timeline_test.dart` or `integration_test/reminders_test.dart` for the other Android integration suites. All use the separate test package and disable uninstall cleanup. Run `python3 tool/check_notification_launch.py` for real notification-drawer taps after process death. These runners grant notification permission only to the isolated test package. See [`docs/STATUS.md`](docs/STATUS.md) for the macOS path limitation and verification notes.
+The domain/widget suite (111 tests) covers watering, placement, reminder timing, soil care, the care timeline, growth photos, auth UI, sync, and notification navigation. Run `sh tool/test_android.sh -d emulator-5554` for placement, or set `BLOOM_TEST_TARGET` to `integration_test/care_timeline_test.dart` or `integration_test/reminders_test.dart` for the other Android integration suites. All use the separate test package and disable uninstall cleanup. Run `python3 tool/check_notification_launch.py` for real notification-drawer taps after process death. These runners grant notification permission only to the isolated test package. See [`docs/STATUS.md`](docs/STATUS.md) for the macOS path limitation and verification notes.
 
 ## Project layout
 
-- `lib/domain/` — garden models, supported plant profiles, and schedule transitions.
-- `lib/data/` — local JSON persistence, first-run flags, and Android watering notifications.
-- `lib/ui/` — Home, catalog/setup, plant detail, watering check, Profile/Preferences, photo identification, and care screens.
-- `assets/images/` — bundled plant and empty-state images.
+- `lib/domain/` — garden models, plant profiles, soil care, activity, and schedule transitions.
+- `lib/data/` — local JSON persistence, growth-photo files, profile catalog, auth, cloud sync, plant identification, and Android watering notifications.
+- `lib/ui/` — Home, catalog/setup, plant page, Check & water, timeline, growth photos, soil care, Profile, login, and photo identification. Shared pieces (SectionHeader, MessageBanner, BottomAction, PlantImage, HistoryRow, relative date labels) are in `lib/ui/widgets.dart`.
+- `assets/data/` — bundled plant profile catalog. `assets/images/` — bundled plant and illustration images.
 - `android/` — the Android host and Gradle configuration.
 - `docs/` — product requirements, Android/Flutter design guidance, status, and roadmap.
 
@@ -113,49 +94,35 @@ The domain/widget suite covers watering, placement, reminder timing, soil health
 
 When Supabase configuration is supplied, Bloom requires authentication before Home and supports Google plus email/password registration and sign-in. Registration uses a six-digit email OTP and immediately signs the user in after verification; later email/password logins do not require OTP. The Supabase Confirm signup template must include `{{ .Token }}`. The local garden remains authoritative: an empty cloud row receives the local garden, and differing cloud data is guarded-overwritten using the remote revision. Every successful local save queues asynchronous cloud synchronization; local persistence never waits for or rolls back because of a cloud failure. Sync runs quietly in the background. Without Supabase configuration, local/test builds remain usable without an account.
 
-The login page is email-first and has no toolbar Back button. When a user signs out, Bloom confirms the action, preserves the local garden, stops authenticated sync, and returns to the root login page.
+The login page has a welcome header image, **Continue with Google** first (when `GOOGLE_WEB_CLIENT_ID` is configured), then email with a Sign in / Create account switch and a password strength bar while registering. Email confirmation uses six code boxes that verify automatically on the sixth digit, with a 45-second resend countdown. The page has no toolbar Back button. When a user signs out, Bloom confirms the action, preserves the local garden, stops authenticated sync, and returns to the root login page.
 
 Photo identification is configured only with a Supabase Edge Function endpoint at build time. Never put the PlantNet API key in Flutter, Git, or an APK; store it as an Edge Function secret.
 
-Configured cloud/identification run example:
-
-```sh
-flutter run \
-  --dart-define=SUPABASE_URL=https://<project-ref>.supabase.co \
-  --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_... \
-  --dart-define=PLANT_IDENTIFIER_ENDPOINT=https://<project-ref>.supabase.co/functions/v1/identify-plant
-```
-
-Without these defines Bloom remains local-first.
-
-For local configured builds, copy `config/prod.example.json` to `config/prod.json` (ignored by git), fill in the values, and build with:
+Configured builds read their settings from a local JSON file. Copy `config/prod.example.json` to `config/prod.json` (`config/*.json` is git-ignored apart from the template), fill in `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `PLANT_IDENTIFIER_ENDPOINT`, and optionally `GOOGLE_WEB_CLIENT_ID`, then build or run with:
 
 ```sh
 flutter build apk --release --dart-define-from-file=config/prod.json
+flutter run --dart-define-from-file=config/prod.json
 ```
 
-Optional Google sign-in also requires:
+Without these values Bloom remains local-first.
 
-```sh
---dart-define=GOOGLE_WEB_CLIENT_ID=your-web-client-id.apps.googleusercontent.com
-```
-
-The Android OAuth client and Supabase Google provider must be configured before Google sign-in is enabled. Email/password authentication only requires the configured Supabase project and its email provider settings. In configured builds, authentication is mandatory before Home; unconfigured builds remain local-only for development and tests.
+The Android OAuth client and Supabase Google provider must be configured before Google sign-in is enabled. The current Android OAuth client uses package `com.chandrika.bloom` and the debug keystore SHA-1. Release builds are currently signed with the debug key; a real release key (and its SHA-1 registered with Google) is still required before a Play Store release. Email/password authentication only requires the configured Supabase project and its email provider settings. In configured builds, authentication is mandatory before Home; unconfigured builds remain local-only for development and tests.
 
 ## Product boundary
 
-Bloom is an assistant for remembering and recording plant checks. It does not diagnose disease, guarantee plant health, or claim that a date proves a plant needs water. Broader environmental assessments, chemistry/diagnosis, additional plant profiles, sharing, analytics, and social capabilities remain outside the current scope. Soil health supports the on-demand care described below.
+Bloom is an assistant for remembering and recording plant checks. It does not diagnose disease, guarantee plant health, or claim that a date proves a plant needs water. Broader environmental assessments, soil diagnosis/chemistry, additional plant profiles, sharing, analytics, and social capabilities remain outside the current scope. Soil care records only what the user did.
 
 ## Current development mode: stabilization only
 
-Bloom is currently under a feature freeze. No new product features or feature expansion should be implemented. Engineering work is limited to stabilizing the existing watering, reminders, auth/cloud sync, PlantNet/photo, Soil health, timeline, correction, placement, and navigation flows; improving persistence, accessibility, error handling, tests, documentation, and release readiness; and fixing regressions.
+Bloom is currently under a feature freeze. No new product features or feature expansion should be implemented. On 17 November 2026 the owner approved a UX overhaul as an explicit exception; it is complete and described above. Engineering work is otherwise limited to stabilizing the existing watering, reminders, auth/cloud sync, PlantNet/photo, growth photo, soil care, timeline, correction, placement, and navigation flows; improving persistence, accessibility, error handling, tests, documentation, and release readiness; and fixing regressions.
 
-## Soil health, plant timeline, and Back navigation
+## Soil care, plant timeline, and Back navigation
 
-The app includes a separate **Soil health** section with three distinct, overlapping actions: **Adding nutrients**, **Refresh potting mix**, and **Repotting**. On-demand checks help users decide whether to act; watering remains primary and no automatic recurring soil-care schedule is approved. One combined record supports jobs involving multiple actions, with edit/remove available through the timeline.
+The **Soil care** form records three distinct, overlapping actions: **Added nutrients**, **Refreshed potting mix**, and **Repotted**. One combined record supports jobs involving multiple actions, with edit/remove available through the timeline. Watering remains primary and no recurring soil-care schedule exists.
 
-The user subsequently requested implementation of Soil health, a dedicated per-plant Care timeline, and back arrows with unsaved-form discard confirmation. Drainage is confirmed inside the checks while retaining three actions. These features are implemented and verified; evidence is in STATUS.md; PRD sections 18–20 and D48–D49 define the release. See [PRD section 18](docs/PRD.md#18-soil-health--release-requirements), [D45–D47](docs/PRODUCT_DECISIONS.md#15-soil-health-requirements-decisions), [implementation plan section 11](docs/IMPLEMENTATION_PLAN.md#11-soil-health--documentation-and-implementation-plan-for-review), and STATUS.md for boundaries and open decisions.
+*Superseded (17 November 2026):* the on-demand Soil health questionnaire (three checks, including drainage) implemented on 15 November 2026 was removed; Bloom no longer assesses soil. The per-plant timeline and guarded Back navigation remain. Historical context: [PRD section 18](docs/PRD.md#18-soil-health--release-requirements), [D45–D47](docs/PRODUCT_DECISIONS.md#15-soil-health-requirements-decisions), and STATUS.md.
 
 ## Compact sunlight guidance
 
-Plant details now shows a compact, expandable Light & placement section, with watering kept primary and existing setup/acknowledgment behavior retained. Implemented and verified on 15 November 2026. See [PRD section 17](docs/PRD.md#17-light--placement--occasional-care-presentation-refinement), decision D44, implementation plan section 10, and STATUS.md for the detailed contract and verification. This does not add recurring light tasks or nutrient features.
+The plant page shows the light row collapsed by default inside the care guide; it expands to a room-scene illustration, placement text, and a Yes / Not yet confirmation. First implemented and verified on 15 November 2026; restyled in the 17 November 2026 UX overhaul. See [PRD section 17](docs/PRD.md#17-light--placement--occasional-care-presentation-refinement), decision D44, implementation plan section 10, and STATUS.md for the detailed contract and verification. This does not add recurring light tasks or nutrient features.

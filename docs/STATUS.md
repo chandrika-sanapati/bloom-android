@@ -14,15 +14,26 @@ Bloom is under a feature freeze. Do not add new product capabilities, care domai
 
 - Cloud sync, auth gating, local-wins overwrite safety, and local-data safety.
 - PlantNet request/response handling and existing candidate confirmation.
-- Existing watering, reminders, Soil health, timeline, correction/Undo, light placement, FAB, and photo-intake flows.
+- Existing watering, reminders, soil care, timeline, correction/Undo, light placement, growth photo, Add plant sheet, and photo-intake flows.
 - Persistence, migration, error recovery, accessibility, Android lifecycle, and notification reliability.
 - Tests, emulator verification, performance, privacy, and release readiness.
 
 Any proposed feature expansion must be recorded as a future idea only and must not be implemented until the scope freeze is explicitly lifted.
 
+**Exception (17 November 2026):** the owner approved a UX overhaul list (plant page redesign, growth photos, multi-select delete, single account deletion, Home/Profile/sign-in/identification redesign, record-only soil care). That work is complete on `main`; the freeze otherwise remains in force.
+
 ## Latest local verification
 
-Latest pulled `main` was verified on the local Android 36 emulator (`emulator-5554`):
+**17 November 2026, after the UX overhaul**, on the local Android emulator (`emulator-5554`):
+
+- `flutter test`: **111 unit/widget tests passed**.
+- `integration_test/care_timeline_test.dart`, `integration_test/light_placement_test.dart`, and `integration_test/reminders_test.dart` passed through `tool/test_android.sh`. The suites now load the plant catalog in `setUpAll`, and the reminders test awaits the queued notification sync.
+- Configured release build with `--dart-define-from-file=config/prod.json`: Google sign-in reached the Google account picker on the emulator.
+- Native cold-launch drawer taps (`tool/check_notification_launch.py`) were not re-run in this pass; the result below is the latest.
+
+### Previous snapshot (before the UX overhaul)
+
+Earlier pulled `main` was verified on the same emulator:
 
 - `flutter analyze`: passed with zero issues.
 - `flutter test`: **100 tests passed**, including conditional watering-soil UI, email-first auth UI, local-wins cloud overwrite/retry, asynchronous persistence boundaries, signed-out/ordered sync behavior, PlantNet provider errors and normalized candidates, latest-watering correction/recalculation, failed-save rollback, notification no-burst safety, denied-permission recovery UI, and the reviewed Spider Plant profile.
@@ -31,44 +42,43 @@ Latest pulled `main` was verified on the local Android 36 emulator (`emulator-55
 - `integration_test/care_timeline_test.dart`: **2 tests passed** using the isolated integration package, including latest watering-record deletion and Snackbar Undo from the timeline.
 - `integration_test/reminders_test.dart`: **1 test passed**, including foreground/background notification intents and stale/deleted fallbacks.
 - `tool/check_notification_launch.py`: **4 native cold-launch drawer-tap cases passed** for current, legacy, malformed, and deleted payloads; no garden records were created.
-- Dynamic color was detected from the emulator's Android system core palette.
+- Dynamic color was detected from the emulator's Android system core palette. *(Superseded 17 November 2026: Bloom now uses a fixed theme and no longer applies dynamic color.)*
 - The normal app was relaunched after testing; the working tree remained clean.
 - Latest-watering correction integration: the isolated Care timeline suite passed after the correction implementation; the normal APK rebuilt, installed, and relaunched successfully.
 - Protected correction coverage: older records remain read-only, later custom dates are preserved, failed deletion rolls back, and notification correction keeps one current request without an overdue burst.
 - Permission recovery coverage: enabled-but-denied reminders show an Android settings action, reminder time remains available, and permission state refreshes when Profile resumes.
-- FAB/photo intake coverage: the labeled FAB menu exposes Search by name and Identify from a photo; configured builds return normalized candidate results and support confirmation without invented schedules.
+- FAB/photo intake coverage *(FAB since replaced by the Home + button and Add plant sheet)*: the labeled FAB menu exposed Search by name and Identify from a photo; configured builds return normalized candidate results and support confirmation without invented schedules.
 
 The repeatable commands require Flutter, Android platform-tools, and the Android Studio JDK on `PATH`. The repository helper assumes those tools are available as `flutter` and `adb`; on this laptop use the pinned Flutter and Android Studio JDK paths when necessary.
 
 ## Implemented
 
 - Flutter app entry point and Material 3 shell.
-- Material 3 dynamic light/dark color schemes on supported Android versions, with a Bloom teal fallback.
-- Local garden JSON persistence under the app support directory.
+- Fixed dark-forest-green Material 3 light/dark theme (seed `#2E6B3A`, fidelity variant) in `bloomTheme` (`lib/main.dart`): flat cards, filled rounded text fields, 48dp buttons, floating snackbars. Android wallpaper dynamic color is no longer used. Overscroll stretch is disabled app-wide.
+- Shared UI in `lib/ui/widgets.dart`: SectionHeader, MessageBanner (inline tinted status/error), BottomAction (primary action pinned at the bottom of forms), PlantImage, HistoryRow, and relative date labels (Today / Tomorrow / In N days · date / Overdue · N days).
+- Local garden JSON persistence under the app support directory. An unreadable `garden.json` is copied to `garden.unreadable-<timestamp>.json` before Bloom returns an empty garden.
 - First-run Add plant hint stored in `SharedPreferences`.
-- Five catalog plants: Snake Plant, Monstera, Rubber Plant, Pothos, and Spider Plant.
-- Plant profile inventory is data-driven: bundled JSON provides the offline catalog/cache, while Supabase `plant_profiles` and `plant_profile_aliases` provide the managed authenticated catalog when available.
+- Plant profile inventory is data-driven: bundled JSON provides the offline catalog/cache (50 profiles, all marked reviewed and searchable), while Supabase `plant_profiles` and `plant_profile_aliases` provide the managed authenticated catalog when available.
 - Production profile seed is applied: 50 common houseplant identities/profiles are available in Supabase. The current test seed marks all 50 reviewed; content review and source refinement remain a release-readiness task.
-- Material 3-style labeled FAB menu with Search by name and Identify from a photo entry points.
-- Photo intake and authenticated candidate-identification flow with camera/gallery choice, preview, removal, normalized candidates, confirmation, and unsupported-identity safety.
-- Catalog and photo-added identities share canonical reviewed profiles; supported aliases such as Pothos variants receive the same asset, schedule interval, care cue, and light guidance while retaining separate plant IDs.
-- Type-based starting watering intervals.
-- Reviewed Spider Plant profile with bundled image and species-specific light guidance.
-- Optional last-watered date during setup.
-- Today, Upcoming, and Overdue schedule classification.
-- Home My plants collection and Activity Upcoming/Past sections.
-- Watering check flow with Dry, Damp, and Not sure soil context.
-- Explicit Watered and Checked — not watered outcomes.
+- Home: greeting header with + (Add plant sheet) and avatar initial (Profile); Today card listing due/overdue plants with a Check button each, or "Nothing to check today"; **My plants · N** two-column photo grid with an Add plant tile; long-press or Select for multi-select delete; **Recent** (last three activities across plants, all care types, See all). The FAB menu and Upcoming/Past toggle were removed.
+- Add plant sheet: Search by name / Identify from a photo. Search filters live by common name, scientific name, and aliases, ranking name matches first; five curated Popular plants (Pothos, Snake Plant, Monstera, Spider Plant, Rubber Plant) show before typing.
+- Setup: species photo, optional last-watered date, Light & placement with room-scene illustration and optional "I've placed it as suggested" checkbox, Add plant pinned at the bottom.
+- Photo identification: "What plant is this?" with Take a photo / Choose from gallery; chosen photo with Change photo and in-place progress; results with thumbnail and Retake; best match as a featured card, others as compact rows; likelihood labels (Very likely ≥60%, Possible ≥25%, Less likely) instead of percentages; "no care guide yet" note; single **Add <name>** button. Unsupported identities get no invented schedule.
+- Catalog and photo-added identities share canonical reviewed profiles; supported aliases receive the same asset, schedule interval, care cue, and light guidance while retaining separate plant IDs.
+- Type-based starting watering intervals; optional last-watered date during setup.
+- Today, Upcoming, and Overdue schedule classification (used by Today card and relative date labels).
+- Plant page: collapsing hero photo (cover growth photo or catalog image), Back and ⋮ menu (Edit name and plant image; Delete); photo count chip opens the growth gallery; status card with **Next check** (tap to change), **Last watered N days ago**, and primary **Check & water**, tinted only when due; quick actions Add photo (dot badge when no photo in 30 days) and Soil care; care guide with watering cue and a collapsed light row; History with the last five entries and See all.
+- **Check & water** (renamed from "Check watering" on Home, the check screen, and the notification title): plant header with due label and Edit next check; Watered / Checked — not watered outcome cards; Dry / Damp / Not sure soil feel only when not watered; Save pinned at the bottom; snackbar with the next check date.
 - Three-day follow-up after a dry non-watering check.
 - Actual-event-based next scheduling with original scheduled time retained in records.
-- Plant detail with next check, starting interval, Last watered, and Edit next check.
 - Future next-check date/time editing.
-- Check Watering uses a full-width outlined Edit next check action below the scheduled date.
-- Plant removal with schedule and record cleanup.
-- Optional future-only Android notifications and permission-denied messaging.
-- Notification setup and scheduling are best effort and cannot block app startup.
-- Domain/widget tests for watering plus placement persistence, unchanged scheduling, failure handling, setup/detail, and large-text layout.
-- Shared species-specific Light & placement advice and optional persisted action acknowledgment in setup/detail.
+- Full timeline ("<plant> history"): grouped by month with icon badges; tap soil care to edit, the latest watering record to delete (with Undo), or a photo to view.
+- Soil care form records what the user did (added nutrients, refreshed potting mix, repotted; combinable). The soil-health questionnaire (SoilAssessment) was removed.
+- Growth photos: camera or gallery, app-private storage only, never synced (`Garden.toCloudJson` excludes photos and `coverPhotoId`); viewer with delete and "Use as plant image"; gallery screen; files deleted with the plant or account.
+- Plant removal (single or multi-select) with schedule, record, and photo cleanup behind one confirmation.
+- Profile: avatar header with full email and "N plants · Synced / Syncing… / Sync pending"; Reminders (Notifications switch, Reminder time); Account (Sign out, Delete account). No About/version row.
+- Optional future-only Android notifications and permission-denied messaging; setup and scheduling are best effort and cannot block app startup.
+- Shared species-specific Light & placement advice and optional persisted acknowledgment in setup and on the plant page (Yes / Not yet; "In a good spot · Confirmed <date>" with Change; asks again when the guidance version changes).
 
 ## Current limits and pending verification
 
@@ -77,21 +87,23 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Adjustable dry follow-up window; the current implementation uses three days.
 - Arbitrary custom/unlisted plant creation or schedule setup.
 - Exact delivery timing; Android may deliver inexact alarms within its allowed window.
-- Candidate confirmation is implemented; private photo storage and broader profile enrichment remain deferred.
+- Candidate confirmation is implemented. Growth photos are stored only on the device; cloud photo storage and broader profile enrichment remain deferred.
 - Supabase Auth supports mandatory configured-build authentication with Google and email/password sign-in or registration. Registration uses a six-digit email OTP; successful verification signs the user in immediately. Later email/password sign-ins do not require OTP.
 - Configured builds now gate Home on Supabase authentication; local saves synchronize normalized collection snapshots transactionally with the local collection authoritative. The normalized migrations are applied; final production RLS/release review remains.
-- Host verification: Supabase/auth/sync/auth UI code compiles and the current 98-test suite passes. Live OTP registration requires a real inbox and the Supabase Confirm signup template to include `{{ .Token }}`; live Google sign-in and authenticated PlantNet require configured-build emulator interaction.
+- Host verification: Supabase/auth/sync/auth UI code compiles and the test suite passes (111 tests as of 17 November 2026). Live OTP registration requires a real inbox and the Supabase Confirm signup template to include `{{ .Token }}`; live Google sign-in and authenticated PlantNet require configured-build emulator interaction.
 - Cloud synchronization runs in the background and is not exposed as a separate Profile section; local saves remain available when the network is unavailable.
 - Normalized `plant_collections` is the only cloud garden model. The legacy `gardens` JSON table is formally retired by migration `20261118094000_drop_legacy_gardens`.
 - When local and cloud collections differ, the local collection snapshot is authoritative. Bloom uses the collection revision as a guard, retries if another write races, and keeps the local save successful even when cloud sync is unavailable.
 - A typed PlantNet/Supabase Edge Function provider seam is implemented; it activates only when `PLANT_IDENTIFIER_ENDPOINT` is supplied at build time.
 - Optional Supabase initialization is implemented behind `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` build-time defines; no project credentials are tracked in the repository.
-- Optional Google sign-in is implemented behind `GOOGLE_WEB_CLIENT_ID`; email/password authentication is available whenever Supabase build-time configuration is present. Profile exposes account controls and retains reminder controls under Preferences; cloud synchronization remains background behavior.
-- Login is email-first and context-independent: the configured startup gate and Profile sign-in use the same page, which has no toolbar Back button. Signing out requires confirmation and returns to the root login gate while preserving local data.
-- The OTP confirmation state provides a six-digit code field, Verify email, Send code again, and a confirmation-state Back arrow; successful verification opens the authenticated app directly.
+- Optional Google sign-in is implemented behind `GOOGLE_WEB_CLIENT_ID`; email/password authentication is available whenever Supabase build-time configuration is present. Profile shows Reminders and Account sections; cloud synchronization remains background behavior with a short status in the Profile header.
+- Sign-in/registration shows a welcome header image, **Continue with Google** first (when `GOOGLE_WEB_CLIENT_ID` is configured), then "or use email" with a Sign in / Create account switch, filled fields, a password strength bar while registering, MessageBanner errors, and the primary button pinned at the bottom.
+- Login is context-independent: the configured startup gate and Profile sign-in use the same page, which has no toolbar Back button. Signing out requires confirmation and returns to the root login gate while preserving local data.
+- The OTP confirmation state provides six code boxes that verify automatically on the sixth digit, a 45-second resend countdown, and a confirmation-state Back arrow; successful verification opens the authenticated app directly.
 - Bloom branding uses the existing Snake Plant artwork in the Home title, login page, and Android launcher icon.
-- Profile Data & privacy includes one **Delete account** action with a confirmation. `delete-account` removes cloud plant data and the auth account. The `delete-garden` function remains deployed but is no longer called by the app. Local data is cleared only after server success.
+- Profile's Account section includes one **Delete account** action with a confirmation (it replaced the earlier separate plant-data-only deletion). `delete-account` removes cloud plant data and the auth account. The `delete-garden` function remains deployed but is no longer called by the app. Local data is cleared only after server success.
 - Supabase project `gwuwlzzpfklvfhtkubnj` is linked locally; the `identify-plant` Edge Function is deployed and `PLANTNET_API_KEY` exists as a hosted function secret. Live authenticated identification and Google sign-in have been exercised on the configured emulator.
+- Configured builds use `flutter build apk --release --dart-define-from-file=config/prod.json` (`config/*.json` is git-ignored; `config/prod.example.json` is the template). The Android OAuth client uses package `com.chandrika.bloom` and the debug keystore SHA-1; release builds are currently signed with the debug key, so a real release key and its SHA-1 are still needed for the Play Store.
 - Configured-build smoke check: APK built with Supabase URL, publishable key, PlantNet Edge Function endpoint, and Google Web Client ID; Supabase initialization completed and the normal app launched on `emulator-5554` without startup errors.
 - PlantNet end-to-end request verified in hosted logs: authenticated multipart request, PlantNet response, and HTTP 200 in under one second. Flutter now parses the Edge Function's normalized `candidates` response.
 - Canonical profile matching tests cover provider/name variants and legacy saved records; unsupported identities remain without invented schedules.
@@ -99,7 +111,7 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Production verification: normalized migration `20261118091000_create_normalized_garden` is applied; `supabase db lint --linked` reports no schema errors; `identify-plant`, `delete-garden`, `delete-account`, and `sync-plant-collection` are active with JWT verification enabled; unauthenticated requests return HTTP 401.
 - Cloud sync now writes one normalized `plant_collection` per user through the transactional `sync_plant_collection` RPC. Flutter no longer reads or writes the legacy `gardens` JSON table.
 - Account deletion verification: `delete-account` is deployed with JWT verification enabled; unauthenticated requests return HTTP 401. Successful authenticated deletion remains a manual account-level check.
-- Plant-data deletion verification: `delete-garden` is deployed with JWT verification enabled; unauthenticated requests return HTTP 401. Successful authenticated deletion remains a manual account-level check.
+- Plant-data deletion verification *(historical)*: `delete-garden` is deployed with JWT verification enabled and unauthenticated requests return HTTP 401. The app no longer calls it, so no manual check is pending.
 - Analytics, sharing, social features, broader environmental checks, diagnosis, and additional catalog/care expansion remain outside the frozen scope.
 
 ## Reminder preferences and notification navigation — implemented on 15 November 2026
@@ -173,7 +185,7 @@ See [PRD section 14](PRD.md#14-light--placement--release-requirements), [decisio
 - `flutter test`: passed; 12 focused tests.
 - `flutter doctor -v`: Android toolchain, Android SDK, emulator, and network resources are available. Xcode/CocoaPods warnings are irrelevant to this Android target.
 - Android debug APK build: passed using Android Studio's JDK; output is `build/app/outputs/flutter-apk/app-debug.apk`.
-- Dynamic color verification: `dynamic_color` 1.9.0 detected the emulator's Android system core palette and Bloom launched successfully with the dynamic theme.
+- Dynamic color verification: `dynamic_color` 1.9.0 detected the emulator's Android system core palette and Bloom launched successfully with the dynamic theme. *(Superseded: dynamic color is no longer used.)*
 - Emulator smoke check: initial launch exposed exact-alarm permission failure; notification scheduling was changed to inexact, best-effort delivery so the app can start without special-alarm access.
 - Clean emulator smoke flow passed: empty Home → add Snake Plant → Watered → verify Last watered/next check → edit next check to December 15 → force-stop/relaunch → verify the edited date persisted.
 - Date picker and time picker both opened and saved successfully during the emulator smoke flow.
@@ -185,15 +197,24 @@ See [PRD section 14](PRD.md#14-light--placement--release-requirements), [decisio
 - `lib/domain/reminder_time.dart` — local calendar clocks and DST resolution.
 - `lib/domain/watering_notification.dart` — bounded payload parsing, current/stale resolution, and stable IDs.
 - `lib/main.dart` / `lib/ui/check_route.dart` — lifecycle-aware root routing and shared check identity.
-- `lib/data/garden_repository.dart` — JSON file storage and first-run flags.
+- `lib/data/garden_repository.dart` — JSON file storage, unreadable-file backup, and first-run flags.
+- `lib/data/growth_photo_files.dart` — device-only growth photo files.
+- `lib/data/plant_profile_catalog.dart` — bundled/remote profile catalog.
+- `lib/data/auth_service.dart` / `lib/data/cloud_garden_sync.dart` / `lib/data/plant_identifier.dart` — Supabase auth, local-wins sync, and Edge Function identification.
 - `lib/data/watering_notifications.dart` — notification initialization, permission, and synchronization.
-- `lib/ui/home_screen.dart` — Home, collection, and activity.
-- `lib/ui/catalog_screen.dart` — supported catalog and setup.
-- `lib/ui/check_screen.dart` — watering check and outcome flow.
-- `lib/ui/plant_detail_screen.dart` — schedule details and removal.
-- `lib/ui/preferences_screen.dart` — Profile account surface plus Preferences notification switch and global time picker.
-- `lib/ui/light_placement_section.dart` — shared advice and optional checkbox.
-- `integration_test/light_placement_test.dart` — on-device setup/detail/persistence checks with cache-file fixtures.
+- `lib/main.dart` also defines `bloomTheme`.
+- `lib/ui/widgets.dart` — shared SectionHeader, MessageBanner, BottomAction, PlantImage, HistoryRow, and relative date helpers.
+- `lib/ui/home_screen.dart` — Home, Today card, plant grid, multi-select delete, Recent, and Add plant sheet.
+- `lib/ui/catalog_screen.dart` — search, Popular plants, and setup.
+- `lib/ui/check_screen.dart` — Check & water outcome flow.
+- `lib/ui/plant_detail_screen.dart` — plant page (hero, status card, care guide, history).
+- `lib/ui/plant_timeline_screen.dart` — full month-grouped history.
+- `lib/ui/growth_photos.dart` — photo capture, viewer, and gallery.
+- `lib/ui/soil_care_screen.dart` — soil care record form.
+- `lib/ui/login_screen.dart` / `lib/ui/photo_identification_screen.dart` — sign-in/registration and identification.
+- `lib/ui/preferences_screen.dart` — Profile: Reminders and Account.
+- `lib/ui/light_placement_section.dart` — shared advice, room-scene illustration, and confirmation.
+- `integration_test/light_placement_test.dart` / `integration_test/care_timeline_test.dart` — on-device setup/detail/persistence and timeline checks with cache-file fixtures.
 - `integration_test/reminders_test.dart` — persisted preference/custom timing and actual native notification-intent checks.
 - `integration_test/notification_launch_app.dart` / `tool/check_notification_launch.py` / `tool/android/NotificationTapTest.java` — isolated cold-launch fixture and real drawer taps from a separate UI Automator process.
 - `tool/test_android.sh` — isolated Android test runner; see the incident/procedure above.
@@ -209,6 +230,8 @@ The full tradeoff history recovered from the original Bloom product work is main
 3. Finish release-readiness review; do not begin feature expansion during this scope freeze.
 
 ## Soil health, Care timeline, and guarded Back — implemented and verified on 15 November 2026
+
+*Superseded in part (17 November 2026):* the on-demand Soil health assessment (three checks including drainage) described below was removed; Bloom now only records soil care the user did. The timeline was redesigned as a month-grouped history. The record below is historical.
 
 The user requested timeline and navigation implementation, followed by Soil health, and explicitly confirmed drainage inside the checks while retaining the three actions (D48–D49 / PRD 18–20). This supersedes the earlier documentation-only stage. Soil health provides on-demand advice, explicit combined action records, optional date/context, and edit/remove through the timeline. It leaves watering/light/reminders unchanged.
 
@@ -228,6 +251,8 @@ Verification for this release:
 
 ## Compact light presentation — implemented and verified on 15 November 2026
 
+*Historical:* the light row was restyled in the 17 November 2026 UX overhaul (room-scene illustration, Yes / Not yet confirmation); it is still collapsed by default.
+
 The user authorized the detail-card refinement on 15 November 2026 (D44 / PRD section 17), and reiterated the documentation requirement. Detail uses a collapsed requirement/report summary and expands to the existing advice/checkbox; setup, saved acknowledgment, watering, and reminders retain their established behavior. Expansion itself is not persisted and writes nothing. Verification:
 
 - `flutter analyze --no-pub`: **zero findings**.
@@ -237,4 +262,4 @@ The user authorized the detail-card refinement on 15 November 2026 (D44 / PRD se
 - Compact Android detail screenshot captured from an isolated cache fixture and visually reviewed. A full manual TalkBack audit remains outstanding; Material expansion semantics are retained.
 - Normal saved data backed up before device tests: all **4 saved files** matched before the normal update, and the **garden JSON stayed byte-for-byte identical after launch**. The separate `.integration` test package was removed afterward.
 
-Soil health is now implemented under D49 / PRD section 18; current evidence is recorded above.
+Soil health was implemented under D49 / PRD section 18 and later reduced to record-only soil care (17 November 2026).

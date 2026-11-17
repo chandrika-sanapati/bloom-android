@@ -2,15 +2,15 @@
 
 **Decision:** Supabase Auth + Postgres + Storage + Edge Functions
 **Status:** Supabase project linked, `identify-plant`, `delete-garden`, and `delete-account` Edge Functions deployed, Flutter provider/auth seams implemented, mandatory-auth gate, email/password and Google authentication, OTP registration confirmation, revision-guarded local-wins garden sync, and normalized candidate flow implemented; live OTP email QA, provider UI-state QA, and production-release verification remain. Migration/RLS schema checks are green.
-**Last updated:** 17 November 2026
+**Last updated:** 17 November 2026 (after the UX overhaul)
 
 ## Goals
 
 - Keep Bloom usable offline and preserve the current local garden behavior.
 - Support Google and email/password authentication; configured builds require an account before Home while unconfigured builds remain local-only.
-- Sync a user's garden, watering history, Soil health history, placement acknowledgment, and preferences after explicit sign-in.
+- Sync a user's garden, watering history, soil care history, placement acknowledgment, and preferences after explicit sign-in. Growth photos and the cover photo choice stay on the device and are excluded from sync (`Garden.toCloudJson`).
 - Proxy PlantNet identification through a server-side Edge Function so the PlantNet API key never ships in the APK.
-- Keep identification uploads short-lived. Private saved-photo Storage is deferred and is not part of the current app.
+- Keep identification uploads short-lived. Growth photos are stored only in app-private device storage; private cloud photo Storage is deferred and is not part of the current app.
 
 ## Architecture
 
@@ -22,7 +22,7 @@ Flutter Android
   ├─ optional PlantIdentifier client
   │    └─ Supabase Edge Function: identify-plant
   │         └─ PlantNet API (server-side key)
-  └─ optional Supabase Storage for user-confirmed plant photos
+  └─ (deferred) Supabase Storage for plant photos
 ```
 
 The Flutter app must not call PlantNet directly. The PlantNet key is a secret and must be stored as an Edge Function secret. The mobile app may contain only the Supabase project URL and publishable key.
@@ -43,6 +43,8 @@ Configured production builds currently gate Home until authentication succeeds. 
 ### Postgres
 
 Use user-owned rows with Row Level Security enabled:
+
+The schema below is the original plan. *Superseded:* the `gardens` JSON table was retired (see below); the current cloud model is normalized `plant_collections`.
 
 ```sql
 profiles
@@ -80,7 +82,9 @@ RLS requirements:
 - Anonymous/public clients cannot read collection, plant, schedule, or care-record data.
 - Service-role keys are used only inside trusted Edge Functions, never in Flutter.
 
-### Storage
+### Storage (deferred)
+
+Not implemented. Growth photos currently live only on the device. If cloud photos are ever approved:
 
 - Use a private bucket for confirmed user plant photos.
 - Object paths must be user-scoped, for example `user_id/plant_id/photo_id.jpg`.
@@ -139,6 +143,8 @@ flutter run \
   --dart-define=PLANT_IDENTIFIER_ENDPOINT=https://<project-ref>.supabase.co/functions/v1/identify-plant
 ```
 
+For local configured builds, the same keys (plus `GOOGLE_WEB_CLIENT_ID`) live in the git-ignored `config/prod.json` and are passed with `--dart-define-from-file=config/prod.json`.
+
 Without those defines, photo intake remains local-only and clearly reports that identification is not configured. The PlantNet API key is never accepted by the Flutter client. A publishable Supabase key is not a PlantNet secret, but it still belongs in build-time configuration rather than tracked source.
 
 ## Sync policy
@@ -162,7 +168,7 @@ Without those defines, photo intake remains local-only and clearly reports that 
 - Cloud sync has no user-facing merge screen under the current local-wins policy. A future review/diff merge would require an explicit scope decision.
 - Normalized cloud writes run through the transactional `sync_plant_collection` RPC exposed by the authenticated `sync-plant-collection` Edge Function. Partial multi-table writes are not performed from Flutter.
 - Preserve scheduled and recorded timestamps separately.
-- Do not duplicate watering or Soil health events by retrying the same mutation; IDs are client-generated and idempotent.
+- Do not duplicate watering or soil care events by retrying the same mutation; IDs are client-generated and idempotent.
 
 ### Sign-out
 
@@ -172,20 +178,20 @@ Without those defines, photo intake remains local-only and clearly reports that 
 
 ### Account and data deletion
 
-- The client never uses a service-role key. Profile's **Delete account** action calls the authenticated `delete-account` Edge Function, which removes plant data and the account. `delete-garden` is no longer called by the app.
+- The client never uses a service-role key. Profile's single **Delete account** action calls the authenticated `delete-account` Edge Function, which removes plant data and the account. The earlier plant-data-only deletion was removed; `delete-garden` remains deployed but is no longer called by the app.
 - Both functions validate the caller's JWT and use the server-side service-role binding. `delete-garden` deletes only the user's collection; `delete-account` deletes the collection and auth user.
-- Flutter clears the local garden only after the server confirms deletion. Plant-data deletion keeps the session; account deletion clears the local session and returns to login. A failed server deletion leaves local data intact for retry.
-- Both deletion flows require two explicit confirmations.
+- Flutter clears the local garden and device growth photos only after the server confirms deletion, then clears the session and returns to login. A failed server deletion leaves local data intact for retry.
+- Account deletion requires one explicit confirmation dialog. *(Superseded: the earlier two-confirmation, two-flow design.)*
 
 ## Google sign-in setup checklist
 
 Project-specific values are intentionally not committed. Before enabling the feature:
 
-1. Create a Google Cloud project and Android OAuth client using the app application ID and debug/release SHA-1 fingerprints.
+1. Create a Google Cloud project and Android OAuth client using the app application ID and debug/release SHA-1 fingerprints. *Current state:* the Android client uses `com.chandrika.bloom` and the debug keystore SHA-1; release builds are signed with the debug key, so a real release key and its SHA-1 are still required for the Play Store.
 2. Create a Web client ID; Supabase's Google provider requires the Web client ID as well.
 3. Enable Google in Supabase Auth and register the client IDs.
 4. Add the Android client configuration required by the chosen Flutter Google sign-in package.
-5. Add the Supabase URL and publishable key through Flutter build-time configuration, for example `--dart-define-from-file`; do not hard-code secrets.
+5. Add the Supabase URL, publishable key, identification endpoint, and Google Web Client ID through `config/prod.json` (git-ignored; template `config/prod.example.json`) and build with `--dart-define-from-file=config/prod.json`; do not hard-code secrets.
 6. Add privacy policy and account deletion behavior before production release.
 7. Test sign-in cancellation, OTP registration/resend/verification, no network, expired sessions, confirmed sign-out, local-wins retry behavior, and reinstall.
 
@@ -200,13 +206,13 @@ Project-specific values are intentionally not committed. Before enabling the fea
 
 ## Rollout sequence
 
-1. **Current slice:** FAB menu, local photo intake, and authenticated candidate identification through the Edge Function.
+1. **Current slice:** Add plant sheet (originally a FAB menu), local photo intake, and authenticated candidate identification through the Edge Function.
 2. **Provider seam:** add `PlantIdentifier` and fake/test implementation; no production credentials.
 3. **Edge Function:** proxy PlantNet, return normalized candidates, enforce auth/quota/limits.
 4. **Candidate confirmation:** implemented; user confirms a candidate, supported profiles enter setup, and unsupported candidates remain without an invented schedule.
 5. **Supabase Auth:** Google and email/password sign-in/registration, email-confirmation messaging, and configured-build Home gating are implemented.
 6. **Local/cloud sync:** implemented; first sign-in uploads an empty cloud row, differing cloud data is guarded-overwritten by the local garden, and every local save queues asynchronous sync.
-7. **Photo persistence:** deferred; identification photos are temporary request inputs and are not saved to Storage by the current app.
+7. **Photo persistence:** cloud Storage deferred; identification photos are temporary request inputs. Growth photos are saved only on the device.
 8. **Manual QA:** auth cancellation, offline use, quota errors, permission states, privacy, local-wins retry behavior, and account deletion.
 
 Do not implement all layers in one change. Each layer should preserve the offline watering app and have its own tests and rollback behavior.
