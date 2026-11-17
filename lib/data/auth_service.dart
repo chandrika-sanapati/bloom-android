@@ -92,10 +92,43 @@ class AuthService {
         : EmailAuthResult.signedIn;
   }
 
+  Future<bool> verifyEmailOtp(String email, String token) async {
+    if (!configured) return false;
+    final response = await Supabase.instance.client.auth.verifyOTP(
+      email: email.trim(),
+      token: token.trim(),
+      type: OtpType.email,
+    );
+    return response.session != null || signedIn;
+  }
+
+  Future<void> resendEmailOtp(String email) async {
+    if (!configured) {
+      throw const AuthException('Cloud authentication is not configured.');
+    }
+    await Supabase.instance.client.auth.resend(
+      type: OtpType.signup,
+      email: email.trim(),
+    );
+  }
+
   Future<void> signOut() async {
     if (!configured) return;
     await Supabase.instance.client.auth.signOut();
     await _google.signOut();
+  }
+
+  Future<void> clearLocalSession() async {
+    if (!configured) return;
+    try {
+      await Supabase.instance.client.auth.signOut(scope: SignOutScope.local);
+    } finally {
+      try {
+        await _google.signOut();
+      } catch (_) {
+        // The Supabase local session is the authoritative app session.
+      }
+    }
   }
 
   Future<void> deleteAccount() async {
@@ -110,7 +143,9 @@ class AuthService {
         'Your account data could not be deleted. Nothing was removed.',
       );
     }
-    await signOut();
+    // The server-side deletion invalidates this session. Do not make a second
+    // network sign-out request after the user has been deleted.
+    await clearLocalSession();
   }
 }
 

@@ -75,7 +75,7 @@ void main() {
 
     expect(
       find.text(
-        'Enter a valid email and a password with at least 6 characters.',
+        'Enter a valid email.',
       ),
       findsOneWidget,
     );

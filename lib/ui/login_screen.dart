@@ -24,15 +24,38 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _busy = false;
   bool _register = false;
+  bool _confirmationRequired = false;
+  bool _showPasswordGuidance = false;
   bool _obscurePassword = true;
   String? _message;
+  bool _messageIsError = true;
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _confirmationCode = TextEditingController();
+
+  int get _passwordStrength {
+    final password = _password.text;
+    return [
+      password.length >= 8,
+      RegExp(r'[A-Z]').hasMatch(password),
+      RegExp(r'[a-z]').hasMatch(password),
+      RegExp(r'\d').hasMatch(password),
+    ].where((matches) => matches).length;
+  }
+
+  String get _passwordStrengthLabel => switch (_passwordStrength) {
+    0 => 'Password strength: enter a password',
+    1 => 'Password strength: weak',
+    2 => 'Password strength: fair',
+    3 => 'Password strength: good',
+    _ => 'Password strength: strong',
+  };
 
   @override
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _confirmationCode.dispose();
     super.dispose();
   }
 
@@ -83,11 +106,18 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_busy) return;
     final email = _email.text.trim();
     final password = _password.text;
-    if (!email.contains('@') || password.length < 6) {
-      setState(
-        () => _message =
-            'Enter a valid email and a password with at least 6 characters.',
-      );
+    final validPassword = _register
+        ? _passwordStrength == 4
+        : password.isNotEmpty;
+    if (!email.contains('@') || !validPassword) {
+      setState(() {
+        _showPasswordGuidance = _register && !validPassword;
+        _message = !email.contains('@')
+            ? 'Enter a valid email.'
+            : _register
+            ? null
+            : 'Enter a valid email and password.';
+      });
       return;
     }
     setState(() {
@@ -101,8 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (result == EmailAuthResult.confirmationRequired) {
           setState(() {
             _busy = false;
-            _message =
-                'Check your email to confirm your account, then return here to sign in.';
+            _confirmationRequired = true;
           });
           return;
         }
@@ -138,6 +167,91 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _verifyEmail() async {
+    if (_busy) return;
+    final code = _confirmationCode.text.trim();
+    if (!RegExp(r'^\d{6}$').hasMatch(code)) {
+      setState(() => _message = 'Enter the 6-digit code from your email.');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    try {
+      final verified = await widget.auth.verifyEmailOtp(_email.text, code);
+      if (!verified) {
+        throw const AuthException(
+          'That confirmation code could not be verified.',
+        );
+      }
+      if (!mounted) return;
+      final sync = await widget.cloudSync.sync(widget.store.garden);
+      if (!mounted) return;
+      if (sync == CloudSyncResult.failed) {
+        setState(
+          () => _message =
+              'Your account is confirmed. Your garden is saved locally and will sync when available.',
+        );
+      }
+      Navigator.of(context).pop(true);
+    } on AuthException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _message = error.message;
+        _messageIsError = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _message = 'We could not verify that code. Check it and try again.';
+        _messageIsError = true;
+      });
+    }
+  }
+
+  Future<void> _resendEmailOtp() async {
+    if (_busy) return;
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    try {
+      await widget.auth.resendEmailOtp(_email.text);
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _message = 'A new confirmation code was sent.';
+        _messageIsError = false;
+      });
+    } on AuthException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _message = error.message;
+        _messageIsError = true;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _message = 'We could not send a new code. Try again shortly.';
+        _messageIsError = true;
+      });
+    }
+  }
+
+  void _backToRegistration() {
+    setState(() {
+      _confirmationRequired = false;
+      _confirmationCode.clear();
+      _message = null;
+      _messageIsError = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -150,133 +264,253 @@ class _LoginScreenState extends State<LoginScreen> {
             context,
           ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
+        leading: _confirmationRequired
+            ? BackButton(onPressed: _backToRegistration)
+            : null,
       ),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          const SizedBox(height: 32),
-          Icon(Icons.eco, size: 64, color: theme.colorScheme.primary),
-          const SizedBox(height: 20),
-          Text(
-            'Keep your garden with you',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 12),
-          const SizedBox(height: 32),
-          if (widget.auth.configured) ...[
-            TextField(
-              controller: _email,
-              enabled: !_busy,
-              keyboardType: TextInputType.emailAddress,
-              autofillHints: const [AutofillHints.email],
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-              ),
+          if (_confirmationRequired) ...[
+            const SizedBox(height: 72),
+            Icon(
+              Icons.mark_email_read_outlined,
+              size: 72,
+              color: theme.colorScheme.primary,
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _password,
-              enabled: !_busy,
-              obscureText: _obscurePassword,
-              autofillHints: const [AutofillHints.password],
-              decoration: InputDecoration(
-                labelText: 'Password',
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  tooltip: _obscurePassword ? 'Show password' : 'Hide password',
-                  onPressed: () =>
-                      setState(() => _obscurePassword = !_obscurePassword),
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                  ),
-                ),
-              ),
+            const SizedBox(height: 24),
+            Text(
+              'Check your email',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineSmall,
             ),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: _busy ? null : _submitEmail,
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-              ),
-              child: Text(
-                _busy
-                    ? 'Working…'
-                    : _register
-                    ? 'Create account'
-                    : 'Sign in with email',
-              ),
-            ),
-            TextButton(
-              onPressed: _busy
-                  ? null
-                  : () => setState(() {
-                      _register = !_register;
-                      _message = null;
-                    }),
-              child: Text(
-                _register
-                    ? 'Already have an account? Sign in'
-                    : 'Need an account? Register',
-              ),
-            ),
-          ],
-          if (widget.auth.googleConfigured) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Expanded(child: Divider()),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text(
-                    'or',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                const Expanded(child: Divider()),
-              ],
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _busy ? null : _signIn,
-              icon: const Icon(Icons.login),
-              label: Text(_busy ? 'Signing in…' : 'Continue with Google'),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-              ),
-            ),
-          ],
-          if (!widget.auth.configured) ...[
             const SizedBox(height: 12),
             Text(
-              'Cloud sign-in is not configured in this build. Run Bloom with '
-              'the Supabase and Google build-time settings to enable it.',
+              'We sent a 6-digit confirmation code to ${_email.text.trim()}. '
+              'Enter it below to confirm your account.',
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
+              style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-          ],
-          if (_message != null) ...[
-            const SizedBox(height: 16),
-            Semantics(
-              liveRegion: true,
-              child: Text(
-                _message!,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: theme.colorScheme.error),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _confirmationCode,
+              enabled: !_busy,
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _verifyEmail(),
+              maxLength: 6,
+              decoration: const InputDecoration(
+                labelText: 'Confirmation code',
+                hintText: '123456',
+                border: OutlineInputBorder(),
+                counterText: '',
               ),
             ),
-          ],
-          if (!widget.auth.configured) ...[
-            const SizedBox(height: 24),
-            OutlinedButton(
-              onPressed: _busy ? null : () => Navigator.of(context).pop(false),
-              child: const Text('Continue without an account'),
+            const SizedBox(height: 32),
+            FilledButton(
+              onPressed: _busy ? null : _verifyEmail,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+              ),
+              child: Text(_busy ? 'Verifying…' : 'Verify email'),
             ),
+            const SizedBox(height: 8),
+            OutlinedButton(
+              onPressed: _busy ? null : _resendEmailOtp,
+              child: const Text('Send code again'),
+            ),
+            if (_message != null) ...[
+              const SizedBox(height: 16),
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  _message!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: _messageIsError
+                        ? theme.colorScheme.error
+                        : theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ] else ...[
+            const SizedBox(height: 32),
+            Icon(Icons.eco, size: 64, color: theme.colorScheme.primary),
+            const SizedBox(height: 20),
+            Text(
+              'Keep your garden with you',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 12),
+            const SizedBox(height: 32),
+            if (widget.auth.configured) ...[
+              TextField(
+                controller: _email,
+                enabled: !_busy,
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.email],
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _password,
+                enabled: !_busy,
+                onChanged: (_) => setState(() {
+                  if (_passwordStrength == 4) _showPasswordGuidance = false;
+                }),
+                obscureText: _obscurePassword,
+                autofillHints: const [AutofillHints.password],
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    tooltip: _obscurePassword
+                        ? 'Show password'
+                        : 'Hide password',
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                  ),
+                ),
+              ),
+              if (_register) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text('Password strength', style: theme.textTheme.bodySmall),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: LinearProgressIndicator(
+                        value: _passwordStrength / 4,
+                        minHeight: 6,
+                        semanticsLabel: _passwordStrengthLabel,
+                      ),
+                    ),
+                  ],
+                ),
+                if (_showPasswordGuidance) ...[
+                  const SizedBox(height: 8),
+                  Semantics(
+                    liveRegion: true,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 18,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Use 8+ characters with uppercase, lowercase, and a number.',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+              const SizedBox(height: 12),
+              FilledButton(
+                onPressed: _busy ? null : _submitEmail,
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52),
+                ),
+                child: Text(
+                  _busy
+                      ? 'Working…'
+                      : _register
+                      ? 'Create account'
+                      : 'Sign in with email',
+                ),
+              ),
+              TextButton(
+                onPressed: _busy
+                    ? null
+                    : () => setState(() {
+                        _register = !_register;
+                        _message = null;
+                      }),
+                child: Text(
+                  _register
+                      ? 'Already have an account? Sign in'
+                      : 'Need an account? Register',
+                ),
+              ),
+            ],
+            if (widget.auth.googleConfigured) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      'or',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  const Expanded(child: Divider()),
+                ],
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _busy ? null : _signIn,
+                icon: const Icon(Icons.login),
+                label: Text(_busy ? 'Signing in…' : 'Continue with Google'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52),
+                ),
+              ),
+            ],
+            if (!widget.auth.configured) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Cloud sign-in is not configured in this build. Run Bloom with '
+                'the Supabase and Google build-time settings to enable it.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            if (_message != null) ...[
+              const SizedBox(height: 16),
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  _message!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: theme.colorScheme.error),
+                ),
+              ),
+            ],
+            if (!widget.auth.configured) ...[
+              const SizedBox(height: 24),
+              OutlinedButton(
+                onPressed: _busy
+                    ? null
+                    : () => Navigator.of(context).pop(false),
+                child: const Text('Continue without an account'),
+              ),
+            ],
           ],
         ],
       ),
