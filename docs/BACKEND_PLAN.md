@@ -38,7 +38,7 @@ The Flutter app must not call PlantNet directly. The PlantNet key is a secret an
 - Sign-in preserves the local garden and uploads it when cloud data differs.
 - Never replace local garden data from the cloud during sign-in or background sync.
 
-Configured production builds currently gate Home until authentication succeeds. Builds without Supabase defines remain usable for local development and tests. After sign-in, an empty remote garden receives the local garden; when both differ, the local garden is uploaded with a revision guard. The deployed `gardens` migration is applied; final RLS and production-release review remain.
+Configured production builds currently gate Home until authentication succeeds. Builds without Supabase defines remain usable for local development and tests. After sign-in, the local collection snapshot is synchronized transactionally with the normalized cloud collection. The normalized migrations are applied; final RLS and production-release review remain.
 
 ### Postgres
 
@@ -77,7 +77,7 @@ RLS requirements:
 
 - A user can select/insert/update only their own profile and garden.
 - A user can select only their own identification runs.
-- Anonymous/public clients cannot read garden payloads.
+- Anonymous/public clients cannot read collection, plant, schedule, or care-record data.
 - Service-role keys are used only inside trusted Edge Functions, never in Flutter.
 
 ### Storage
@@ -173,7 +173,7 @@ Without those defines, photo intake remains local-only and clearly reports that 
 ### Account and data deletion
 
 - The client never uses a service-role key. Profile's **Delete all plant data** action calls the authenticated `delete-garden` Edge Function; **Delete account and all data** calls `delete-account`.
-- Both functions validate the caller's JWT and use the server-side service-role binding. `delete-garden` deletes only the user's `gardens` row; `delete-account` deletes the garden and auth user.
+- Both functions validate the caller's JWT and use the server-side service-role binding. `delete-garden` deletes only the user's collection; `delete-account` deletes the collection and auth user.
 - Flutter clears the local garden only after the server confirms deletion. Plant-data deletion keeps the session; account deletion clears the local session and returns to login. A failed server deletion leaves local data intact for retry.
 - Both deletion flows require two explicit confirmations.
 

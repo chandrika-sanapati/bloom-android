@@ -8,7 +8,9 @@ The Android app is local-first: garden data is stored on the device and watering
 
 Bloom uses the existing Snake Plant artwork as its in-app brand mark and Android launcher icon.
 
-Supported catalog plants:
+Bundled offline profile catalog includes the current 50-profile test inventory; Supabase is the managed profile source when available.
+
+Supported reviewed examples:
 
 - Snake Plant — *Dracaena trifasciata*
 - Monstera — *Monstera deliciosa*

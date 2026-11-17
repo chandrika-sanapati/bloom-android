@@ -237,7 +237,7 @@ Only add a later capability after the watering loop is reliable and validated.
 3. **More reviewed plant profiles — deferred:** Five reviewed catalog profiles are currently shipped; additional catalog content requires a future scope decision.
 4. **Light & placement — implemented:** species-specific light suggestions during setup and on detail, with one optional saved acknowledgment and unchanged watering dates; see section 14. Adaptation and broader environmental checks remain deferred.
 5. **Soil health — implemented:** on-demand help for Adding nutrients, Refresh potting mix, and Repotting, with distinct actions and explicitly recorded overlap; see section 18. Drainage is an approved cross-cutting check, not a fourth care action. Symptom diagnosis remains separate future scope.
-6. **Cloud sync — implemented:** configured builds authenticate users and asynchronously synchronize local-authoritative garden payloads with revision guards. Sharing and merge features remain deferred.
+6. **Cloud sync — implemented:** configured builds authenticate users and asynchronously synchronize local-authoritative normalized collection snapshots with revision guards. Sharing and merge features remain deferred.
 
 ## 13. Product principles
 

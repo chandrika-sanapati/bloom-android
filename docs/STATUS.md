@@ -79,7 +79,7 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Exact delivery timing; Android may deliver inexact alarms within its allowed window.
 - Candidate confirmation is implemented; private photo storage and broader profile enrichment remain deferred.
 - Supabase Auth supports mandatory configured-build authentication with Google and email/password sign-in or registration. Registration uses a six-digit email OTP; successful verification signs the user in immediately. Later email/password sign-ins do not require OTP.
-- Configured builds now gate Home on Supabase authentication; garden sync uploads the local payload when the remote garden is empty and guarded-overwrites differing cloud data with the local payload. The deployed `gardens` migration is applied; final production RLS/release review remains.
+- Configured builds now gate Home on Supabase authentication; local saves synchronize normalized collection snapshots transactionally with the local collection authoritative. The normalized migrations are applied; final production RLS/release review remains.
 - Host verification: Supabase/auth/sync/auth UI code compiles and the current 98-test suite passes. Live OTP registration requires a real inbox and the Supabase Confirm signup template to include `{{ .Token }}`; live Google sign-in and authenticated PlantNet require configured-build emulator interaction.
 - Cloud synchronization runs in the background and is not exposed as a separate Profile section; local saves remain available when the network is unavailable.
 - Normalized `plant_collections` is the only cloud garden model. The legacy `gardens` JSON table is formally retired by migration `20261118094000_drop_legacy_gardens`.

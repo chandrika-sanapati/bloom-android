@@ -24,7 +24,7 @@ class BloomTitle extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(6),
           child: Image.asset(
-            'assets/images/snake.png',
+            'assets/images/bloom_logo.png',
             width: 30,
             height: 30,
             fit: BoxFit.cover,
