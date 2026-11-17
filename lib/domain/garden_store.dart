@@ -95,6 +95,34 @@ class GardenStore extends ChangeNotifier {
     DateTime? now,
   }) => _serial(() => _setLightPlacementAcknowledged(id, value, now: now));
   Future<bool> deletePlant(String id) => _serial(() => _deletePlant(id));
+
+  /// Removes several plants and all their data in one save.
+  Future<bool> deletePlants(Set<String> ids) =>
+      _serial(() => _deletePlants(ids));
+
+  Future<bool> _deletePlants(Set<String> ids) {
+    if (ids.isEmpty || !ids.every((id) => plant(id) != null)) {
+      return Future.value(false);
+    }
+    return _commit(
+      _garden.copyWith(
+        plants: _garden.plants.where((p) => !ids.contains(p.id)).toList(),
+        schedules: _garden.schedules
+            .where((s) => !ids.contains(s.plantId))
+            .toList(),
+        records: _garden.records
+            .where((r) => !ids.contains(r.plantId))
+            .toList(),
+        soilCare: _garden.soilCare
+            .where((e) => !ids.contains(e.plantId))
+            .toList(),
+        growthPhotos: _garden.growthPhotos
+            .where((p) => !ids.contains(p.plantId))
+            .toList(),
+      ),
+    );
+  }
+
   Future<bool> deleteLatestWateringRecord(
     String plantId,
     String recordId, {
@@ -352,15 +380,7 @@ class GardenStore extends ChangeNotifier {
   }
 
   /// Removes a plant with its schedule and history, as `deletePlant` does.
-  Future<bool> _deletePlant(String id) => _commit(
-    _garden.copyWith(
-      plants: _garden.plants.where((p) => p.id != id).toList(),
-      schedules: _garden.schedules.where((s) => s.plantId != id).toList(),
-      records: _garden.records.where((r) => r.plantId != id).toList(),
-      soilCare: _garden.soilCare.where((e) => e.plantId != id).toList(),
-      growthPhotos: _garden.growthPhotos.where((p) => p.plantId != id).toList(),
-    ),
-  );
+  Future<bool> _deletePlant(String id) => _deletePlants({id});
 
   Future<bool> _deleteLatestWateringRecord(
     String plantId,

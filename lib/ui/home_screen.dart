@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/garden_repository.dart';
+import '../data/growth_photo_files.dart';
 import '../data/auth_service.dart';
 import '../data/cloud_garden_sync.dart';
 import '../data/plant_identifier.dart';
@@ -45,6 +46,71 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showHint = false;
   bool _fabOpen = false;
 
+  /// Plant ids chosen for bulk delete; null when not selecting.
+  Set<String>? _selection;
+
+  void _startSelection([String? plantId]) => setState(() {
+    _fabOpen = false;
+    _selection = {?plantId};
+  });
+
+  void _toggle(String plantId) => setState(() {
+    final selection = _selection!;
+    if (!selection.remove(plantId)) selection.add(plantId);
+  });
+
+  void _endSelection() => setState(() => _selection = null);
+
+  Future<void> _deleteSelected() async {
+    final ids = {..._selection!};
+    if (ids.isEmpty) return;
+    final store = widget.store;
+    final count = ids.length;
+    final noun = count == 1 ? 'plant' : 'plants';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Delete $count $noun?'),
+        content: const Text(
+          'Their care history and photos will be deleted too.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(
+              'Delete',
+              style: TextStyle(
+                color: Theme.of(dialogContext).colorScheme.error,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final photos = store.garden.growthPhotos
+        .where((p) => ids.contains(p.plantId))
+        .toList();
+    final deleted = await store.deletePlants(ids);
+    if (!mounted) return;
+    if (deleted) {
+      await GrowthPhotoFiles.deleteFiles(photos);
+      if (!mounted) return;
+      _endSelection();
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          deleted ? '$count $noun deleted.' : "Plants couldn't be deleted.",
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -58,7 +124,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void _onChanged() => setState(() {});
+  void _onChanged() => setState(() {
+    // Drop selections for plants removed elsewhere.
+    final ids = widget.store.garden.plants.map((p) => p.id).toSet();
+    _selection?.removeWhere((id) => !ids.contains(id));
+    if (ids.isEmpty) _selection = null;
+  });
 
   void _selectTab(_Tab tab) => setState(() => _tab = tab);
 
@@ -126,28 +197,61 @@ class _HomeScreenState extends State<HomeScreen> {
     final garden = widget.store.garden;
     final isEmpty = garden.plants.isEmpty;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const BloomTitle(),
-        actions: [
-          IconButton(
-            tooltip: 'Profile',
-            icon: const Icon(Icons.account_circle_outlined),
-            onPressed: _openProfile,
-          ),
-        ],
-      ),
-      floatingActionButton: _AddPlantFabMenu(
-        open: _fabOpen,
-        showHint: isEmpty && _showHint,
-        onToggle: () => setState(() => _fabOpen = !_fabOpen),
-        onSearch: _openCatalog,
-        onIdentify: _openPhotoIdentification,
-      ),
-      body: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: _fabOpen ? () => setState(() => _fabOpen = false) : null,
-        child: isEmpty ? const _EmptyHome() : _PopulatedHome(this),
+    final selection = _selection;
+    final selecting = selection != null;
+    return PopScope(
+      canPop: !selecting,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && selecting) _endSelection();
+      },
+      child: Scaffold(
+        appBar: selecting
+            ? AppBar(
+                leading: IconButton(
+                  tooltip: 'Cancel selection',
+                  icon: const Icon(Icons.close),
+                  onPressed: _endSelection,
+                ),
+                title: Text('${selection.length} selected'),
+                actions: [
+                  IconButton(
+                    tooltip: 'Select all',
+                    icon: const Icon(Icons.select_all),
+                    onPressed: () => setState(
+                      () => selection.addAll(garden.plants.map((p) => p.id)),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Delete selected',
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: selection.isEmpty ? null : _deleteSelected,
+                  ),
+                ],
+              )
+            : AppBar(
+                title: const BloomTitle(),
+                actions: [
+                  IconButton(
+                    tooltip: 'Profile',
+                    icon: const Icon(Icons.account_circle_outlined),
+                    onPressed: _openProfile,
+                  ),
+                ],
+              ),
+        floatingActionButton: selecting
+            ? null
+            : _AddPlantFabMenu(
+                open: _fabOpen,
+                showHint: isEmpty && _showHint,
+                onToggle: () => setState(() => _fabOpen = !_fabOpen),
+                onSearch: _openCatalog,
+                onIdentify: _openPhotoIdentification,
+              ),
+        body: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _fabOpen ? () => setState(() => _fabOpen = false) : null,
+          child: isEmpty ? const _EmptyHome() : _PopulatedHome(this),
+        ),
       ),
     );
   }
@@ -314,8 +418,19 @@ class _PopulatedHome extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
       children: [
-        Text('My plants', style: theme.textTheme.titleMedium),
-        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: Text('My plants', style: theme.textTheme.titleMedium),
+            ),
+            if (state._selection == null && plants.length > 1)
+              TextButton(
+                onPressed: state._startSelection,
+                child: const Text('Select'),
+              ),
+          ],
+        ),
+        const SizedBox(height: 4),
         SizedBox(
           height: 224,
           child: ListView.separated(
@@ -324,11 +439,18 @@ class _PopulatedHome extends StatelessWidget {
             separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final plant = plants[index];
+              final selection = state._selection;
               return PlantCard(
                 store: store,
                 plant: plant,
                 schedule: store.scheduleFor(plant.id),
-                onTap: () => state._openPlant(plant),
+                selected: selection?.contains(plant.id),
+                onTap: selection == null
+                    ? () => state._openPlant(plant)
+                    : () => state._toggle(plant.id),
+                onLongPress: selection == null
+                    ? () => state._startSelection(plant.id)
+                    : null,
               );
             },
           ),

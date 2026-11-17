@@ -52,25 +52,39 @@ class PlantCard extends StatelessWidget {
     required this.schedule,
     required this.onTap,
     this.store,
+    this.onLongPress,
+    this.selected,
   });
 
   final Plant plant;
   final WateringSchedule? schedule;
   final VoidCallback onTap;
   final GardenStore? store;
+  final VoidCallback? onLongPress;
+
+  /// Null outside selection mode; otherwise whether this card is selected.
+  final bool? selected;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final status = _status(theme);
 
-    return SizedBox(
+    final isSelected = selected == true;
+    final card = SizedBox(
       width: 150,
       child: Card(
         clipBehavior: Clip.antiAlias,
         margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: isSelected
+              ? BorderSide(color: theme.colorScheme.primary, width: 3)
+              : BorderSide.none,
+        ),
         child: InkWell(
           onTap: onTap,
+          onLongPress: onLongPress,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -101,6 +115,35 @@ class PlantCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+    if (selected == null) return card;
+    return Semantics(
+      selected: isSelected,
+      child: Stack(
+        children: [
+          card,
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.surface.withValues(alpha: 0.9),
+                shape: BoxShape.circle,
+              ),
+              padding: const EdgeInsets.all(2),
+              child: Icon(
+                isSelected ? Icons.check : Icons.circle_outlined,
+                size: 22,
+                color: isSelected
+                    ? theme.colorScheme.onPrimary
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

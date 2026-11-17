@@ -45,6 +45,7 @@ The current app supports:
 - Native back arrows and confirmation before discarding unsaved form changes.
 - Growth photos per plant (camera or gallery), stored only on the device and never synced. Photos appear on the plant page and in its care timeline, can be chosen as the plant image, and Bloom nudges for a new one after 30 days.
 - Plant page kebab menu: Edit (name and plant image), Take a new photo, Delete.
+- Multi-select delete on Home: long-press a plant card (or tap Select) to choose several plants and delete them together with their history and photos.
 
 Current limitations and manual verification status are tracked in [`docs/STATUS.md`](docs/STATUS.md). In particular, arbitrary custom plants, exact notification timing, and several manual Android/accessibility checks remain outside the current scope.
 
