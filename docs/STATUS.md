@@ -57,7 +57,6 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Fixed dark-forest-green Material 3 light/dark theme (seed `#2E6B3A`, fidelity variant) in `bloomTheme` (`lib/main.dart`): flat cards, filled rounded text fields, 48dp buttons, floating snackbars. Android wallpaper dynamic color is no longer used. Overscroll stretch is disabled app-wide.
 - Shared UI in `lib/ui/widgets.dart`: SectionHeader, MessageBanner (inline tinted status/error), BottomAction (primary action pinned at the bottom of forms), PlantImage, HistoryRow, and relative date labels (Today / Tomorrow / In N days · date / Overdue · N days).
 - Local garden JSON persistence under the app support directory. An unreadable `garden.json` is copied to `garden.unreadable-<timestamp>.json` before Bloom returns an empty garden.
-- First-run Add plant hint stored in `SharedPreferences`.
 - Plant profile inventory is data-driven: bundled JSON provides the offline catalog/cache (50 profiles, all marked reviewed and searchable), while Supabase `plant_profiles` and `plant_profile_aliases` provide the managed authenticated catalog when available.
 - Production profile seed is applied: 50 common houseplant identities/profiles are available in Supabase. The current test seed marks all 50 reviewed; content review and source refinement remain a release-readiness task.
 - Home: greeting header with + (Add plant sheet) and avatar initial (Profile); Today card listing due/overdue plants with a Check button each, or "Nothing to check today"; **My plants · N** two-column photo grid with an Add plant tile; long-press or Select for multi-select delete; **Recent** (last three activities across plants, all care types, See all). The FAB menu and Upcoming/Past toggle were removed.
@@ -83,7 +82,7 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 
 ## Current limits and pending verification
 
-- Latest watering-record deletion/correction and immediate Undo are implemented from the Care timeline. Undo is valid until another saved garden change occurs.
+- Latest watering-record deletion/correction and immediate Undo are implemented from the plant's history page. Undo is valid until another saved garden change occurs.
 - Notification permission recovery is implemented: Profile shows an Android settings action for an enabled-but-denied state and refreshes permission when returning from settings.
 - Adjustable dry follow-up window; the current implementation uses three days.
 - Arbitrary custom/unlisted plant creation or schedule setup.

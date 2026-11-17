@@ -9,7 +9,6 @@ import 'package:bloom/ui/plant_detail_screen.dart';
 import 'package:bloom/ui/preferences_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'support/fake_notifications.dart';
 
 void main() {
@@ -31,10 +30,6 @@ void main() {
       GardenStore(garden: garden, persist: persist ?? (_) async {});
   WateringNotifications notifications(FakeNotificationClient client) =>
       WateringNotifications(client: client, timezone: () async => 'UTC');
-
-  setUp(() {
-    SharedPreferences.setMockInitialValues({'hasSeenAddPlantHint': true});
-  });
 
   Future<void> pick(WidgetTester tester, {bool cancel = false}) async {
     await tester.tap(find.text('Reminder time'));

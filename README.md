@@ -91,6 +91,8 @@ The domain/widget suite (114 tests) covers catalog images and credits, watering,
 - [`docs/DESIGN_GUIDELINES.md`](docs/DESIGN_GUIDELINES.md) — Android/Flutter interaction and accessibility guidance.
 - [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) — completed work and the next engineering steps.
 - [`docs/AGENTS.md`](docs/AGENTS.md) — contribution and UX/engineering guidance.
+- [`docs/IMAGE_CREDITS.md`](docs/IMAGE_CREDITS.md) — attribution for bundled catalog photos.
+- [`docs/case-study/MATERIAL.md`](docs/case-study/MATERIAL.md) — inventory of screenshots, iterations, and verifiable facts for a future case study.
 - [`docs/previews/README.md`](docs/previews/README.md) — explicitly historical iOS design references; not a specification for the Android UI.
 - [`docs/BACKEND_PLAN.md`](docs/BACKEND_PLAN.md) — Supabase, Google sign-in, PlantNet proxy, sync, privacy, and rollout plan.
 

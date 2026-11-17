@@ -6,7 +6,6 @@ import 'package:bloom/domain/models.dart';
 import 'package:bloom/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/fake_notifications.dart';
 
@@ -38,10 +37,6 @@ void main() {
       ),
     ],
   );
-
-  setUp(() {
-    SharedPreferences.setMockInitialValues({'hasSeenAddPlantHint': true});
-  });
 
   test(
     'deletePlants removes all data for the chosen plants in one save',
