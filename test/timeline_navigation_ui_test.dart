@@ -76,28 +76,34 @@ void main() {
   }
 
   testWidgets(
-    'plant detail opens dedicated timeline and Back returns to the same plant',
+    'plant detail shows history inline and See all opens the full timeline',
     (tester) async {
-      var writes = 0;
-      final store = makeStore(
-        persist: (_) async {
-          writes++;
-        },
-      );
+      final store = makeStore();
       await open(tester, PlantDetailScreen(store: store, plantId: 'p'));
       await tester.scrollUntilVisible(
-        find.text('Care timeline'),
+        find.text('Checks, care and photos will appear here.'),
         250,
         scrollable: _vertical,
       );
-      await tester.tap(find.text('Care timeline'));
+      expect(find.text('See all'), findsNothing);
+      await store.completeWateringCheck(
+        plantId: 'p',
+        outcome: WateringOutcome.checkedNotWatered,
+        soil: Soil.damp,
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('See all'),
+        250,
+        scrollable: _vertical,
+      );
+      expect(find.text('Checked — not watered'), findsOneWidget);
+      await tester.tap(find.text('See all'));
       await tester.pumpAndSettle();
       expect(find.byType(PlantTimelineScreen), findsOneWidget);
-      expect(find.text('No care recorded yet'), findsOneWidget);
       await tester.tap(find.byTooltip('Back'));
       await tester.pumpAndSettle();
       expect(find.byType(PlantDetailScreen), findsOneWidget);
-      expect(writes, 0);
     },
   );
   testWidgets(
@@ -169,6 +175,8 @@ void main() {
         220,
         scrollable: _vertical,
       );
+      await tester.ensureVisible(find.text("I've placed it as suggested"));
+      await tester.pumpAndSettle();
       await tester.tap(find.text("I've placed it as suggested"));
       await tester.pumpAndSettle();
       await tester.binding.handlePopRoute();

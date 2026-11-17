@@ -88,7 +88,7 @@ void main() {
       Future<void> postAndTap(String payload, {bool background = false}) async {
         await plugin.show(
           id: 440,
-          title: 'Check watering',
+          title: 'Check & water',
           body: 'Check the test plant soil.',
           notificationDetails: const NotificationDetails(
             android: AndroidNotificationDetails(

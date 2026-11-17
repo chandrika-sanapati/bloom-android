@@ -196,13 +196,13 @@ void main() {
       final client = FakeNotificationClient();
       client.requests[7] = const PendingNotificationRequest(
         7,
-        'Check watering',
+        'Check & water',
         'old',
         'bloom-watering-p',
       );
       client.requests[8] = const PendingNotificationRequest(
         8,
-        'Check watering',
+        'Check & water',
         'old',
         'bloom-watering-p',
       );

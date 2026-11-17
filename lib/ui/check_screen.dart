@@ -87,7 +87,7 @@ class _CheckScreenState extends State<CheckScreen> {
           saving: _saving,
           child: Scaffold(
             appBar: AppBar(
-              title: const Text('Check watering'),
+              title: const Text('Check & water'),
               leading: const BackButton(),
               actions: [
                 Padding(

@@ -71,7 +71,7 @@ Future<void> main() async {
   await plugin.cancelAll();
   await plugin.show(
     id: notificationId,
-    title: 'Check watering',
+    title: 'Check & water',
     body: 'Cold launch test $notificationId',
     notificationDetails: const NotificationDetails(
       android: AndroidNotificationDetails('watering_checks', 'Watering checks'),

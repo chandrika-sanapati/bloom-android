@@ -63,7 +63,7 @@ class AndroidWateringNotificationClient implements WateringNotificationClient {
     required String payload,
   }) => plugin.zonedSchedule(
     id: id,
-    title: 'Check watering',
+    title: 'Check & water',
     body: body,
     scheduledDate: date,
     notificationDetails: const NotificationDetails(
@@ -221,7 +221,7 @@ class WateringNotifications {
           final payload = WateringNotificationTarget.encode(schedule, zone);
           final body = "Check $name's soil before deciding whether to water.";
           if (existing?.payload == payload &&
-              existing?.title == 'Check watering' &&
+              existing?.title == 'Check & water' &&
               existing?.body == body) {
             continue;
           }

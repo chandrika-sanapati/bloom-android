@@ -15,7 +15,6 @@ import 'package:path_provider/path_provider.dart';
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(PlantProfileCatalog.load);
-  var capturedCompact = false;
   const label = "I've placed it as suggested";
 
   Future<void> revealCheckbox(WidgetTester tester) async {
@@ -70,10 +69,12 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Opens the plant page and makes sure the light panel is expanded.
   Future<void> openDetail(
     WidgetTester tester,
     GardenStore store,
     String plantId,
+    PlantSpecies species,
   ) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -86,21 +87,24 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    final row = find.text(species.light.requirement);
+    await tester.scrollUntilVisible(row, 220, scrollable: _vertical);
+    await tester.pumpAndSettle();
+    if (find.text(species.light.placement).evaluate().isEmpty) {
+      await tester.tap(row);
+      await tester.pumpAndSettle();
+    }
     await tester.scrollUntilVisible(
-      find.text('Light & placement'),
-      220,
+      find.text(species.light.placement),
+      150,
+      scrollable: _vertical,
+    );
+    await tester.scrollUntilVisible(
+      find.byType(OutlinedButton).last,
+      150,
       scrollable: _vertical,
     );
     await tester.pumpAndSettle();
-    expect(find.byType(CheckboxListTile), findsNothing);
-    if (!capturedCompact) {
-      final directory = await getTemporaryDirectory();
-      await File(
-        '${directory.path}/bloom-light-compact.png',
-      ).writeAsBytes(await binding.takeScreenshot('light-placement-compact'));
-      capturedCompact = true;
-    }
-    await revealCheckbox(tester);
   }
 
   testWidgets(
@@ -138,8 +142,9 @@ void main() {
       final originalSchedule = store.scheduleFor(plant.id)!.toJson();
       reminderSyncs = 0;
 
-      await openDetail(tester, store, plant.id);
-      await tester.tap(find.text(label));
+      await openDetail(tester, store, plant.id, species);
+      expect(find.text('Is it in a spot like this?'), findsOneWidget);
+      await tester.tap(find.text('Yes, it is'));
       await tester.pumpAndSettle();
       expect(store.plant(plant.id)?.lightPlacement, isNotNull);
       expect(store.scheduleFor(plant.id)!.toJson(), originalSchedule);
@@ -149,15 +154,12 @@ void main() {
         garden: await repository.load(),
         persist: repository.save,
       );
-      await openDetail(tester, reloaded, plant.id);
-      expect(
-        tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
-        isTrue,
-      );
+      await openDetail(tester, reloaded, plant.id, species);
+      expect(find.text('In a good spot'), findsOneWidget);
       await File(
         '${directory.path}/bloom-light-detail.png',
       ).writeAsBytes(await binding.takeScreenshot('light-placement-detail'));
-      await tester.tap(find.text(label));
+      await tester.tap(find.text('Change'));
       await tester.pumpAndSettle();
       expect((await repository.load()).plants.single.lightPlacement, isNull);
       expect(reloaded.scheduleFor(plant.id)!.toJson(), originalSchedule);
@@ -189,11 +191,8 @@ void main() {
     final plant = restored.garden.plants.single;
     expect(plant.lightPlacement?.guidanceVersion, species.light.version);
     expect(restored.garden.schedules, hasLength(1));
-    await openDetail(tester, restored, plant.id);
-    expect(
-      tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
-      isTrue,
-    );
+    await openDetail(tester, restored, plant.id, species);
+    expect(find.text('In a good spot'), findsOneWidget);
     expect(find.text(species.light.placement), findsOneWidget);
     await file.delete();
   });

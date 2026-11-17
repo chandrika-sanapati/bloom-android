@@ -65,7 +65,7 @@ class FakeNotificationClient implements WateringNotificationClient {
     dates[id] = date;
     requests[id] = PendingNotificationRequest(
       id,
-      'Check watering',
+      'Check & water',
       body,
       payload,
     );

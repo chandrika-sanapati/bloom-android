@@ -202,7 +202,7 @@ class TaskRow extends StatelessWidget {
           overdue ? Icons.error_outline : Icons.water_drop,
           color: overdue ? Colors.orange.shade800 : theme.colorScheme.primary,
         ),
-        title: const Text('Check watering'),
+        title: const Text('Check & water'),
         subtitle: Text(plant.name),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -230,11 +230,13 @@ class HistoryRow extends StatelessWidget {
     required this.plant,
     required this.entry,
     this.showPlantName = true,
+    this.onTap,
   });
 
   final Plant plant;
   final PlantActivity entry;
   final bool showPlantName;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -272,14 +274,28 @@ class HistoryRow extends StatelessWidget {
       if (showPlantName) plant.name,
       if (showSoil) 'Soil: ${soil.label}',
     ];
+    final photo = entry.photo;
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-      leading: Icon(
-        icon,
-        color: highlighted
-            ? theme.colorScheme.primary
-            : theme.colorScheme.onSurfaceVariant,
-      ),
+      onTap: onTap,
+      leading: photo != null
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Image.file(
+                File(photo.path),
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+                cacheWidth: 120,
+                errorBuilder: (_, _, _) => Icon(icon),
+              ),
+            )
+          : Icon(
+              icon,
+              color: highlighted
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
       title: Text(title),
       subtitle: lines.isEmpty ? null : Text(lines.join('\n')),
       isThreeLine: lines.length > 1,

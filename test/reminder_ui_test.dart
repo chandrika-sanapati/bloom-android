@@ -242,7 +242,7 @@ void main() {
       final state = store();
       await app(tester, state, notifications(client));
       // Open the task from Home using the same route identity as notification entry.
-      await tester.tap(find.text('Check watering').first);
+      await tester.tap(find.text('Check & water').first);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Checked — not watered'));
       await tester.pumpAndSettle();
@@ -296,7 +296,7 @@ void main() {
       final client = FakeNotificationClient();
       final state = store();
       await app(tester, state, notifications(client));
-      await tester.tap(find.text('Check watering').first);
+      await tester.tap(find.text('Check & water').first);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Checked — not watered'));
       await tester.pumpAndSettle();

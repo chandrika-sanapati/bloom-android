@@ -68,13 +68,13 @@ void main() {
       await tester.tap(find.text('Open plant'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('Record soil care'),
+        find.text('Soil care'),
         180,
         scrollable: _vertical,
       );
-      await tester.ensureVisible(find.text('Record soil care'));
+      await tester.ensureVisible(find.text('Soil care'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Record soil care'));
+      await tester.tap(find.text('Soil care'));
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(CheckboxListTile, 'Repotted'));
       await tester.pumpAndSettle();
@@ -108,11 +108,11 @@ void main() {
       expect(reloaded.schedules.single.toJson(), beforeSchedule);
       expect(reloaded.records.single.toJson(), beforeWatering);
       await tester.scrollUntilVisible(
-        find.text('Care timeline'),
+        find.text('See all'),
         200,
         scrollable: _vertical,
       );
-      await tester.tap(find.text('Care timeline'));
+      await tester.tap(find.text('See all'));
       await tester.pumpAndSettle();
       expect(find.byType(PlantTimelineScreen), findsOneWidget);
       expect(find.text('Checked — not watered'), findsOneWidget);
