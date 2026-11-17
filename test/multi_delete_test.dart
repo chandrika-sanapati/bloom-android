@@ -1,6 +1,7 @@
 import 'package:bloom/data/cloud_garden_sync.dart';
 import 'package:bloom/data/garden_repository.dart';
 import 'package:bloom/data/watering_notifications.dart';
+import 'package:bloom/data/plant_profile_catalog.dart';
 import 'package:bloom/domain/garden_store.dart';
 import 'package:bloom/domain/models.dart';
 import 'package:bloom/main.dart';
@@ -11,7 +12,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'support/fake_notifications.dart';
 
 void main() {
-  final catalog = PlantSpecies.catalog;
+  late List<PlantSpecies> catalog;
+  setUpAll(() async {
+    await PlantProfileCatalog.load();
+    catalog = PlantSpecies.catalog;
+  });
   Plant plant(String id, int i) =>
       Plant(id: id, plantTypeId: catalog[i].id, displayName: 'Plant $id');
   WateringSchedule schedule(String id) => WateringSchedule(

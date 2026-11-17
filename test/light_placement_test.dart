@@ -2,27 +2,28 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bloom/data/garden_repository.dart';
+import 'package:bloom/data/plant_profile_catalog.dart';
 import 'package:bloom/domain/garden_store.dart';
 import 'package:bloom/domain/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   final now = DateTime(2026, 11, 15, 10);
-  final species = PlantSpecies.catalog[3];
-  final plant = Plant(id: 'plant-1', plantTypeId: species.id);
+  late PlantSpecies species;
+  setUpAll(() async {
+    await PlantProfileCatalog.load();
+    species = PlantSpecies.catalog[3];
+  });
+  final plant = Plant(id: 'plant-1', plantTypeId: 'pothos');
   final acknowledgment = LightPlacementAcknowledgment(
     acknowledgedAt: now,
-    guidanceVersion: species.light.version,
+    guidanceVersion: 1,
   );
 
   Garden populatedGarden({LightPlacementAcknowledgment? placement}) => Garden(
     plants: [
       plant.copyWith(lightPlacement: placement),
-      Plant(
-        id: 'plant-2',
-        plantTypeId: species.id,
-        displayName: 'Second Pothos',
-      ),
+      Plant(id: 'plant-2', plantTypeId: 'pothos', displayName: 'Second Pothos'),
     ],
     schedules: [
       WateringSchedule(

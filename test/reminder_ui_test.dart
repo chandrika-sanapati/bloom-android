@@ -14,12 +14,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'support/fake_notifications.dart';
 
 void main() {
-  final species = PlantSpecies.catalog[3];
   final plant = Plant(
     id: 'p',
-    name: 'Fern corner',
-    species: species.scientific,
-    asset: species.asset,
+    plantTypeId: 'pothos',
+    displayName: 'Fern corner',
   );
   final schedule = WateringSchedule(
     plantId: 'p',
@@ -230,7 +228,7 @@ void main() {
       await tester.tap(find.byTooltip('Back'));
       await tester.pumpAndSettle();
       expect(find.byType(CheckScreen), findsNothing);
-      expect(find.text('My plants'), findsOneWidget);
+      expect(find.text('Your garden'), findsOneWidget);
       expect(writes, 0);
       expect(state.garden.records, isEmpty);
     },
@@ -242,7 +240,18 @@ void main() {
       final state = store();
       await app(tester, state, notifications(client));
       // Open the task from Home using the same route identity as notification entry.
-      await tester.tap(find.text('Check & water').first);
+      final plantTile = find.ancestor(
+        of: find.text('Fern corner').first,
+        matching: find.byType(InkWell),
+      );
+      await tester.ensureVisible(plantTile);
+      await tester.tap(plantTile);
+      await tester.pumpAndSettle();
+      final checkButton = find
+          .widgetWithText(FilledButton, 'Check & water')
+          .last;
+      await tester.ensureVisible(checkButton);
+      await tester.tap(checkButton);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Checked — not watered'));
       await tester.pumpAndSettle();
@@ -296,7 +305,18 @@ void main() {
       final client = FakeNotificationClient();
       final state = store();
       await app(tester, state, notifications(client));
-      await tester.tap(find.text('Check & water').first);
+      final plantTile = find.ancestor(
+        of: find.text('Fern corner').first,
+        matching: find.byType(InkWell),
+      );
+      await tester.ensureVisible(plantTile);
+      await tester.tap(plantTile);
+      await tester.pumpAndSettle();
+      final checkButton = find
+          .widgetWithText(FilledButton, 'Check & water')
+          .last;
+      await tester.ensureVisible(checkButton);
+      await tester.tap(checkButton);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Checked — not watered'));
       await tester.pumpAndSettle();

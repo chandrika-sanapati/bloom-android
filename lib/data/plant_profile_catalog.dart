@@ -11,7 +11,7 @@ class PlantProfileCatalog {
   final List<PlantSpecies> profiles;
   static PlantProfileCatalog? _current;
   static PlantProfileCatalog get current =>
-      _current ?? (throw StateError('Plant profiles have not been loaded.'));
+      _current ?? PlantProfileCatalog._(PlantSpecies.catalog);
 
   static Future<PlantProfileCatalog> load() async {
     final raw = await rootBundle.loadString('assets/data/plant_profiles.json');

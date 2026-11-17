@@ -4,9 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:bloom/domain/garden_store.dart';
 import 'package:bloom/domain/models.dart';
+import 'package:bloom/data/plant_profile_catalog.dart';
 import 'package:bloom/domain/soil_care.dart';
 
 void main() {
+  setUpAll(() async => PlantProfileCatalog.load());
   final now = DateTime(2026, 11, 15, 10);
 
   Plant plant({String name = 'Pothos', String? species}) => Plant(

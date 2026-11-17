@@ -8,13 +8,7 @@ import 'support/fake_notifications.dart';
 
 void main() {
   final now = DateTime(2026, 11, 15, 10);
-  final species = PlantSpecies.catalog[3];
-  final plant = Plant(
-    id: 'p',
-    name: 'Pothos',
-    species: species.scientific,
-    asset: species.asset,
-  );
+  final plant = Plant(id: 'p', plantTypeId: 'pothos', displayName: 'Pothos');
   final schedule = WateringSchedule(
     plantId: 'p',
     intervalDays: 14,

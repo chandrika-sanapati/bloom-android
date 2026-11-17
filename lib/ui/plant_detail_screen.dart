@@ -235,6 +235,7 @@ class _BodyState extends State<_Body> {
                     title: profile.careCue,
                   ),
                   _GuideRow(
+                    key: const ValueKey('plant-detail-light-guide'),
                     icon: Icons.wb_sunny_outlined,
                     title: profile.light.requirement,
                     trailing: Row(
@@ -490,6 +491,7 @@ class _SectionLabel extends StatelessWidget {
 
 class _GuideRow extends StatelessWidget {
   const _GuideRow({
+    super.key,
     required this.icon,
     required this.title,
     this.trailing,

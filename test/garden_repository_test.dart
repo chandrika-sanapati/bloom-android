@@ -1,10 +1,12 @@
 import 'dart:io';
 
 import 'package:bloom/data/garden_repository.dart';
+import 'package:bloom/data/plant_profile_catalog.dart';
 import 'package:bloom/domain/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  setUpAll(() async => PlantProfileCatalog.load());
   late Directory dir;
   late File file;
 

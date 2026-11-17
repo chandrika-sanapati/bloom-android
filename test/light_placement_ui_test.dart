@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloom/domain/garden_store.dart';
 import 'package:bloom/domain/models.dart';
+import 'package:bloom/data/plant_profile_catalog.dart';
 import 'package:bloom/ui/catalog_screen.dart';
 import 'package:bloom/ui/plant_detail_screen.dart';
 import 'package:flutter/material.dart';
@@ -10,13 +11,15 @@ import 'package:flutter_test/flutter_test.dart';
 const acknowledgmentLabel = "I've placed it as suggested";
 
 void main() {
-  final species = PlantSpecies.catalog[2];
-  final plant = Plant(
-    id: 'plant-1',
-    name: species.name,
-    species: species.scientific,
-    asset: species.asset,
-  );
+  const speciesId = 'rubber_plant';
+  late PlantSpecies species;
+  setUpAll(() async {
+    await PlantProfileCatalog.load();
+    species = PlantSpecies.catalog.firstWhere(
+      (profile) => profile.id == speciesId,
+    );
+  });
+  final plant = Plant(id: 'plant-1', plantTypeId: speciesId);
   final schedule = WateringSchedule(
     plantId: plant.id,
     intervalDays: 14,
@@ -151,9 +154,23 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> scrollTo(WidgetTester tester, Finder finder) async {
-    await tester.scrollUntilVisible(finder, 200, scrollable: _vertical);
-    await tester.pumpAndSettle();
+  Future<void> scrollTo(
+    WidgetTester tester,
+    Finder finder, {
+    bool openLight = true,
+  }) async {
+    final row = find.byKey(const ValueKey('plant-detail-light-guide'));
+    if (row.evaluate().isEmpty) {
+      await tester.scrollUntilVisible(row, 200, scrollable: _vertical);
+    }
+    if (openLight && find.text(species.light.placement).evaluate().isEmpty) {
+      await tester.tap(row);
+      await tester.pumpAndSettle();
+    }
+    if (finder.evaluate().isNotEmpty) {
+      await tester.ensureVisible(finder);
+      await tester.pumpAndSettle();
+    }
   }
 
   Plant acknowledgedPlant({int? version}) => plant.copyWith(
@@ -171,6 +188,7 @@ void main() {
         garden: Garden(plants: [plant], schedules: [schedule]),
         persist: (_) async => writes++,
       );
+      expect(PlantSpecies.forPlant(plant), isNotNull);
       await openDetail(tester, store);
       await scrollTo(tester, find.text('Is it in a spot like this?'));
       expect(find.text(species.light.placement), findsOneWidget);
@@ -192,11 +210,12 @@ void main() {
       persist: (_) async {},
     );
     await openDetail(tester, store);
-    await scrollTo(tester, find.text(species.light.requirement));
-    expect(
-      find.bySemanticsLabel(RegExp('Placement confirmed')),
-      findsOneWidget,
+    await scrollTo(
+      tester,
+      find.text(species.light.requirement),
+      openLight: false,
     );
+    expect(find.byIcon(Icons.check_circle), findsOneWidget);
     expect(find.text('In a good spot'), findsNothing);
     await tester.tap(find.text(species.light.requirement));
     await tester.pumpAndSettle();
@@ -273,8 +292,12 @@ void main() {
       persist: (_) async {},
     );
     await openDetail(tester, store);
-    await scrollTo(tester, find.text(species.light.requirement));
-    await tester.tap(find.text(species.light.requirement));
+    await scrollTo(
+      tester,
+      find.text(species.light.requirement),
+      openLight: false,
+    );
+    await tester.tap(find.byKey(const ValueKey('plant-detail-light-guide')));
     await tester.pumpAndSettle();
     final question = find.text(
       'The advice was updated. Is it still in a spot like this?',

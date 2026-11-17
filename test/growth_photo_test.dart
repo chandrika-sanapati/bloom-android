@@ -1,10 +1,15 @@
 import 'package:bloom/domain/garden_store.dart';
+import 'package:bloom/data/plant_profile_catalog.dart';
 import 'package:bloom/domain/models.dart';
 import 'package:bloom/domain/plant_activity.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final species = PlantSpecies.catalog.first;
+  late PlantSpecies species;
+  setUpAll(() async {
+    await PlantProfileCatalog.load();
+    species = PlantSpecies.catalog.first;
+  });
   Plant plant(String id) => Plant(id: id, plantTypeId: species.id);
   GrowthPhoto photo(String id, String plantId, int day) => GrowthPhoto(
     id: id,

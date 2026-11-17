@@ -495,7 +495,7 @@ class PlantSpecies {
 
   static PlantSpecies? forPlant(Plant plant) {
     final requested = plant.plantTypeId?.trim();
-    for (final profile in _catalog) {
+    for (final profile in catalog) {
       if (requested?.isNotEmpty == true && profile.id == requested) {
         return profile;
       }
@@ -521,7 +521,7 @@ class PlantSpecies {
 
   static PlantSpecies? _find(Iterable<String> values) {
     for (final value in values) {
-      for (final profile in _catalog) {
+      for (final profile in catalog) {
         if (_normalize(profile.name) == value ||
             _normalize(profile.scientific) == value ||
             profile.aliases.any((alias) => _normalize(alias) == value)) {

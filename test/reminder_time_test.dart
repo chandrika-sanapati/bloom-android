@@ -9,13 +9,8 @@ import 'package:timezone/timezone.dart' as tz;
 
 void main() {
   final now = DateTime(2026, 11, 15, 10);
-  final species = PlantSpecies.catalog[3];
-  Plant plant(String id) => Plant(
-    id: id,
-    name: id,
-    species: species.scientific,
-    asset: species.asset,
-  );
+  Plant plant(String id) =>
+      Plant(id: id, plantTypeId: 'pothos', displayName: id);
   WateringSchedule schedule(String id, DateTime due, CheckTimeSource source) =>
       WateringSchedule(
         plantId: id,

@@ -1,4 +1,5 @@
 import 'package:bloom/domain/garden_store.dart';
+import 'package:bloom/data/plant_profile_catalog.dart';
 import 'package:bloom/domain/models.dart';
 import 'package:bloom/domain/soil_care.dart';
 import 'package:bloom/ui/plant_detail_screen.dart';
@@ -10,12 +11,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final species = PlantSpecies.catalog[3];
+  late PlantSpecies species;
+  setUpAll(() async {
+    await PlantProfileCatalog.load();
+    species = PlantSpecies.catalog[3];
+  });
   final plant = Plant(
     id: 'p',
-    name: 'Window Pothos',
-    species: species.scientific,
-    asset: species.asset,
+    plantTypeId: 'pothos',
+    displayName: 'Window Pothos',
   );
   final now = DateTime.now();
   final schedule = WateringSchedule(

@@ -73,11 +73,6 @@ void main() {
     await tester.tap(submit);
     await tester.pump();
 
-    expect(
-      find.text(
-        'Enter a valid email.',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('Enter a valid email.'), findsOneWidget);
   });
 }

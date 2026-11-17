@@ -7,13 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   final now = DateTime(2026, 11, 15, 14);
-  final species = PlantSpecies.catalog[3];
-  Plant plant(String id) => Plant(
-    id: id,
-    name: id,
-    species: species.scientific,
-    asset: species.asset,
-  );
+  Plant plant(String id) =>
+      Plant(id: id, plantTypeId: 'pothos', displayName: id);
   SoilCareEvent event(
     String id,
     Set<SoilCareAction> actions, {
