@@ -71,7 +71,7 @@ identification_runs
 
 `plant_profiles` and `plant_profile_aliases` are managed catalog tables readable by authenticated clients. The production seed contains 50 common houseplant profiles for testing. The app caches the bundled profile catalog for offline startup and uses the remote catalog when available; profile updates never silently rewrite existing schedules. The test seed's horticultural content requires review before production content release.
 
-The current sync implementation uses one `plant_collections` row per user with normalized `plants`, `watering_schedules`, `watering_records`, and `soil_care_events` tables. Each plant references `plant_profiles`; each physical plant retains its own schedule and history. The local JSON file remains the device persistence format, not the long-term cloud schema.
+The current sync implementation uses one `plant_collections` row per user with normalized `plants`, `watering_schedules`, `watering_records`, and `soil_care_events` tables. Each plant references `plant_profiles`; each physical plant retains its own schedule and history. The local JSON file remains the device persistence format, not the long-term cloud schema. The legacy `gardens` JSON table is retired and dropped by migration.
 
 RLS requirements:
 

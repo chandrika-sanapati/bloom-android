@@ -82,6 +82,7 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Configured builds now gate Home on Supabase authentication; garden sync uploads the local payload when the remote garden is empty and guarded-overwrites differing cloud data with the local payload. The deployed `gardens` migration is applied; final production RLS/release review remains.
 - Host verification: Supabase/auth/sync/auth UI code compiles and the current 98-test suite passes. Live OTP registration requires a real inbox and the Supabase Confirm signup template to include `{{ .Token }}`; live Google sign-in and authenticated PlantNet require configured-build emulator interaction.
 - Cloud synchronization runs in the background and is not exposed as a separate Profile section; local saves remain available when the network is unavailable.
+- Normalized `plant_collections` is the only cloud garden model. The legacy `gardens` JSON table is formally retired by migration `20261118094000_drop_legacy_gardens`.
 - When local and cloud collections differ, the local collection snapshot is authoritative. Bloom uses the collection revision as a guard, retries if another write races, and keeps the local save successful even when cloud sync is unavailable.
 - A typed PlantNet/Supabase Edge Function provider seam is implemented; it activates only when `PLANT_IDENTIFIER_ENDPOINT` is supplied at build time.
 - Optional Supabase initialization is implemented behind `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` build-time defines; no project credentials are tracked in the repository.
