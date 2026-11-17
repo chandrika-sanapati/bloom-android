@@ -5,6 +5,14 @@
 **Source of truth:** [`STATUS.md`](STATUS.md) for shipped behavior; [`PRD.md`](PRD.md) for product intent and scope.
 **Last updated:** 15 November 2026
 
+## Scope freeze — no feature expansion
+
+**Effective:** 16 November 2026
+
+This plan is now stabilization-only. Do not implement new plant profiles, new care domains, new identification behavior, new sync modes, new navigation destinations, or additional product capabilities. The only permitted work is hardening behavior already present in the app, including cloud/auth reliability, PlantNet error handling, persistence integrity, notification/lifecycle behavior, accessibility, tests, emulator verification, and release preparation.
+
+Future ideas may be documented in `PRODUCT_DECISIONS.md`, but documentation is not authorization to implement them during the freeze.
+
 Read [`PRODUCT_DECISIONS.md`](PRODUCT_DECISIONS.md) before changing scope. It preserves the alternatives and tradeoffs behind the current cuts and future roadmap.
 
 ## 1. Implementation principle

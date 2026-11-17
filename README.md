@@ -93,6 +93,7 @@ The domain/widget suite covers watering, placement, reminder timing, soil health
 ## Documentation
 
 - [`docs/STATUS.md`](docs/STATUS.md) — current implementation and verification source of truth.
+- [`docs/STABILIZATION_CHECKLIST.md`](docs/STABILIZATION_CHECKLIST.md) — active stabilization-only verification queue.
 - [`docs/PRD.md`](docs/PRD.md) — product intent, behavior contract, scope, and roadmap.
 - [`docs/PRODUCT_DECISIONS.md`](docs/PRODUCT_DECISIONS.md) — recovered product decisions, alternatives, tradeoffs, and revisit triggers.
 - [`docs/DESIGN_GUIDELINES.md`](docs/DESIGN_GUIDELINES.md) — Android/Flutter interaction and accessibility guidance.
@@ -127,6 +128,10 @@ The Android OAuth client and Supabase Google provider must be configured first. 
 ## Product boundary
 
 Bloom is an assistant for remembering and recording plant checks. It does not diagnose disease, guarantee plant health, or claim that a date proves a plant needs water. Broader environmental assessments, chemistry/diagnosis, additional plant profiles, and cloud sync remain roadmap items. Soil health supports the on-demand care described below.
+
+## Current development mode: stabilization only
+
+Bloom is currently under a feature freeze. No new product features or feature expansion should be implemented. Engineering work is limited to stabilizing the existing watering, reminders, auth/cloud sync, PlantNet/photo, Soil health, timeline, correction, placement, and navigation flows; improving persistence, accessibility, error handling, tests, documentation, and release readiness; and fixing regressions.
 
 ## Soil health, plant timeline, and Back navigation
 

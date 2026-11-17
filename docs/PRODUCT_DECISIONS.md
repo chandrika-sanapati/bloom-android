@@ -4,6 +4,10 @@
 **Last reviewed:** 15 November 2026
 **Decision scope:** Product, UX, content safety, and roadmap choices
 
+## Current implementation constraint
+
+Bloom is currently under a **stabilization-only feature freeze**. The implemented product surface is the scope to harden; the roadmap and future decisions below are not implementation authorization. Do not add capabilities until the freeze is explicitly lifted.
+
 This document preserves the product reasoning that led to Bloom's focused watering MVP. It is intentionally separate from the implementation plan: it records **why** a choice was made, not only what code should do.
 
 The source material was the earlier Bloom product repository. SwiftUI, Xcode, iOS, and prototype-file details have been removed or translated to platform-neutral decisions. The current Android implementation remains the authority for shipped behavior. A decision marked **Designed** is not user-research evidence until it is validated.

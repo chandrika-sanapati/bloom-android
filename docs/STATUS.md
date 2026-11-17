@@ -6,6 +6,20 @@
 
 This is the short, current implementation record. If it conflicts with an older screenshot, planning note, or copied design document, this file and the code are authoritative.
 
+## Scope freeze — stabilization only
+
+**Effective:** 16 November 2026
+
+Bloom is under a feature freeze. Do not add new product capabilities, care domains, catalog expansion, sync modes, identification features, or navigation destinations during this stage. Work is limited to stabilizing and documenting behavior that already exists:
+
+- Cloud sync, auth gating, conflict resolution, and local-data safety.
+- PlantNet request/response handling and existing candidate confirmation.
+- Existing watering, reminders, Soil health, timeline, correction/Undo, light placement, FAB, and photo-intake flows.
+- Persistence, migration, error recovery, accessibility, Android lifecycle, and notification reliability.
+- Tests, emulator verification, performance, privacy, and release readiness.
+
+Any proposed feature expansion must be recorded as a future idea only and must not be implemented until the scope freeze is explicitly lifted.
+
 ## Latest local verification
 
 Latest pulled `main` was verified on the local Android 36 emulator (`emulator-5554`):
@@ -175,11 +189,11 @@ See [PRD section 14](PRD.md#14-light--placement--release-requirements), [decisio
 
 The full tradeoff history recovered from the original Bloom product work is maintained in [`PRODUCT_DECISIONS.md`](PRODUCT_DECISIONS.md). It is platform-neutral and distinguishes current Android behavior from deferred and planned capabilities.
 
-## Remaining manual verification
+## Remaining stabilization work
 
 1. Review long-idle/OEM notification delivery and the real permission-denial/re-enable interaction. Notification routing has automated Android evidence above.
 2. Review TalkBack labels, selected states, large Android font sizes, narrow layouts, dark theme behavior, and system animation settings.
-3. Consider broader historical editing/search as future scope; latest watering correction/Undo, reminder time, notification navigation, light placement, soil health, timeline, and guarded Back are implemented.
+3. Finish release-readiness review; do not begin feature expansion during this scope freeze.
 
 ## Soil health, Care timeline, and guarded Back — implemented and verified on 15 November 2026
 

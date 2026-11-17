@@ -6,6 +6,10 @@ The active target is the Flutter Android app in this repository. The Android imp
 
 The app is local-first and currently focused on watering check-ins for four catalog plants. Preserve local garden data and existing user changes when modifying persistence or the domain model. Prefer small, focused changes that match the existing Flutter structure.
 
+## Scope freeze
+
+The repository is currently in a stabilization-only feature freeze. Do not add new product features, care domains, plant profiles, sync modes, identification behavior, or navigation destinations. Work only on bugs, reliability, data safety, accessibility, test coverage, documentation, and release readiness for behavior already present. Future ideas may be documented but must not be implemented without explicit scope approval.
+
 ## Product and UX responsibility
 
 Work at a senior mobile UX/UI designer level as well as an engineer. Aim for a finished, customer-ready interface rather than a merely functional arrangement of controls.
