@@ -32,6 +32,7 @@ This checklist is the active work queue during the feature freeze. It covers onl
 - [x] Verify failed network/write leaves local data intact and exposes retry state through deterministic tests.
 - [x] Verify signed-out sync does not call the backend through deterministic tests; live sign-out remains a manual check.
 - [x] Review the deployed migration and RLS schema: migration matches production and `supabase db lint --linked` reports no schema errors.
+- [x] Verify normalized plant collection migration and transactional sync function are deployed with JWT authentication.
 
 ## PlantNet/photo flow
 
