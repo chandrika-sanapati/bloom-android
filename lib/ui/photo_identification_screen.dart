@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../data/growth_photo_files.dart';
 import '../data/plant_identifier.dart';
 import '../domain/garden_store.dart';
 import '../domain/plant_identification.dart';
@@ -376,14 +377,26 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
         ),
       ).then((confirmed) async {
         if (confirmed != true || !mounted) return;
-        final saved = await widget.store.savePlant(
-          Plant(
-            id: newId(),
-            displayName: candidate.displayName,
-            legacySpecies: candidate.scientificName,
-          ),
+        final plant = Plant(
+          id: newId(),
+          displayName: candidate.displayName,
+          legacySpecies: candidate.scientificName,
         );
+        final saved = await widget.store.savePlant(plant);
         if (!mounted || !saved) return;
+        if (_photo case final photo?) {
+          try {
+            await GrowthPhotoFiles.adopt(
+              widget.store,
+              plant.id,
+              photo.path,
+              asCover: true,
+            );
+          } catch (_) {
+            // Saved without a photo; the placeholder is shown instead.
+          }
+        }
+        if (!mounted) return;
         if (!context.mounted) return;
         Navigator.of(context).popUntil((route) => route.isFirst);
       });
@@ -391,7 +404,11 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
     }
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => PlantSetupScreen(store: widget.store, species: species),
+        builder: (_) => PlantSetupScreen(
+          store: widget.store,
+          species: species,
+          photoPath: _photo?.path,
+        ),
       ),
     );
   }

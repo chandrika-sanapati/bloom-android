@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../data/garden_repository.dart';
 import '../data/growth_photo_files.dart';
 import '../data/auth_service.dart';
 import '../data/cloud_garden_sync.dart';
@@ -21,7 +20,6 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
     required this.store,
-    required this.flags,
     required this.notifications,
     this.identifier,
     this.auth,
@@ -29,7 +27,6 @@ class HomeScreen extends StatefulWidget {
   });
 
   final GardenStore store;
-  final FirstRunFlags flags;
   final WateringNotifications notifications;
   final PlantIdentifier? identifier;
   final AuthService? auth;
@@ -123,8 +120,6 @@ class _HomeScreenState extends State<HomeScreen> {
   });
 
   Future<void> _openCatalog() async {
-    await widget.flags.markAddPlantHintSeen();
-    if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => CatalogScreen(store: widget.store)),
     );

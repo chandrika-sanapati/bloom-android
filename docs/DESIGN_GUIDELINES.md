@@ -31,7 +31,7 @@ These guidelines apply to the Flutter Android app and describe the shared design
 | `SectionHeader(title, action:, onAction:)` | Every section title, in sentence case (**My plants · 3**, **Care guide**, **What did you do?**). Optional trailing text action such as **See all** or **Select**. Marked as a heading for TalkBack. |
 | `MessageBanner(message, isError:)` | Inline status or error: tinted container (`errorContainer` or `secondaryContainer`), icon, live region. Use for form and flow errors instead of dialogs. |
 | `BottomAction(child:)` | The single primary action pinned above the system bar on form and flow screens, full width with 20dp side insets. |
-| `PlantImage(store:, plant:, height:)` | The plant's chosen growth photo, falling back to the catalog image. Use wherever a plant is pictured. |
+| `PlantImage(store:, plant:, height:)` | The plant's chosen growth photo (including the identification photo), falling back to the catalog image, then the drawn placeholder — never a photo of a different species. Use wherever a plant is pictured. |
 | `HistoryRow(plant:, entry:)` | One activity entry: round icon badge (highlighted for watering, soil care, photos), or a photo thumbnail for growth photos; title, optional plant name/soil line, and a short date. |
 | `relativeCheckLabel(when, now)` | Next-check text: **Today**, **Tomorrow**, **In N days · Dec 1**, **Overdue · N days**. |
 | `relativeAgo(when, now)` | Past text: **today**, **yesterday**, **N days ago**. |

@@ -10,6 +10,8 @@ Bloom uses the existing Snake Plant artwork as its in-app brand mark and Android
 
 The bundled offline profile catalog holds the current 50-profile test inventory; all 50 are marked reviewed and searchable in Add a plant. Supabase is the managed profile source when available. The five curated **Popular plants** shown before typing are Pothos, Snake Plant, Monstera, Spider Plant, and Rubber Plant.
 
+Catalog images: 42 profiles use photos from Wikimedia Commons in `assets/images/plants/` (free licenses, credited in [`docs/IMAGE_CREDITS.md`](docs/IMAGE_CREDITS.md) and in the app under Profile → About → Photo credits); the five original profiles keep their bundled photos, and Boston Fern, Tradescantia, and Bromeliad are still pending. Any profile without its own image shows a drawn, species-neutral placeholder (`assets/images/plant_placeholder.png`). A plant added through photo identification uses the user's identification photo as its plant image (saved as its first growth photo).
+
 The current app supports:
 
 - **Theme:** a fixed dark-forest-green Material 3 light/dark theme (seed `#2E6B3A`, fidelity variant); Android wallpaper dynamic color is not used. Shared component styling lives in `bloomTheme` in `lib/main.dart`; overscroll stretch is disabled app-wide.
@@ -69,7 +71,7 @@ flutter analyze
 flutter test
 ```
 
-The domain/widget suite (111 tests) covers watering, placement, reminder timing, soil care, the care timeline, growth photos, auth UI, sync, and notification navigation. Run `sh tool/test_android.sh -d emulator-5554` for placement, or set `BLOOM_TEST_TARGET` to `integration_test/care_timeline_test.dart` or `integration_test/reminders_test.dart` for the other Android integration suites. All use the separate test package and disable uninstall cleanup. Run `python3 tool/check_notification_launch.py` for real notification-drawer taps after process death. These runners grant notification permission only to the isolated test package. See [`docs/STATUS.md`](docs/STATUS.md) for the macOS path limitation and verification notes.
+The domain/widget suite (114 tests) covers catalog images and credits, watering, placement, reminder timing, soil care, the care timeline, growth photos, auth UI, sync, and notification navigation. Run `sh tool/test_android.sh -d emulator-5554` for placement, or set `BLOOM_TEST_TARGET` to `integration_test/care_timeline_test.dart` or `integration_test/reminders_test.dart` for the other Android integration suites. All use the separate test package and disable uninstall cleanup. Run `python3 tool/check_notification_launch.py` for real notification-drawer taps after process death. These runners grant notification permission only to the isolated test package. See [`docs/STATUS.md`](docs/STATUS.md) for the macOS path limitation and verification notes.
 
 ## Project layout
 

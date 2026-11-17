@@ -33,14 +33,25 @@ class GrowthPhotoFiles {
       imageQuality: 85,
     );
     if (picked == null) return null;
+    return adopt(store, plantId, picked.path);
+  }
+
+  /// Copies an existing image (e.g. the identification photo) into private
+  /// storage and records it; optionally makes it the plant image.
+  static Future<GrowthPhoto> adopt(
+    GardenStore store,
+    String plantId,
+    String sourcePath, {
+    bool asCover = false,
+  }) async {
     final now = DateTime.now();
     final id = 'photo-${now.microsecondsSinceEpoch}';
     final dir = await _dir();
-    final ext = p.extension(picked.path).isEmpty
+    final ext = p.extension(sourcePath).isEmpty
         ? '.jpg'
-        : p.extension(picked.path);
+        : p.extension(sourcePath);
     final target = p.join(dir.path, '$id$ext');
-    await File(picked.path).copy(target);
+    await File(sourcePath).copy(target);
     final photo = GrowthPhoto(
       id: id,
       plantId: plantId,
@@ -51,6 +62,7 @@ class GrowthPhotoFiles {
       await _deleteQuietly(target);
       throw StateError('Photo could not be saved.');
     }
+    if (asCover) await store.setCoverPhoto(plantId, photo.id);
     return photo;
   }
 

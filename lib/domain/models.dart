@@ -90,7 +90,7 @@ class Plant {
   String get asset =>
       PlantSpecies.forPlant(this)?.asset ??
       legacyAsset ??
-      'assets/images/area-whole.png';
+      plantPlaceholderAsset;
 
   Plant copyWith({
     String? plantTypeId,
@@ -480,7 +480,7 @@ class PlantSpecies {
     name: json['name'] as String,
     scientific: json['scientificName'] as String,
     aliases: (json['aliases'] as List? ?? const []).cast<String>(),
-    asset: json['asset'] as String,
+    asset: normalizePlantAsset(json['asset'] as String),
     minDays: json['minDays'] as int,
     maxDays: json['maxDays'] as int,
     startingIntervalDays: json['startingIntervalDays'] as int,
@@ -551,3 +551,10 @@ final _random = Random();
 
 String newId() =>
     '${DateTime.now().microsecondsSinceEpoch}-${_random.nextInt(1 << 32)}';
+
+/// Drawn, species-neutral image for plants without their own picture.
+const plantPlaceholderAsset = 'assets/images/plant_placeholder.png';
+
+/// Older profile data used a specific plant photo as its placeholder.
+String normalizePlantAsset(String asset) =>
+    asset == 'assets/images/area-whole.png' ? plantPlaceholderAsset : asset;

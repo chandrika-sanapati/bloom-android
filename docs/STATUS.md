@@ -29,7 +29,7 @@ Any proposed feature expansion must be recorded as a future idea only and must n
 - `flutter test`: **111 unit/widget tests passed**.
 - `integration_test/care_timeline_test.dart`, `integration_test/light_placement_test.dart`, and `integration_test/reminders_test.dart` passed through `tool/test_android.sh`. The suites now load the plant catalog in `setUpAll`, and the reminders test awaits the queued notification sync.
 - Configured release build with `--dart-define-from-file=config/prod.json`: Google sign-in reached the Google account picker on the emulator.
-- Native cold-launch drawer taps (`tool/check_notification_launch.py`) were not re-run in this pass; the result below is the latest.
+- Native cold-launch drawer taps (`tool/check_notification_launch.py`): **all four cases passed again on 17 November 2026** after the UX overhaul (current → Check & water, legacy → plant page, malformed and deleted → Home; no garden changes). The fixture now loads the plant catalog and compares against the normalized starting garden.
 
 ### Previous snapshot (before the UX overhaul)
 
@@ -62,6 +62,7 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Production profile seed is applied: 50 common houseplant identities/profiles are available in Supabase. The current test seed marks all 50 reviewed; content review and source refinement remain a release-readiness task.
 - Home: greeting header with + (Add plant sheet) and avatar initial (Profile); Today card listing due/overdue plants with a Check button each, or "Nothing to check today"; **My plants · N** two-column photo grid with an Add plant tile; long-press or Select for multi-select delete; **Recent** (last three activities across plants, all care types, See all). The FAB menu and Upcoming/Past toggle were removed.
 - Add plant sheet: Search by name / Identify from a photo. Search filters live by common name, scientific name, and aliases, ranking name matches first; five curated Popular plants (Pothos, Snake Plant, Monstera, Spider Plant, Rubber Plant) show before typing.
+- Catalog images: bundled Wikimedia Commons photos for 42 profiles (credited in Profile → About → Photo credits), the original five photos, and a drawn species-neutral placeholder for anything else. Plants added from photo identification use the identification photo as their plant image. Boston Fern, Tradescantia, and Bromeliad still use the placeholder (Wikimedia rate-limited the download; retry later). Migration `20261119090000_bundled_plant_images.sql` was applied to the production Supabase project on 17 November 2026 so remote profiles point at the same images.
 - Setup: species photo, optional last-watered date, Light & placement with room-scene illustration and optional "I've placed it as suggested" checkbox, Add plant pinned at the bottom.
 - Photo identification: "What plant is this?" with Take a photo / Choose from gallery; chosen photo with Change photo and in-place progress; results with thumbnail and Retake; best match as a featured card, others as compact rows; likelihood labels (Very likely ≥60%, Possible ≥25%, Less likely) instead of percentages; "no care guide yet" note; single **Add <name>** button. Unsupported identities get no invented schedule.
 - Catalog and photo-added identities share canonical reviewed profiles; supported aliases receive the same asset, schedule interval, care cue, and light guidance while retaining separate plant IDs.
@@ -90,7 +91,7 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Candidate confirmation is implemented. Growth photos are stored only on the device; cloud photo storage and broader profile enrichment remain deferred.
 - Supabase Auth supports mandatory configured-build authentication with Google and email/password sign-in or registration. Registration uses a six-digit email OTP; successful verification signs the user in immediately. Later email/password sign-ins do not require OTP.
 - Configured builds now gate Home on Supabase authentication; local saves synchronize normalized collection snapshots transactionally with the local collection authoritative. The normalized migrations are applied; final production RLS/release review remains.
-- Host verification: Supabase/auth/sync/auth UI code compiles and the test suite passes (111 tests as of 17 November 2026). Live OTP registration requires a real inbox and the Supabase Confirm signup template to include `{{ .Token }}`; live Google sign-in and authenticated PlantNet require configured-build emulator interaction.
+- Host verification: Supabase/auth/sync/auth UI code compiles and the test suite passes (114 tests as of 17 November 2026). Live OTP registration requires a real inbox and the Supabase Confirm signup template to include `{{ .Token }}`; live Google sign-in and authenticated PlantNet require configured-build emulator interaction.
 - Cloud synchronization runs in the background and is not exposed as a separate Profile section; local saves remain available when the network is unavailable.
 - Normalized `plant_collections` is the only cloud garden model. The legacy `gardens` JSON table is formally retired by migration `20261118094000_drop_legacy_gardens`.
 - When local and cloud collections differ, the local collection snapshot is authoritative. Bloom uses the collection revision as a guard, retries if another write races, and keeps the local save successful even when cloud sync is unavailable.
@@ -197,7 +198,7 @@ See [PRD section 14](PRD.md#14-light--placement--release-requirements), [decisio
 - `lib/domain/reminder_time.dart` — local calendar clocks and DST resolution.
 - `lib/domain/watering_notification.dart` — bounded payload parsing, current/stale resolution, and stable IDs.
 - `lib/main.dart` / `lib/ui/check_route.dart` — lifecycle-aware root routing and shared check identity.
-- `lib/data/garden_repository.dart` — JSON file storage, unreadable-file backup, and first-run flags.
+- `lib/data/garden_repository.dart` — JSON file storage and unreadable-file backup.
 - `lib/data/growth_photo_files.dart` — device-only growth photo files.
 - `lib/data/plant_profile_catalog.dart` — bundled/remote profile catalog.
 - `lib/data/auth_service.dart` / `lib/data/cloud_garden_sync.dart` / `lib/data/plant_identifier.dart` — Supabase auth, local-wins sync, and Edge Function identification.
@@ -205,7 +206,8 @@ See [PRD section 14](PRD.md#14-light--placement--release-requirements), [decisio
 - `lib/main.dart` also defines `bloomTheme`.
 - `lib/ui/widgets.dart` — shared SectionHeader, MessageBanner, BottomAction, PlantImage, HistoryRow, and relative date helpers.
 - `lib/ui/home_screen.dart` — Home, Today card, plant grid, multi-select delete, Recent, and Add plant sheet.
-- `lib/ui/catalog_screen.dart` — search, Popular plants, and setup.
+- `lib/ui/catalog_screen.dart` — search, Popular plants, and setup (shows the identification photo when adding from photo ID).
+- `lib/ui/photo_credits_screen.dart`, `assets/data/image_credits.json`, `docs/IMAGE_CREDITS.md` — Wikimedia Commons photo attribution.
 - `lib/ui/check_screen.dart` — Check & water outcome flow.
 - `lib/ui/plant_detail_screen.dart` — plant page (hero, status card, care guide, history).
 - `lib/ui/plant_timeline_screen.dart` — full month-grouped history.

@@ -11,12 +11,12 @@ The owner-approved UX overhaul exception (17 November 2026) is complete; the ite
 ## Automated checks
 
 - [x] `flutter analyze` reports zero findings.
-- [x] Host/widget/domain tests pass (111 tests, 17 November 2026).
+- [x] Host/widget/domain tests pass (114 tests, 17 November 2026).
 - [x] Normal debug APK builds with the Android Studio JDK.
 - [x] Existing isolated placement integration tests pass (re-run after the UX overhaul).
 - [x] Existing isolated care timeline integration tests pass (re-run after the UX overhaul).
 - [x] Existing isolated reminder/notification integration tests pass (re-run after the UX overhaul).
-- [x] Existing native cold-launch notification cases pass (not re-run after the UX overhaul).
+- [x] Native cold-launch notification cases pass (re-run 17 November 2026 after the UX overhaul).
 - [x] Add deterministic tests for cloud sync status transitions using a fake backend seam.
 - [x] Add deterministic tests for local-save/cloud-sync boundaries, signed-out writes, ordered snapshots, and provider errors.
 

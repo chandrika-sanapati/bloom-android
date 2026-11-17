@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../domain/models.dart';
 
@@ -64,20 +63,5 @@ class GardenRepository {
     final temp = File('${file.path}.tmp');
     await temp.writeAsString(jsonEncode(garden.toJson()), flush: true);
     await temp.rename(file.path);
-  }
-}
-
-/// First-run hint flag persisted independently from the garden JSON.
-class FirstRunFlags {
-  static const _addPlantHintKey = 'hasSeenAddPlantHint';
-
-  Future<bool> hasSeenAddPlantHint() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_addPlantHintKey) ?? false;
-  }
-
-  Future<void> markAddPlantHintSeen() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_addPlantHintKey, true);
   }
 }

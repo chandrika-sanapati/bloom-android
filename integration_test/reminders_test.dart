@@ -64,7 +64,6 @@ void main() {
       await tester.pumpWidget(
         BloomApp(
           store: store,
-          flags: FirstRunFlags(),
           notifications: notifications,
           cloudSync: CloudGardenSync(),
         ),

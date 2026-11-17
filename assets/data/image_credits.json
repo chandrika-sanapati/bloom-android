@@ -1,0 +1,425 @@
+{
+  "source": "Wikimedia Commons",
+  "credits": [
+    {
+      "plant": "African Violet",
+      "profileId": "african_violet",
+      "asset": "assets/images/plants/african_violet.jpg",
+      "file": "Streptocarpus_ionanthus_(as_Saintpaulia_ionantha)_-_Curtis'_121_(Ser._3_no._51)_pl._7408_(1895).jpg",
+      "author": "M. S. del. ( = Matilda Smith, 1854-1926), J. N. Fitch lith. ( = John Nugent F…",
+      "license": "Public domain",
+      "licenseUrl": null,
+      "source": "https://commons.wikimedia.org/wiki/File:Streptocarpus_ionanthus_(as_Saintpaulia_ionantha)_-_Curtis%27_121_(Ser._3_no._51)_pl._7408_(1895).jpg"
+    },
+    {
+      "plant": "Aloe Vera",
+      "profileId": "aloe_vera",
+      "asset": "assets/images/plants/aloe_vera.jpg",
+      "file": "Aloe_vera_flower_inset.png",
+      "author": "Collage by en:User:MidgleyDJ, original images from Wikimedia commons (Image:A…",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Aloe_vera_flower_inset.png"
+    },
+    {
+      "plant": "Anthurium",
+      "profileId": "anthurium",
+      "asset": "assets/images/plants/anthurium.jpg",
+      "file": "AnthuriumAndraenum.jpg",
+      "author": "Taken by Fanghong",
+      "license": "CC BY 2.5",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+      "source": "https://commons.wikimedia.org/wiki/File:AnthuriumAndraenum.jpg"
+    },
+    {
+      "plant": "Areca Palm",
+      "profileId": "areca_palm",
+      "asset": "assets/images/plants/areca_palm.jpg",
+      "file": "散尾葵Dypsis_lutescens_20210511145013_05.jpg",
+      "author": "Ping an Chang",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:%E6%95%A3%E5%B0%BE%E8%91%B5Dypsis_lutescens_20210511145013_05.jpg"
+    },
+    {
+      "plant": "Asparagus Fern",
+      "profileId": "asparagus_fern",
+      "asset": "assets/images/plants/asparagus_fern.jpg",
+      "file": "Asparagus_setaceus_Leaves_2760px.jpg",
+      "author": "Photo by and (c)2006 Derek Ramsey (Ram-Man). Location credit to the Chanticle…",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Asparagus_setaceus_Leaves_2760px.jpg"
+    },
+    {
+      "plant": "Baby Rubber Plant",
+      "profileId": "baby_rubber_plant",
+      "asset": "assets/images/plants/baby_rubber_plant.jpg",
+      "file": "Peperomia_obtusifolia_3-OB9.jpg",
+      "author": "Jerzy Opioła",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Peperomia_obtusifolia_3-OB9.jpg"
+    },
+    {
+      "plant": "Begonia",
+      "profileId": "begonia",
+      "asset": "assets/images/plants/begonia.jpg",
+      "file": "Painted_Leaved_Begonia._Begonia_rex_Putz._Flore_des_serres_et_des_jardins_de_l'Europe_v.12_(1857).jpg",
+      "author": "Swallowtail Garden Seeds",
+      "license": "Public domain",
+      "licenseUrl": null,
+      "source": "https://commons.wikimedia.org/wiki/File:Painted_Leaved_Begonia._Begonia_rex_Putz._Flore_des_serres_et_des_jardins_de_l%27Europe_v.12_(1857).jpg"
+    },
+    {
+      "plant": "Bird of Paradise",
+      "profileId": "bird_of_paradise",
+      "asset": "assets/images/plants/bird_of_paradise.jpg",
+      "file": "Ave-do-paraíso,_Strelitzia_reginae,_em_Bagé,_Rio_Grande_do_Sul,_Brasil_-_55211233712.jpg",
+      "author": "Gabriel Collares",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Ave-do-para%C3%ADso,_Strelitzia_reginae,_em_Bag%C3%A9,_Rio_Grande_do_Sul,_Brasil_-_55211233712.jpg"
+    },
+    {
+      "plant": "Calathea",
+      "profileId": "calathea",
+      "asset": "assets/images/plants/calathea.jpg",
+      "file": "Calathea_orbifolia_2.jpg",
+      "author": "Fregisseur",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Calathea_orbifolia_2.jpg"
+    },
+    {
+      "plant": "Chinese Evergreen",
+      "profileId": "chinese_evergreen",
+      "asset": "assets/images/plants/chinese_evergreen.jpg",
+      "file": "Aglaonema_commutatum_kz1.jpg",
+      "author": "Krzysztof Ziarnek, Kenraiz",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Aglaonema_commutatum_kz1.jpg"
+    },
+    {
+      "plant": "Chinese Money Plant",
+      "profileId": "chinese_money_plant",
+      "asset": "assets/images/plants/chinese_money_plant.jpg",
+      "file": "Pilea_peperomioides_Chinese_money_plant.jpg",
+      "author": "Husky",
+      "license": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "source": "https://commons.wikimedia.org/wiki/File:Pilea_peperomioides_Chinese_money_plant.jpg"
+    },
+    {
+      "plant": "Christmas Cactus",
+      "profileId": "christmas_cactus",
+      "asset": "assets/images/plants/christmas_cactus.jpg",
+      "file": "Schlumbergera_truncata_(Exotic_Flora_Plate_20).jpg",
+      "author": "Hooker, William Jackson, Sir Blackwood, William, publisher; Cadell, Thomas, p…",
+      "license": "Public domain",
+      "licenseUrl": null,
+      "source": "https://commons.wikimedia.org/wiki/File:Schlumbergera_truncata_(Exotic_Flora_Plate_20).jpg"
+    },
+    {
+      "plant": "Corn Plant",
+      "profileId": "corn_plant",
+      "asset": "assets/images/plants/corn_plant.jpg",
+      "file": "Dracaena_fragrans_(2).jpg",
+      "author": "rojypala",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Dracaena_fragrans_(2).jpg"
+    },
+    {
+      "plant": "Croton",
+      "profileId": "croton",
+      "asset": "assets/images/plants/croton.jpg",
+      "file": "Colpfl05.jpg",
+      "author": "Louise Wolff --darina 23:22, 6 May 2005 (UTC)",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Colpfl05.jpg"
+    },
+    {
+      "plant": "Dieffenbachia",
+      "profileId": "dieffenbachia",
+      "asset": "assets/images/plants/dieffenbachia.jpg",
+      "file": "Starr_061212-2331_Dieffenbachia_seguine.jpg",
+      "author": "Forest & Kim Starr",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Starr_061212-2331_Dieffenbachia_seguine.jpg"
+    },
+    {
+      "plant": "Dracaena",
+      "profileId": "dracaena",
+      "asset": "assets/images/plants/dracaena.jpg",
+      "file": "Dracaena_fragrans_(2).jpg",
+      "author": "rojypala",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Dracaena_fragrans_(2).jpg"
+    },
+    {
+      "plant": "English Ivy",
+      "profileId": "english_ivy",
+      "asset": "assets/images/plants/english_ivy.jpg",
+      "file": "Hedera_helix_Dover.jpg",
+      "author": "kallerna",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Hedera_helix_Dover.jpg"
+    },
+    {
+      "plant": "Fiddle Leaf Fig",
+      "profileId": "fiddle_leaf_fig",
+      "asset": "assets/images/plants/fiddle_leaf_fig.jpg",
+      "file": "Starr_031108-0130_Ficus_lyrata.jpg",
+      "author": "Forest & Kim Starr",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Starr_031108-0130_Ficus_lyrata.jpg"
+    },
+    {
+      "plant": "Fittonia",
+      "profileId": "fittonia",
+      "asset": "assets/images/plants/fittonia.jpg",
+      "file": "Colpfl25.jpg",
+      "author": "Louise Wolff --darina 00:12, 7 May 2005 (UTC)",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Colpfl25.jpg"
+    },
+    {
+      "plant": "Heartleaf Philodendron",
+      "profileId": "heartleaf_philodendron",
+      "asset": "assets/images/plants/heartleaf_philodendron.jpg",
+      "file": "Philodendron_scandens_subsp_oxycardium2.jpg",
+      "author": "KENPEI",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Philodendron_scandens_subsp_oxycardium2.jpg"
+    },
+    {
+      "plant": "Hoya",
+      "profileId": "hoya",
+      "asset": "assets/images/plants/hoya.jpg",
+      "file": "NKN-2007-06-13_114250_Hoya_Carnosa_(Yvan_Leduc_author_for_Wikipedia).jpg",
+      "author": "Yvan leduc",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:NKN-2007-06-13_114250_Hoya_Carnosa_(Yvan_Leduc_author_for_Wikipedia).jpg"
+    },
+    {
+      "plant": "Jade Plant",
+      "profileId": "jade_plant",
+      "asset": "assets/images/plants/jade_plant.jpg",
+      "file": "Crassula_ovata_700.jpg",
+      "author": "author is sannse.",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Crassula_ovata_700.jpg"
+    },
+    {
+      "plant": "Kalanchoe",
+      "profileId": "kalanchoe",
+      "asset": "assets/images/plants/kalanchoe.jpg",
+      "file": "Kalanchoe_blossfeldiana_3.jpg",
+      "author": "বাক্যবাগীশ",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Kalanchoe_blossfeldiana_3.jpg"
+    },
+    {
+      "plant": "Kimberly Queen Fern",
+      "profileId": "kimberly_queen_fern",
+      "asset": "assets/images/plants/kimberly_queen_fern.jpg",
+      "file": "KimberlyQueenFern.JPG",
+      "author": "Erusalio",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:KimberlyQueenFern.JPG"
+    },
+    {
+      "plant": "Lucky Bamboo",
+      "profileId": "lucky_bamboo",
+      "asset": "assets/images/plants/lucky_bamboo.jpg",
+      "file": "Dracaena_sanderiana_2.jpg",
+      "author": "Cataleirxs",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Dracaena_sanderiana_2.jpg"
+    },
+    {
+      "plant": "Maidenhair Fern",
+      "profileId": "maidenhair_fern",
+      "asset": "assets/images/plants/maidenhair_fern.jpg",
+      "file": "Starr_030807-0143_Adiantum_raddianum.jpg",
+      "author": "Forest & Kim Starr",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Starr_030807-0143_Adiantum_raddianum.jpg"
+    },
+    {
+      "plant": "Nerve Plant",
+      "profileId": "nerve_plant",
+      "asset": "assets/images/plants/nerve_plant.jpg",
+      "file": "Colpfl25.jpg",
+      "author": "Louise Wolff --darina 00:12, 7 May 2005 (UTC)",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Colpfl25.jpg"
+    },
+    {
+      "plant": "Norfolk Island Pine",
+      "profileId": "norfolk_island_pine",
+      "asset": "assets/images/plants/norfolk_island_pine.jpg",
+      "file": "Norfolk-Island-Pines.jpg",
+      "author": "thinboyfatter",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Norfolk-Island-Pines.jpg"
+    },
+    {
+      "plant": "Orchid",
+      "profileId": "orchid",
+      "asset": "assets/images/plants/orchid.jpg",
+      "file": "Phalaenopsis_amabilis_Orchi_198.jpg",
+      "author": "Orchi",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Phalaenopsis_amabilis_Orchi_198.jpg"
+    },
+    {
+      "plant": "Parlor Palm",
+      "profileId": "parlor_palm",
+      "asset": "assets/images/plants/parlor_palm.jpg",
+      "file": "Chamaedorea_elegans_Mart.JPG",
+      "author": "Bachelot Pierre J-P",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Chamaedorea_elegans_Mart.JPG"
+    },
+    {
+      "plant": "Peace Lily",
+      "profileId": "peace_lily",
+      "asset": "assets/images/plants/peace_lily.jpg",
+      "file": "Spathiphyllum_cochlearispathum_RTBG.jpg",
+      "author": "JJ Harrison (https://www.jjharrison.com.au/)",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Spathiphyllum_cochlearispathum_RTBG.jpg"
+    },
+    {
+      "plant": "Peperomia",
+      "profileId": "peperomia",
+      "asset": "assets/images/plants/peperomia.jpg",
+      "file": "Peperomia_obtusifolia_3-OB9.jpg",
+      "author": "Jerzy Opioła",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Peperomia_obtusifolia_3-OB9.jpg"
+    },
+    {
+      "plant": "Philodendron",
+      "profileId": "philodendron",
+      "asset": "assets/images/plants/philodendron.jpg",
+      "file": "Philodendron_scandens_subsp_oxycardium2.jpg",
+      "author": "KENPEI",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Philodendron_scandens_subsp_oxycardium2.jpg"
+    },
+    {
+      "plant": "Polka Dot Plant",
+      "profileId": "polka_dot_plant",
+      "asset": "assets/images/plants/polka_dot_plant.jpg",
+      "file": "Starr_080117-1693_Hypoestes_phyllostachya.jpg",
+      "author": "Forest & Kim Starr",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Starr_080117-1693_Hypoestes_phyllostachya.jpg"
+    },
+    {
+      "plant": "Ponytail Palm",
+      "profileId": "ponytail_palm",
+      "asset": "assets/images/plants/ponytail_palm.jpg",
+      "file": "Beaucarnea_recurvata,_Ocampo,_Tamaulipas,_Mexico_1.jpg",
+      "author": "juancruzado",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Beaucarnea_recurvata,_Ocampo,_Tamaulipas,_Mexico_1.jpg"
+    },
+    {
+      "plant": "Prayer Plant",
+      "profileId": "prayer_plant",
+      "asset": "assets/images/plants/prayer_plant.jpg",
+      "file": "Maranta_leuconeura3.jpg",
+      "author": "Kurt Stüber [1]",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Maranta_leuconeura3.jpg"
+    },
+    {
+      "plant": "Schefflera",
+      "profileId": "schefflera",
+      "asset": "assets/images/plants/schefflera.jpg",
+      "file": "Schefflera_arboricola,_vrugte,_a,_Pretoria.jpg",
+      "author": "JMK",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Schefflera_arboricola,_vrugte,_a,_Pretoria.jpg"
+    },
+    {
+      "plant": "String of Bananas",
+      "profileId": "string_of_bananas",
+      "asset": "assets/images/plants/string_of_bananas.jpg",
+      "file": "String_of_Bananas.JPG",
+      "author": "KaitM42",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:String_of_Bananas.JPG"
+    },
+    {
+      "plant": "String of Hearts",
+      "profileId": "string_of_hearts",
+      "asset": "assets/images/plants/string_of_hearts.jpg",
+      "file": "Ceropegia_linearis_subsp_woodii.jpg",
+      "author": "Photo: Dr. David Midgley",
+      "license": "CC BY-SA 2.5",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+      "source": "https://commons.wikimedia.org/wiki/File:Ceropegia_linearis_subsp_woodii.jpg"
+    },
+    {
+      "plant": "String of Pearls",
+      "profileId": "string_of_pearls",
+      "asset": "assets/images/plants/string_of_pearls.jpg",
+      "file": "Senecio_rowleyanus_leaves.jpg",
+      "author": "Flickr user Forest and Kim Starr",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Senecio_rowleyanus_leaves.jpg"
+    },
+    {
+      "plant": "Yucca",
+      "profileId": "yucca",
+      "asset": "assets/images/plants/yucca.jpg",
+      "file": "Yucca_gigantea_-_Jardín_Botánico_Canario_Viera_y_Clavijo_-_Gran_Canaria.jpg",
+      "author": "H. Zell",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Yucca_gigantea_-_Jard%C3%ADn_Bot%C3%A1nico_Canario_Viera_y_Clavijo_-_Gran_Canaria.jpg"
+    },
+    {
+      "plant": "ZZ Plant",
+      "profileId": "zz_plant",
+      "asset": "assets/images/plants/zz_plant.jpg",
+      "file": "Zamioculcas_zamiifolia_1.jpg",
+      "author": "User:WeFt",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Zamioculcas_zamiifolia_1.jpg"
+    }
+  ]
+}

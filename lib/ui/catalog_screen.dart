@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
+import '../data/growth_photo_files.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
 import 'light_placement_section.dart';
@@ -152,10 +155,14 @@ class PlantSetupScreen extends StatefulWidget {
     super.key,
     required this.store,
     required this.species,
+    this.photoPath,
   });
 
   final GardenStore store;
   final PlantSpecies species;
+
+  /// The user's own photo (from identification), used as the plant image.
+  final String? photoPath;
 
   @override
   State<PlantSetupScreen> createState() => _PlantSetupScreenState();
@@ -195,6 +202,19 @@ class _PlantSetupScreenState extends State<PlantSetupScreen> {
       );
       return;
     }
+    if (widget.photoPath case final path?) {
+      try {
+        await GrowthPhotoFiles.adopt(
+          widget.store,
+          plant.id,
+          path,
+          asCover: true,
+        );
+      } catch (_) {
+        // The plant is saved; it falls back to the catalog image.
+      }
+      if (!mounted) return;
+    }
     setState(() {
       _saved = true;
       _saving = false;
@@ -227,12 +247,19 @@ class _PlantSetupScreenState extends State<PlantSetupScreen> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: Image.asset(
-                widget.species.asset,
-                height: 180,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+              child: widget.photoPath == null
+                  ? Image.asset(
+                      widget.species.asset,
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.file(
+                      File(widget.photoPath!),
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
             ),
             const SizedBox(height: 16),
             Text(widget.species.name, style: theme.textTheme.headlineSmall),

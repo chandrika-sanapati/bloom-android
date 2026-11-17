@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:bloom/data/garden_repository.dart';
+import 'package:bloom/data/plant_profile_catalog.dart';
 import 'package:bloom/data/cloud_garden_sync.dart';
 import 'package:bloom/data/watering_notifications.dart';
 import 'package:bloom/domain/garden_store.dart';
@@ -19,6 +20,7 @@ import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await PlantProfileCatalog.load();
   final directory = await getTemporaryDirectory();
   final repository = GardenRepository(
     file: File('${directory.path}/cold-launch-garden.json'),
@@ -49,12 +51,13 @@ Future<void> main() async {
     await repository.save(garden);
   }
   final store = GardenStore(garden: garden, persist: repository.save);
+  // Baseline after the store's own normalization; taps must not change it.
+  final baseline = jsonEncode(store.garden.toJson());
   final plugin = FlutterLocalNotificationsPlugin();
   final notifications = WateringNotifications(plugin: plugin);
   runApp(
     BloomApp(
       store: store,
-      flags: FirstRunFlags(),
       notifications: notifications,
       cloudSync: CloudGardenSync(),
     ),
@@ -97,8 +100,7 @@ Future<void> main() async {
         'checks': checks,
         'details': details,
         'records': store.garden.records.length,
-        'unchanged':
-            jsonEncode(store.garden.toJson()) == jsonEncode(garden.toJson()),
+        'unchanged': jsonEncode(store.garden.toJson()) == baseline,
       }),
     );
   });

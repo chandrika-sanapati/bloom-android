@@ -111,7 +111,7 @@
         "Zamioculcas",
         "ZZ Plant"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/zz_plant.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -132,7 +132,7 @@
         "Spathiphyllum",
         "Peace Lily"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/peace_lily.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -153,7 +153,7 @@
         "Ficus lyrata",
         "Fiddle Leaf Fig"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/fiddle_leaf_fig.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -174,7 +174,7 @@
         "Pilea",
         "Chinese Money Plant"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/chinese_money_plant.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -195,7 +195,7 @@
         "Maranta",
         "Prayer Plant"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/prayer_plant.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -216,7 +216,7 @@
         "Calathea",
         "Calathea"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/calathea.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -237,7 +237,7 @@
         "Philodendron",
         "Philodendron"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/philodendron.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -258,7 +258,7 @@
         "Heartleaf Philodendron",
         "Heartleaf Philodendron"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/heartleaf_philodendron.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -279,7 +279,7 @@
         "Strelitzia",
         "Bird of Paradise"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/bird_of_paradise.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -300,7 +300,7 @@
         "Aloe",
         "Aloe Vera"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/aloe_vera.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -321,7 +321,7 @@
         "Crassula",
         "Jade Plant"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/jade_plant.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -342,7 +342,7 @@
         "Senecio rowleyanus",
         "String of Pearls"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/string_of_pearls.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -363,7 +363,7 @@
         "Ceropegia",
         "String of Hearts"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/string_of_hearts.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -384,7 +384,7 @@
         "Ivy",
         "English Ivy"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/english_ivy.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -405,7 +405,7 @@
         "Nephrolepis",
         "Boston Fern"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plant_placeholder.png",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -426,7 +426,7 @@
         "Adiantum",
         "Maidenhair Fern"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/maidenhair_fern.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -447,7 +447,7 @@
         "Kimberly Queen",
         "Kimberly Queen Fern"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/kimberly_queen_fern.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -468,7 +468,7 @@
         "Dumb cane",
         "Dieffenbachia"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/dieffenbachia.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -489,7 +489,7 @@
         "Corn plant",
         "Dracaena"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/dracaena.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -510,7 +510,7 @@
         "Dracaena fragrans",
         "Corn Plant"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/corn_plant.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -531,7 +531,7 @@
         "Lucky bamboo",
         "Lucky Bamboo"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/lucky_bamboo.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -552,7 +552,7 @@
         "Beaucarnea",
         "Ponytail Palm"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/ponytail_palm.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -573,7 +573,7 @@
         "Butterfly palm",
         "Areca Palm"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/areca_palm.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -594,7 +594,7 @@
         "Neanthe bella",
         "Parlor Palm"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/parlor_palm.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -615,7 +615,7 @@
         "Spineless yucca",
         "Yucca"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/yucca.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -636,7 +636,7 @@
         "Codiaeum",
         "Croton"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/croton.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -657,7 +657,7 @@
         "Aglaonema",
         "Chinese Evergreen"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/chinese_evergreen.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -678,7 +678,7 @@
         "Baby rubber plant",
         "Peperomia"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/peperomia.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -699,7 +699,7 @@
         "Peperomia obtusifolia",
         "Baby Rubber Plant"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/baby_rubber_plant.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -720,7 +720,7 @@
         "Wandering dude",
         "Tradescantia"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plant_placeholder.png",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -741,7 +741,7 @@
         "Wax plant",
         "Hoya"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/hoya.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -762,7 +762,7 @@
         "Phalaenopsis",
         "Orchid"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/orchid.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -783,7 +783,7 @@
         "Flamingo flower",
         "Anthurium"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/anthurium.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -804,7 +804,7 @@
         "Saintpaulia",
         "African Violet"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/african_violet.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -825,7 +825,7 @@
         "Guzmania",
         "Bromeliad"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plant_placeholder.png",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -846,7 +846,7 @@
         "Nerve plant",
         "Fittonia"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/fittonia.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -867,7 +867,7 @@
         "Fittonia",
         "Nerve Plant"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/nerve_plant.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -888,7 +888,7 @@
         "Rex begonia",
         "Begonia"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/begonia.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -909,7 +909,7 @@
         "Flaming Katy",
         "Kalanchoe"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/kalanchoe.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -930,7 +930,7 @@
         "Holiday cactus",
         "Christmas Cactus"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/christmas_cactus.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -951,7 +951,7 @@
         "Freckle face",
         "Polka Dot Plant"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/polka_dot_plant.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -972,7 +972,7 @@
         "Lace fern",
         "Asparagus Fern"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/asparagus_fern.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -993,7 +993,7 @@
         "Umbrella tree",
         "Schefflera"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/schefflera.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -1014,7 +1014,7 @@
         "Norfolk pine",
         "Norfolk Island Pine"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/norfolk_island_pine.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,
@@ -1035,7 +1035,7 @@
         "Senecio radicans",
         "String of Bananas"
       ],
-      "asset": "assets/images/area-whole.png",
+      "asset": "assets/images/plants/string_of_bananas.jpg",
       "minDays": 7,
       "maxDays": 21,
       "startingIntervalDays": 14,

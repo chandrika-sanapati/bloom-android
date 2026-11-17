@@ -35,3 +35,5 @@ flutter:
   assets:
     - assets/images/
     - assets/data/plant_profiles.json
+    - assets/data/image_credits.json
+    - assets/images/plants/

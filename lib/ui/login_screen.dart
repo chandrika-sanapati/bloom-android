@@ -309,15 +309,8 @@ class _LoginScreenState extends State<LoginScreen> {
         child: _busy ? const _Spinner() : const Text('Verify'),
       );
     }
-    if (!widget.auth.configured) {
-      return FilledButton(
-        onPressed: () => Navigator.of(context).pop(false),
-        style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-        child: const Text('Continue without an account'),
-      );
-    }
     return FilledButton(
-      onPressed: _busy ? null : _submitEmail,
+      onPressed: _busy || !widget.auth.configured ? null : _submitEmail,
       style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
       child: _busy
           ? const _Spinner()

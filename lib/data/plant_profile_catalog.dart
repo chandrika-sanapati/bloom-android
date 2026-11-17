@@ -53,7 +53,7 @@ class PlantProfileCatalog {
             name: value['common_name'] as String,
             scientific: value['scientific_name'] as String,
             aliases: aliases,
-            asset: value['asset_key'] as String,
+            asset: normalizePlantAsset(value['asset_key'] as String),
             minDays: value['min_interval_days'] as int,
             maxDays: value['max_interval_days'] as int,
             startingIntervalDays: value['starting_interval_days'] as int,

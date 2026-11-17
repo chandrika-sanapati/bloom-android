@@ -1,5 +1,4 @@
 import 'package:bloom/data/cloud_garden_sync.dart';
-import 'package:bloom/data/garden_repository.dart';
 import 'package:bloom/data/watering_notifications.dart';
 import 'package:bloom/data/plant_profile_catalog.dart';
 import 'package:bloom/domain/garden_store.dart';
@@ -75,7 +74,6 @@ void main() {
     await tester.pumpWidget(
       BloomApp(
         store: store,
-        flags: FirstRunFlags(),
         notifications: WateringNotifications(
           client: FakeNotificationClient(),
           timezone: () async => 'UTC',
@@ -122,7 +120,6 @@ void main() {
     await tester.pumpWidget(
       BloomApp(
         store: store,
-        flags: FirstRunFlags(),
         notifications: WateringNotifications(
           client: FakeNotificationClient(),
           timezone: () async => 'UTC',

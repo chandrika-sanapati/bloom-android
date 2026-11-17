@@ -42,7 +42,6 @@ Future<void> main() async {
   runApp(
     BloomApp(
       store: store,
-      flags: FirstRunFlags(),
       notifications: notifications,
       identifier: identifier,
       auth: auth,
@@ -66,7 +65,6 @@ class BloomApp extends StatefulWidget {
   const BloomApp({
     super.key,
     required this.store,
-    required this.flags,
     required this.notifications,
     this.auth,
     required this.cloudSync,
@@ -74,7 +72,6 @@ class BloomApp extends StatefulWidget {
   });
 
   final GardenStore store;
-  final FirstRunFlags flags;
   final WateringNotifications notifications;
   final PlantIdentifier? identifier;
   final AuthService? auth;
@@ -234,7 +231,6 @@ class _BloomAppState extends State<BloomApp> with WidgetsBindingObserver {
           themeMode: ThemeMode.system,
           home: _AuthGate(
             store: widget.store,
-            flags: widget.flags,
             notifications: widget.notifications,
             identifier: widget.identifier,
             auth: widget.auth,
@@ -249,7 +245,6 @@ class _BloomAppState extends State<BloomApp> with WidgetsBindingObserver {
 class _AuthGate extends StatelessWidget {
   const _AuthGate({
     required this.store,
-    required this.flags,
     required this.notifications,
     required this.identifier,
     required this.auth,
@@ -257,7 +252,6 @@ class _AuthGate extends StatelessWidget {
   });
 
   final GardenStore store;
-  final FirstRunFlags flags;
   final WateringNotifications notifications;
   final PlantIdentifier? identifier;
   final AuthService? auth;
@@ -269,7 +263,6 @@ class _AuthGate extends StatelessWidget {
     if (service == null || !service.configured) {
       return HomeScreen(
         store: store,
-        flags: flags,
         notifications: notifications,
         identifier: identifier,
         auth: auth,
@@ -283,7 +276,6 @@ class _AuthGate extends StatelessWidget {
         if (service.signedIn) {
           return HomeScreen(
             store: store,
-            flags: flags,
             notifications: notifications,
             identifier: identifier,
             auth: auth,

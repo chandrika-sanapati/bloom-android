@@ -11,6 +11,7 @@ import '../data/watering_notifications.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
 import 'login_screen.dart';
+import 'photo_credits_screen.dart';
 import 'widgets.dart';
 
 class PreferencesScreen extends StatefulWidget {
@@ -377,6 +378,22 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                 ),
               ),
             ],
+            const SizedBox(height: 28),
+            const SectionHeader('About'),
+            const SizedBox(height: 12),
+            Card(
+              clipBehavior: Clip.antiAlias,
+              child: ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('Photo credits'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const PhotoCreditsScreen(),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       );
