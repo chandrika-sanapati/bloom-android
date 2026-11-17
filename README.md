@@ -6,6 +6,8 @@ The Android app is local-first: garden data is stored on the device and watering
 
 ## Current scope
 
+Bloom uses the existing Snake Plant artwork as its in-app brand mark and Android launcher icon.
+
 Supported catalog plants:
 
 - Snake Plant — *Dracaena trifasciata*

@@ -22,6 +22,7 @@ A date is a prompt to inspect the plant, not proof that the plant needs water. B
 - Notifications are optional and Android-specific in the current implementation.
 - Configured builds require authentication before Home. Supabase Auth supports Google and email/password registration/sign-in; unconfigured builds remain local-only for development and tests.
 - The login page is a single, context-independent entry screen: email/password is the primary form, Google is a secondary option when configured, and the normal page has no toolbar Back button. A configured build shows it at startup whenever no valid session exists.
+- The login page uses the existing plant artwork as its brand mark, and the Android launcher icon uses the same Snake Plant artwork.
 - Registration requires a one-time six-digit email OTP. The confirmation state has a code field, **Verify email**, **Send code again**, and a Back arrow to return to registration. Successful OTP verification immediately creates the session and continues to Home; later logins use email/password without OTP.
 - Local garden JSON remains the immediate source of truth. Authenticated local saves queue asynchronous cloud sync; the local payload is authoritative and guarded-overwrites differing cloud data by revision.
 - Plant identification is available through the authenticated Supabase Edge Function when its endpoint is configured. PlantNet keys never ship in Flutter or the APK.

@@ -338,7 +338,15 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ] else ...[
             const SizedBox(height: 32),
-            Icon(Icons.eco, size: 64, color: theme.colorScheme.primary),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(
+                'assets/images/snake.png',
+                width: 72,
+                height: 72,
+                fit: BoxFit.cover,
+              ),
+            ),
             const SizedBox(height: 20),
             Text(
               'Keep your garden with you',

@@ -21,7 +21,15 @@ class BloomTitle extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.eco, color: theme.colorScheme.primary),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: Image.asset(
+            'assets/images/snake.png',
+            width: 30,
+            height: 30,
+            fit: BoxFit.cover,
+          ),
+        ),
         const SizedBox(width: 8),
         Text(
           'Bloom',
