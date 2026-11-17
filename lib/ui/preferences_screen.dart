@@ -127,6 +127,27 @@ class _PreferencesScreenState extends State<PreferencesScreen>
       setState(() {});
       return;
     }
+    final signOut = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Sign out of Bloom?'),
+        content: const Text(
+          'Your local garden will stay on this device. Cloud synchronization '
+          'will stop until you sign in again.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Sign out'),
+          ),
+        ],
+      ),
+    );
+    if (signOut != true || !mounted) return;
     setState(() {
       _busy = true;
       _message = null;
@@ -134,6 +155,9 @@ class _PreferencesScreenState extends State<PreferencesScreen>
     try {
       if (auth.signedIn) {
         await auth.signOut();
+        if (!mounted) return;
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        return;
       } else if (!await auth.signInWithGoogle()) {
         throw StateError('Sign-in was cancelled or unavailable.');
       } else {
@@ -203,28 +227,6 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                 ),
               ),
               const SizedBox(height: 24),
-            ],
-            if (widget.cloudSync.status.value != CloudSyncStatus.unavailable &&
-                widget.cloudSync.status.value != CloudSyncStatus.signedOut) ...[
-              const SizedBox(height: 16),
-              Text('Cloud sync', style: theme.textTheme.titleMedium),
-              const SizedBox(height: 8),
-              Builder(
-                builder: (context) {
-                  final syncMessage = widget.cloudSync.message.value;
-                  final fallback = switch (widget.cloudSync.status.value) {
-                    CloudSyncStatus.syncing => 'Syncing your garden…',
-                    CloudSyncStatus.synced => 'Garden synced',
-                    CloudSyncStatus.failed =>
-                      'Sync failed; garden remains local',
-                    _ => '',
-                  };
-                  return Text(
-                    syncMessage ?? fallback,
-                    style: theme.textTheme.bodyMedium,
-                  );
-                },
-              ),
             ],
             const SizedBox(height: 24),
             Text('Preferences', style: theme.textTheme.titleMedium),

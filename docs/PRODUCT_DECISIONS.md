@@ -15,7 +15,9 @@ The source material was the earlier Bloom product repository. SwiftUI, Xcode, iO
 ## Current implementation decisions
 
 - **Authentication:** Configured builds require Supabase authentication before Home. Users can register/sign in with email/password or sign in with Google when the Google Web Client ID is configured. Email confirmation is explained when required. Builds without Supabase configuration remain local-only.
-- **Profile:** The Home account action is labeled **Profile** and uses a user icon. Profile contains account controls, cloud-sync status, and a nested **Preferences** section for notifications and reminder time.
+- **Login UX:** Email/password is the primary login and registration path. Google is a secondary option when configured. The login page is context-independent and has no toolbar Back button; configured startup without a session renders the same page used for Profile sign-in.
+- **Sign-out UX:** Sign-out requires confirmation, preserves local data, stops authenticated cloud writes, and returns to the root login gate.
+- **Profile:** The Home account action is labeled **Profile** and uses a user icon. Profile contains account controls and a focused **Preferences** section for notifications and reminder time; cloud synchronization remains background behavior.
 - **Cloud ownership:** The local garden is authoritative. Successful local persistence is never blocked by cloud sync. Every saved garden queues asynchronous sync; differing cloud payloads are overwritten using a revision guard, with bounded retry if another write races.
 - **Identification boundary:** PlantNet is called only through the authenticated Supabase Edge Function. Results are possible matches, not diagnoses or automatic care guidance. Confirmed unsupported identities do not receive invented schedules.
 

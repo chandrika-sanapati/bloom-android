@@ -143,8 +143,13 @@ class _LoginScreenState extends State<LoginScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign in to Bloom'),
-        leading: const BackButton(),
+        centerTitle: true,
+        title: Text(
+          'Bloom',
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(24),
@@ -158,32 +163,8 @@ class _LoginScreenState extends State<LoginScreen> {
             style: theme.textTheme.headlineSmall,
           ),
           const SizedBox(height: 12),
-          Text(
-            'Sign in with Google or your email and password to securely save '
-            'your garden in the cloud.',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
           const SizedBox(height: 32),
-          if (widget.auth.googleConfigured)
-            FilledButton.icon(
-              onPressed: _busy ? null : _signIn,
-              icon: const Icon(Icons.login),
-              label: Text(_busy ? 'Signing in…' : 'Continue with Google'),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-              ),
-            ),
-          if (widget.auth.googleConfigured) const SizedBox(height: 16),
           if (widget.auth.configured) ...[
-            Text(
-              'Or use email',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleSmall,
-            ),
-            const SizedBox(height: 12),
             TextField(
               controller: _email,
               enabled: !_busy,
@@ -241,6 +222,33 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ],
+          if (widget.auth.googleConfigured) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Expanded(child: Divider()),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text(
+                    'or',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                const Expanded(child: Divider()),
+              ],
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _busy ? null : _signIn,
+              icon: const Icon(Icons.login),
+              label: Text(_busy ? 'Signing in…' : 'Continue with Google'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+              ),
+            ),
+          ],
           if (!widget.auth.configured) ...[
             const SizedBox(height: 12),
             Text(
@@ -270,15 +278,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: const Text('Continue without an account'),
             ),
           ],
-          const SizedBox(height: 24),
-          Text(
-            'Signing in does not replace your local garden automatically. '
-            'Cloud merge choices will be shown before sync is enabled.',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
         ],
       ),
     );

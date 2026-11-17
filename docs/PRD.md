@@ -21,6 +21,7 @@ A date is a prompt to inspect the plant, not proof that the plant needs water. B
 - Garden data is stored locally on the device as JSON.
 - Notifications are optional and Android-specific in the current implementation.
 - Configured builds require authentication before Home. Supabase Auth supports Google and email/password registration/sign-in; unconfigured builds remain local-only for development and tests.
+- The login page is a single, context-independent entry screen: email/password is the primary form, Google is a secondary option when configured, and the page has no toolbar Back button. A configured build shows it at startup whenever no valid session exists.
 - Local garden JSON remains the immediate source of truth. Authenticated local saves queue asynchronous cloud sync; the local payload is authoritative and guarded-overwrites differing cloud data by revision.
 - Plant identification is available through the authenticated Supabase Edge Function when its endpoint is configured. PlantNet keys never ship in Flutter or the APK.
 - There is no analytics service, live weather, device-location inference, sensor integration, or automatic watering hardware.
@@ -51,7 +52,7 @@ The following behavior exists in the current Android code:
 - Plant details opens a dedicated Care timeline and provides compact Soil health checks and explicit combined care records.
 - Native page Back navigation protects dirty forms with Keep editing / Discard changes.
 - The Add plant FAB menu offers Search by name and Identify from a photo. Configured builds can upload selected photos to the authenticated Edge Function and display normalized possible matches; unconfigured builds retain local photo intake only.
-- Profile contains account controls, cloud-sync status, and a Preferences section for reminder and notification settings.
+- Profile contains account controls and a focused Preferences section for reminder and notification settings. Cloud synchronization remains background behavior rather than a separate user-facing section.
 
 ## 4. Product goals
 
@@ -142,10 +143,11 @@ For **Checked — not watered**:
 
 - When Supabase build-time configuration is present, authentication is required before Home. The login surface offers Google when its Web Client ID is configured and email/password registration/sign-in in all configured builds. Supabase email-confirmation-required registration is explained without creating a local session.
 - Builds without Supabase configuration remain local-only for development and tests. Local garden persistence remains available and authoritative in every build.
-- Home opens **Profile** through a user/account icon. Profile contains account controls and cloud-sync status, with reminder and notification controls grouped under **Preferences**.
+- Home opens **Profile** through a user/account icon. Profile contains account controls, with reminder and notification controls grouped under **Preferences**; cloud synchronization is intentionally not shown as a separate section.
 - After a successful local persistence operation, Bloom queues cloud synchronization asynchronously. Local UI and local data do not wait for a network request, and a failed cloud write never rolls back or removes local data.
 - The cloud stores one versioned garden payload per authenticated user. An empty cloud row receives the local payload. If cloud and local payloads differ, the local payload is authoritative and replaces the cloud payload only through a revision-checked update; bounded retries handle a concurrent remote write.
-- Cloud sync does not download or replace the local garden, and it does not expose a merge/conflict screen under this release policy. Sign-out preserves local data and stops authenticated cloud writes.
+- Cloud sync does not download or replace the local garden, and it does not expose a merge/conflict screen under this release policy. Sign-out requires confirmation, preserves local data, stops authenticated cloud writes, and returns to the root login landing screen.
+- Signing out requires confirmation. After confirmation, Bloom preserves the local garden, stops authenticated cloud writes, and returns to the root login landing screen.
 
 ### 8.2 Photo identification boundary
 

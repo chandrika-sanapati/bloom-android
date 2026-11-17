@@ -45,7 +45,7 @@ Bloom should make the next watering check clearer, faster, and more trustworthy.
 - Check Watering uses a full-width outlined secondary Edit next check action below the scheduled date.
 - Local persistence with failed-save protection at the store boundary.
 - Optional future-only Android notifications, permission-denied behavior, inexact scheduling, and non-blocking startup.
-- Labeled FAB menu and local photo intake; external identification is intentionally behind the backend plan.
+- Labeled FAB menu, authenticated photo identification, normalized candidates, confirmation, and unsupported-identity safety.
 
 ## 4. Next engineering steps
 

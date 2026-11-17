@@ -68,8 +68,9 @@ void main() {
 
     await tester.enterText(find.byType(TextField).at(0), 'not-an-email');
     await tester.enterText(find.byType(TextField).at(1), 'short');
-    await tester.ensureVisible(find.text('Sign in with email'));
-    await tester.tap(find.text('Sign in with email'));
+    final submit = find.widgetWithText(FilledButton, 'Sign in with email');
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
     await tester.pump();
 
     expect(

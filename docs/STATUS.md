@@ -25,7 +25,7 @@ Any proposed feature expansion must be recorded as a future idea only and must n
 Latest pulled `main` was verified on the local Android 36 emulator (`emulator-5554`):
 
 - `flutter analyze`: passed with zero issues.
-- `flutter test`: **98 tests passed**, including auth UI, local-wins cloud overwrite/retry, asynchronous persistence boundaries, signed-out/ordered sync behavior, PlantNet provider errors and normalized candidates, latest-watering correction/recalculation, failed-save rollback, notification no-burst safety, denied-permission recovery UI, and the reviewed Spider Plant profile.
+- `flutter test`: **98 tests passed**, including email-first auth UI, local-wins cloud overwrite/retry, asynchronous persistence boundaries, signed-out/ordered sync behavior, PlantNet provider errors and normalized candidates, latest-watering correction/recalculation, failed-save rollback, notification no-burst safety, denied-permission recovery UI, and the reviewed Spider Plant profile.
 - Normal debug APK: built, installed, and launched as `com.chandrika.bloom`.
 - `integration_test/light_placement_test.dart`: **2 tests passed** using the isolated integration package.
 - `integration_test/care_timeline_test.dart`: **2 tests passed** using the isolated integration package, including latest watering-record deletion and Snackbar Undo from the timeline.
@@ -36,7 +36,7 @@ Latest pulled `main` was verified on the local Android 36 emulator (`emulator-55
 - Latest-watering correction integration: the isolated Care timeline suite passed after the correction implementation; the normal APK rebuilt, installed, and relaunched successfully.
 - Protected correction coverage: older records remain read-only, later custom dates are preserved, failed deletion rolls back, and notification correction keeps one current request without an overdue burst.
 - Permission recovery coverage: enabled-but-denied reminders show an Android settings action, reminder time remains available, and permission state refreshes when Profile resumes.
-- FAB/photo intake coverage: the labeled FAB menu exposes Search by name and Identify from a photo; image intake remains local and stops before identification results.
+- FAB/photo intake coverage: the labeled FAB menu exposes Search by name and Identify from a photo; configured builds return normalized candidate results and support confirmation without invented schedules.
 
 The repeatable commands require Flutter, Android platform-tools, and the Android Studio JDK on `PATH`. The repository helper assumes those tools are available as `flutter` and `adb`; on this laptop use the pinned Flutter and Android Studio JDK paths when necessary.
 
@@ -77,12 +77,13 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Candidate confirmation is implemented; private photo storage and broader profile enrichment remain deferred.
 - Supabase Auth supports mandatory configured-build authentication with Google and email/password sign-in or registration. Email confirmation is reported when Supabase requires it.
 - Configured builds now gate Home on Supabase authentication; garden sync uploads the local payload when the remote garden is empty and guarded-overwrites differing cloud data with the local payload. The deployed `gardens` migration is applied; final production RLS/release review remains.
-- Host verification: Supabase/auth/sync/auth UI code compiles and the current 89-test suite passes. Live email registration still requires a real inbox and confirmation link; live Google sign-in and authenticated PlantNet require configured-build emulator interaction.
-- Cloud sync status is exposed in Profile as syncing, synced, or failed; local saves remain available when the network is unavailable.
+- Host verification: Supabase/auth/sync/auth UI code compiles and the current 98-test suite passes. Live email registration still requires a real inbox and confirmation link; live Google sign-in and authenticated PlantNet require configured-build emulator interaction.
+- Cloud synchronization runs in the background and is not exposed as a separate Profile section; local saves remain available when the network is unavailable.
 - When local and cloud gardens differ, the local garden is authoritative. Bloom uses the remote revision as a guard, retries if another write races, and keeps the local save successful even when cloud sync is unavailable.
 - A typed PlantNet/Supabase Edge Function provider seam is implemented; it activates only when `PLANT_IDENTIFIER_ENDPOINT` is supplied at build time.
 - Optional Supabase initialization is implemented behind `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` build-time defines; no project credentials are tracked in the repository.
-- Optional Google sign-in is implemented behind `GOOGLE_WEB_CLIENT_ID`; email/password authentication is available whenever Supabase build-time configuration is present. Profile exposes account controls for configured sessions and retains reminder controls under Preferences.
+- Optional Google sign-in is implemented behind `GOOGLE_WEB_CLIENT_ID`; email/password authentication is available whenever Supabase build-time configuration is present. Profile exposes account controls and retains reminder controls under Preferences; cloud synchronization remains background behavior.
+- Login is email-first and context-independent: the configured startup gate and Profile sign-in use the same page, which has no toolbar Back button. Signing out requires confirmation and returns to the root login gate while preserving local data.
 - Supabase project `gwuwlzzpfklvfhtkubnj` is linked locally; the `identify-plant` Edge Function is deployed and `PLANTNET_API_KEY` exists as a hosted function secret. Live authenticated identification and Google sign-in have been exercised on the configured emulator.
 - Configured-build smoke check: APK built with Supabase URL, publishable key, PlantNet Edge Function endpoint, and Google Web Client ID; Supabase initialization completed and the normal app launched on `emulator-5554` without startup errors.
 - PlantNet end-to-end request verified in hosted logs: authenticated multipart request, PlantNet response, and HTTP 200 in under one second. Flutter now parses the Edge Function's normalized `candidates` response.
@@ -179,7 +180,7 @@ See [PRD section 14](PRD.md#14-light--placement--release-requirements), [decisio
 - `lib/ui/catalog_screen.dart` — supported catalog and setup.
 - `lib/ui/check_screen.dart` — watering check and outcome flow.
 - `lib/ui/plant_detail_screen.dart` — schedule details and removal.
-- `lib/ui/preferences_screen.dart` — Profile account/cloud surface plus Preferences notification switch and global time picker.
+- `lib/ui/preferences_screen.dart` — Profile account surface plus Preferences notification switch and global time picker.
 - `lib/ui/light_placement_section.dart` — shared advice and optional checkbox.
 - `integration_test/light_placement_test.dart` — on-device setup/detail/persistence checks with cache-file fixtures.
 - `integration_test/reminders_test.dart` — persisted preference/custom timing and actual native notification-intent checks.

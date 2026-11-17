@@ -48,7 +48,7 @@ The user confirmed that placement acknowledgment will leave watering schedules u
 
 ## Reminder time and notification navigation
 
-Profile contains account controls, cloud-sync status, and a Preferences section with a global **Reminder time** native time picker. Changes update automatic checks after today; custom, today's, overdue, and unclassified older check times are preserved. First/completed automatic checks use the preferred local clock. Notification taps open the specific current watering check; stale/legacy reminders open plant detail, and unavailable targets return Home. See [PRD section 15](docs/PRD.md#15-reminder-preferences-and-notification-navigation--requirements), [D33–D40](docs/PRODUCT_DECISIONS.md#14-reminder-preferences-and-navigation-decisions), and [implementation plan section 8](docs/IMPLEMENTATION_PLAN.md#8-reminder-preferences-and-navigation--implementation-plan).
+Profile contains account controls and a focused Preferences section with a global **Reminder time** native time picker. Cloud synchronization runs in the background and is not shown as a separate section. Changes update automatic checks after today; custom, today's, overdue, and unclassified older check times are preserved. First/completed automatic checks use the preferred local clock. Notification taps open the specific current watering check; stale/legacy reminders open plant detail, and unavailable targets return Home. See [PRD section 15](docs/PRD.md#15-reminder-preferences-and-notification-navigation--requirements), [D33–D40](docs/PRODUCT_DECISIONS.md#14-reminder-preferences-and-navigation-decisions), and [implementation plan section 8](docs/IMPLEMENTATION_PLAN.md#8-reminder-preferences-and-navigation--implementation-plan).
 
 ## Requirements
 
@@ -102,7 +102,9 @@ The domain/widget suite covers watering, placement, reminder timing, soil health
 - [`docs/previews/README.md`](docs/previews/README.md) — explicitly historical iOS design references; not a specification for the Android UI.
 - [`docs/BACKEND_PLAN.md`](docs/BACKEND_PLAN.md) — Supabase, Google sign-in, PlantNet proxy, sync, privacy, and rollout plan.
 
-When Supabase configuration is supplied, Bloom requires authentication before Home and supports Google plus email/password registration and sign-in. Email confirmation is explained when Supabase requires it. The local garden remains authoritative: an empty cloud row receives the local garden, and differing cloud data is guarded-overwritten using the remote revision. Every successful local save queues asynchronous cloud synchronization; local persistence never waits for or rolls back because of a cloud failure. Sync status is visible in Profile. Without Supabase configuration, local/test builds remain usable without an account.
+When Supabase configuration is supplied, Bloom requires authentication before Home and supports Google plus email/password registration and sign-in. Email confirmation is explained when Supabase requires it. The local garden remains authoritative: an empty cloud row receives the local garden, and differing cloud data is guarded-overwritten using the remote revision. Every successful local save queues asynchronous cloud synchronization; local persistence never waits for or rolls back because of a cloud failure. Sync runs quietly in the background. Without Supabase configuration, local/test builds remain usable without an account.
+
+The login page is email-first and has no toolbar Back button. When a user signs out, Bloom confirms the action, preserves the local garden, stops authenticated sync, and returns to the root login page.
 
 Photo identification is configured only with a Supabase Edge Function endpoint at build time. Never put the PlantNet API key in Flutter, Git, or an APK; store it as an Edge Function secret.
 

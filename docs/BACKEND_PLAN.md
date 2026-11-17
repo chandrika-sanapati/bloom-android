@@ -172,7 +172,7 @@ Project-specific values are intentionally not committed. Before enabling the fea
 4. Add the Android client configuration required by the chosen Flutter Google sign-in package.
 5. Add the Supabase URL and publishable key through Flutter build-time configuration, for example `--dart-define-from-file`; do not hard-code secrets.
 6. Add privacy policy and account deletion behavior before production release.
-7. Test sign-in cancellation, no network, expired sessions, sign-out, local/cloud merge, and reinstall.
+7. Test sign-in cancellation, no network, expired sessions, confirmed sign-out, local-wins retry behavior, and reinstall.
 
 ## PlantNet setup checklist
 
