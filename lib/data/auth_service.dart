@@ -97,6 +97,21 @@ class AuthService {
     await Supabase.instance.client.auth.signOut();
     await _google.signOut();
   }
+
+  Future<void> deleteAccount() async {
+    if (!configured || !signedIn) {
+      throw const AuthException('No signed-in account is available.');
+    }
+    final response = await Supabase.instance.client.functions.invoke(
+      'delete-account',
+    );
+    if (response.status < 200 || response.status >= 300) {
+      throw const AuthException(
+        'Your account data could not be deleted. Nothing was removed.',
+      );
+    }
+    await signOut();
+  }
 }
 
 AuthService? configuredAuthService() {

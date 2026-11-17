@@ -84,11 +84,13 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Optional Supabase initialization is implemented behind `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` build-time defines; no project credentials are tracked in the repository.
 - Optional Google sign-in is implemented behind `GOOGLE_WEB_CLIENT_ID`; email/password authentication is available whenever Supabase build-time configuration is present. Profile exposes account controls and retains reminder controls under Preferences; cloud synchronization remains background behavior.
 - Login is email-first and context-independent: the configured startup gate and Profile sign-in use the same page, which has no toolbar Back button. Signing out requires confirmation and returns to the root login gate while preserving local data.
+- Profile Privacy includes **Delete all data** with two confirmations. The deployed `delete-account` Edge Function requires JWT authentication, deletes the cloud garden and auth account, and local data is cleared only after server success.
 - Supabase project `gwuwlzzpfklvfhtkubnj` is linked locally; the `identify-plant` Edge Function is deployed and `PLANTNET_API_KEY` exists as a hosted function secret. Live authenticated identification and Google sign-in have been exercised on the configured emulator.
 - Configured-build smoke check: APK built with Supabase URL, publishable key, PlantNet Edge Function endpoint, and Google Web Client ID; Supabase initialization completed and the normal app launched on `emulator-5554` without startup errors.
 - PlantNet end-to-end request verified in hosted logs: authenticated multipart request, PlantNet response, and HTTP 200 in under one second. Flutter now parses the Edge Function's normalized `candidates` response.
 - Live cloud-sync check: Google sign-in succeeded, a local Spider Plant mutation remained visible, and local-wins asynchronous sync behavior was verified through the configured build and deterministic backend tests.
 - Production verification: local and remote migration `20261115220000_create_gardens` match; `supabase db lint --linked` reports no schema errors; `identify-plant` is active with JWT verification enabled; unauthenticated requests return HTTP 401.
+- Account deletion verification: `delete-account` is deployed with JWT verification enabled; unauthenticated requests return HTTP 401. Successful authenticated deletion remains a manual account-level check.
 - Analytics, sharing, social features, broader environmental checks, diagnosis, and additional catalog/care expansion remain outside the frozen scope.
 
 ## Reminder preferences and notification navigation — implemented on 15 November 2026

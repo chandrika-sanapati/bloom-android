@@ -148,6 +148,7 @@ For **Checked — not watered**:
 - The cloud stores one versioned garden payload per authenticated user. An empty cloud row receives the local payload. If cloud and local payloads differ, the local payload is authoritative and replaces the cloud payload only through a revision-checked update; bounded retries handle a concurrent remote write.
 - Cloud sync does not download or replace the local garden, and it does not expose a merge/conflict screen under this release policy. Sign-out requires confirmation, preserves local data, stops authenticated cloud writes, and returns to the root login landing screen.
 - Signing out requires confirmation. After confirmation, Bloom preserves the local garden, stops authenticated cloud writes, and returns to the root login landing screen.
+- Signed-in users can open Profile → Privacy → **Delete all data**. Bloom requires two explicit confirmations, then deletes the authenticated cloud garden and account through the server-side `delete-account` Edge Function before clearing the local garden and returning to the login landing screen. If cloud deletion fails, local data is preserved and the user receives a retryable error.
 
 ### 8.2 Photo identification boundary
 

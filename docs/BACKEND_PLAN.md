@@ -162,6 +162,13 @@ Without those defines, photo intake remains local-only and clearly reports that 
 - Stop remote sync immediately.
 - Do not delete local care history as a side effect of sign-out.
 
+### Account and data deletion
+
+- The client never uses a service-role key. Profile's **Delete all data** action calls the authenticated `delete-account` Edge Function.
+- The function validates the caller's JWT, deletes the user's `gardens` row, and deletes the auth user with the server-side service-role binding.
+- Flutter clears the local garden only after the server confirms deletion. A failed server deletion leaves local data intact for retry.
+- The deletion flow requires two explicit confirmations and returns the user to the login landing screen after success.
+
 ## Google sign-in setup checklist
 
 Project-specific values are intentionally not committed. Before enabling the feature:

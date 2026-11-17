@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/auth_service.dart';
 import '../data/cloud_garden_sync.dart';
@@ -106,6 +107,85 @@ class _PreferencesScreenState extends State<PreferencesScreen>
       setState(() {
         _message =
             "Android settings couldn't be opened. You can enable notifications in the app's system settings.";
+      });
+    }
+  }
+
+  Future<void> _deleteAllData() async {
+    final firstConfirmation = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete all Bloom data?'),
+        content: const Text(
+          'This permanently deletes your cloud account, cloud garden, and '
+          'local garden from this device. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+    if (firstConfirmation != true || !mounted) return;
+
+    final finalConfirmation = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete everything permanently?'),
+        content: const Text(
+          'Your account and all saved plant data will be erased. There is no '
+          'recovery option after deletion.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Delete everything'),
+          ),
+        ],
+      ),
+    );
+    if (finalConfirmation != true || !mounted) return;
+
+    final auth = widget.auth;
+    if (auth == null || !auth.signedIn) return;
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    try {
+      await auth.deleteAccount();
+      final cleared = await widget.store.replaceGarden(const Garden());
+      if (!cleared) {
+        throw StateError('Local garden could not be cleared.');
+      }
+      if (!mounted) return;
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } on AuthException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _message = error.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _message =
+            'Your account was deleted, but the local garden could not be cleared. Try again.';
       });
     }
   }
@@ -225,6 +305,19 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                       : const Icon(Icons.login),
                   onTap: _busy ? null : _toggleAuth,
                 ),
+              ),
+              const SizedBox(height: 24),
+            ],
+            if (widget.auth?.signedIn == true) ...[
+              Text('Privacy', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: _busy ? null : _deleteAllData,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.colorScheme.error,
+                ),
+                icon: const Icon(Icons.delete_forever_outlined),
+                label: const Text('Delete all data'),
               ),
               const SizedBox(height: 24),
             ],
