@@ -47,6 +47,7 @@ create table if not exists public.soil_care_events (
   mix_contains_feed boolean
 );
 
+
 alter table public.plant_collections enable row level security;
 alter table public.plants enable row level security;
 alter table public.watering_schedules enable row level security;

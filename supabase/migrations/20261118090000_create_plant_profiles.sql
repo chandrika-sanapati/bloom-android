@@ -27,6 +27,7 @@ create table if not exists public.plant_profile_aliases (
   created_at timestamptz not null default now()
 );
 
+
 alter table public.plant_profiles enable row level security;
 alter table public.plant_profile_aliases enable row level security;
 
