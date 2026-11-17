@@ -6,35 +6,130 @@ import 'light_placement_section.dart';
 import 'widgets.dart';
 import 'discard_changes_guard.dart';
 
-class CatalogScreen extends StatelessWidget {
+/// Plants shown before the user types. Curated, not usage-based.
+const _popularIds = [
+  'pothos',
+  'snake_plant',
+  'monstera',
+  'spider_plant',
+  'rubber_plant',
+];
+
+class CatalogScreen extends StatefulWidget {
   const CatalogScreen({super.key, required this.store});
 
   final GardenStore store;
 
   @override
+  State<CatalogScreen> createState() => _CatalogScreenState();
+}
+
+class _CatalogScreenState extends State<CatalogScreen> {
+  final _query = TextEditingController();
+
+  @override
+  void dispose() {
+    _query.dispose();
+    super.dispose();
+  }
+
+  static String _norm(String v) => v.toLowerCase().trim();
+
+  /// Name matches first (prefix, then contains), then scientific and aliases.
+  List<PlantSpecies> _search(String raw) {
+    final q = _norm(raw);
+    final scored = <(int, PlantSpecies)>[];
+    for (final species in PlantSpecies.catalog) {
+      final name = _norm(species.name);
+      final int? score = name.startsWith(q)
+          ? 0
+          : name.split(' ').any((w) => w.startsWith(q))
+          ? 1
+          : name.contains(q)
+          ? 2
+          : _norm(species.scientific).contains(q)
+          ? 3
+          : species.aliases.any((a) => _norm(a).contains(q))
+          ? 4
+          : null;
+      if (score != null) scored.add((score, species));
+    }
+    scored.sort((a, b) {
+      final c = a.$1.compareTo(b.$1);
+      return c != 0 ? c : a.$2.name.compareTo(b.$2.name);
+    });
+    return [for (final (_, s) in scored) s];
+  }
+
+  void _open(PlantSpecies species) => Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => PlantSetupScreen(store: widget.store, species: species),
+    ),
+  );
+
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final query = _query.text.trim();
+    final popular = [
+      for (final id in _popularIds)
+        for (final s in PlantSpecies.catalog)
+          if (s.id == id) s,
+    ];
+    final results = query.isEmpty ? popular : _search(query);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add a plant'),
         leading: const BackButton(),
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(20),
-        itemCount: PlantSpecies.catalog.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final species = PlantSpecies.catalog[index];
-          return Card(
-            margin: EdgeInsets.zero,
-            clipBehavior: Clip.antiAlias,
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(12),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+        children: [
+          SearchBar(
+            controller: _query,
+            hintText: 'Search plants, e.g. fern',
+            leading: const Icon(Icons.search),
+            trailing: [
+              if (query.isNotEmpty)
+                IconButton(
+                  tooltip: 'Clear search',
+                  icon: const Icon(Icons.close),
+                  onPressed: () => setState(_query.clear),
+                ),
+            ],
+            elevation: const WidgetStatePropertyAll(0),
+            onChanged: (_) => setState(() {}),
+            textInputAction: TextInputAction.search,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            query.isEmpty
+                ? 'Popular plants'
+                : results.isEmpty
+                ? 'No matches'
+                : results.length == 1
+                ? '1 result'
+                : '${results.length} results',
+            style: theme.textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          if (query.isNotEmpty && results.isEmpty)
+            Text(
+              "Bloom doesn't have \"$query\" yet. Try another name, or "
+              'identify it from a photo.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          for (final species in results)
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(vertical: 4),
               leading: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
                   species.asset,
-                  width: 64,
-                  height: 64,
+                  width: 56,
+                  height: 56,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -43,15 +138,10 @@ class CatalogScreen extends StatelessWidget {
                 species.scientific,
                 style: const TextStyle(fontStyle: FontStyle.italic),
               ),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) =>
-                      PlantSetupScreen(store: store, species: species),
-                ),
-              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _open(species),
             ),
-          );
-        },
+        ],
       ),
     );
   }
