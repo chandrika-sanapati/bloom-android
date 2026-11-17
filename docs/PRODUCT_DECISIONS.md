@@ -172,6 +172,8 @@ Should every non-watering check use the normal interval, always use a short inte
 
 Use a three-day follow-up for a dry or concerning check. Use the normal plant interval when soil is damp or unknown. The current Android implementation uses the three-day default; the older 2–5 day editing window remains a future enhancement.
 
+The Check watering UI asks for soil condition only for **Checked — not watered**. A **Watered** outcome does not require a soil selection because soil does not alter that outcome's schedule.
+
 #### Why
 
 A universal interval is too slow when a dry or concerning plant needs another look. An always-short interval creates unnecessary reminders for a healthy plant that was correctly left unwatered. Condition-based timing keeps the next action proportional to evidence without treating non-watering as failure.

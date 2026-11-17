@@ -126,6 +126,19 @@ void main() {
     },
   );
   testWidgets(
+    'watering check only shows soil choices after not watering is selected',
+    (tester) async {
+      final store = makeStore();
+      await open(tester, CheckScreen(store: store, plantId: 'p'));
+
+      expect(find.text('What did you find?'), findsNothing);
+      await tester.tap(find.text('Checked — not watered'));
+      await tester.pump();
+      expect(find.text('What did you find?'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'clean form returns immediately and successful save exits without discard prompt',
     (tester) async {
       final store = makeStore();

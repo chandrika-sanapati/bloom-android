@@ -33,7 +33,7 @@ class _CheckScreenState extends State<CheckScreen> {
     final record = await widget.store.completeWateringCheck(
       plantId: widget.plantId,
       outcome: outcome,
-      soil: _soil,
+      soil: outcome == WateringOutcome.checkedNotWatered ? _soil : Soil.unknown,
     );
     if (!mounted) return;
     setState(() => _saving = false);
@@ -91,7 +91,8 @@ class _CheckScreenState extends State<CheckScreen> {
               padding: const EdgeInsets.all(20),
               children: [
                 Text(plant.name, style: theme.textTheme.headlineSmall),
-                if (species case final profile? when profile.hasCareProfile) ...[
+                if (species case final profile?
+                    when profile.hasCareProfile) ...[
                   const SizedBox(height: 4),
                   Text(
                     profile.careCue,
@@ -117,18 +118,6 @@ class _CheckScreenState extends State<CheckScreen> {
                   label: const Text('Edit next check'),
                 ),
                 const SizedBox(height: 24),
-                Text('What did you find?', style: theme.textTheme.titleSmall),
-                const SizedBox(height: 8),
-                SegmentedButton<Soil>(
-                  segments: [
-                    for (final soil in Soil.values)
-                      ButtonSegment(value: soil, label: Text(soil.label)),
-                  ],
-                  selected: {_soil},
-                  onSelectionChanged: (selection) =>
-                      setState(() => _soil = selection.first),
-                ),
-                const SizedBox(height: 24),
                 Text('What did you do?', style: theme.textTheme.titleSmall),
                 const SizedBox(height: 8),
                 Card(
@@ -147,6 +136,20 @@ class _CheckScreenState extends State<CheckScreen> {
                     ),
                   ),
                 ),
+                if (_outcome == WateringOutcome.checkedNotWatered) ...[
+                  const SizedBox(height: 24),
+                  Text('What did you find?', style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 8),
+                  SegmentedButton<Soil>(
+                    segments: [
+                      for (final soil in Soil.values)
+                        ButtonSegment(value: soil, label: Text(soil.label)),
+                    ],
+                    selected: {_soil},
+                    onSelectionChanged: (selection) =>
+                        setState(() => _soil = selection.first),
+                  ),
+                ],
                 if (_error != null) ...[
                   const SizedBox(height: 16),
                   Text(

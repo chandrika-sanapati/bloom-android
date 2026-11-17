@@ -41,7 +41,7 @@ The following behavior exists in the current Android code:
 - Each supported plant receives one active schedule with a profile starting interval.
 - Upcoming tasks are classified as Today, Upcoming, or Overdue.
 - A check records exactly one of **Watered** or **Checked — not watered**.
-- Soil may be Dry, Damp, or Not sure.
+- Soil may be Dry, Damp, or Not sure, but the question is shown only after the user chooses **Checked — not watered**. **Watered** can be saved without a soil selection.
 - A dry **Checked — not watered** outcome schedules a three-day follow-up. Other outcomes use the plant profile interval.
 - Watered updates Last watered. Checked — not watered does not.
 - The next check is based on the actual recorded event, while the record retains the originally scheduled time.
@@ -123,6 +123,8 @@ For **Checked — not watered**:
 - use a three-day follow-up when the soil is dry;
 - use the normal profile interval for Damp or Not sure;
 - show the result in Past.
+
+The Check watering screen keeps the soil question hidden for **Watered** and reveals it only for **Checked — not watered**. This keeps the common watering path concise without changing stored soil semantics or follow-up rules.
 
 ### Overdue and editing
 

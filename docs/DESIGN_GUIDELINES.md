@@ -44,6 +44,7 @@ These guidelines apply to the Flutter Android app. They replace the former iOS/S
 - Say **Check watering** or **Check the soil**, not “Water now,” for an unresolved task.
 - Explain that a schedule is a starting point and actual conditions matter.
 - Use exactly two completion outcomes: **Watered** and **Checked — not watered**.
+- Ask for soil condition only after **Checked — not watered** is selected. Keep the **Watered** path focused and immediately saveable.
 - A dry or concerning non-watering check may receive a shorter follow-up. This is another check, not an instruction or a recovery promise.
 - Use **Overdue** without blame. An overdue task remains visible until the user completes it or explicitly edits its next date.
 

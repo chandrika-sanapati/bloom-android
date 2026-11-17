@@ -25,7 +25,7 @@ Any proposed feature expansion must be recorded as a future idea only and must n
 Latest pulled `main` was verified on the local Android 36 emulator (`emulator-5554`):
 
 - `flutter analyze`: passed with zero issues.
-- `flutter test`: **98 tests passed**, including email-first auth UI, local-wins cloud overwrite/retry, asynchronous persistence boundaries, signed-out/ordered sync behavior, PlantNet provider errors and normalized candidates, latest-watering correction/recalculation, failed-save rollback, notification no-burst safety, denied-permission recovery UI, and the reviewed Spider Plant profile.
+- `flutter test`: **100 tests passed**, including conditional watering-soil UI, email-first auth UI, local-wins cloud overwrite/retry, asynchronous persistence boundaries, signed-out/ordered sync behavior, PlantNet provider errors and normalized candidates, latest-watering correction/recalculation, failed-save rollback, notification no-burst safety, denied-permission recovery UI, and the reviewed Spider Plant profile.
 - Normal debug APK: built, installed, and launched as `com.chandrika.bloom`.
 - `integration_test/light_placement_test.dart`: **2 tests passed** using the isolated integration package.
 - `integration_test/care_timeline_test.dart`: **2 tests passed** using the isolated integration package, including latest watering-record deletion and Snackbar Undo from the timeline.
