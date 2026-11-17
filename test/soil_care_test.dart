@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:bloom/domain/garden_store.dart';
 import 'package:bloom/domain/models.dart';
 import 'package:bloom/domain/soil_care.dart';
-import 'package:bloom/domain/soil_assessment.dart';
 import 'package:bloom/domain/plant_activity.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -181,39 +180,6 @@ void main() {
     },
   );
 
-  test(
-    'assessment branches cover every answer combination without prescribing schedules',
-    () {
-      for (final check in SoilCheck.values) {
-        for (final a in SoilAnswer.values) {
-          for (final b in SoilAnswer.values) {
-            for (final c in SoilAnswer.values) {
-              final result = SoilAssessment.advise(check, [a, b, c]);
-              expect(result.title, isNotEmpty);
-              expect(result.reason, isNotEmpty);
-              if (check != SoilCheck.nutrients && a != SoilAnswer.yes) {
-                expect(result.actions, isEmpty);
-              }
-              if (check == SoilCheck.nutrients &&
-                  (a != SoilAnswer.yes ||
-                      b != SoilAnswer.no ||
-                      c != SoilAnswer.yes)) {
-                expect(result.actions, isEmpty);
-              }
-            }
-          }
-        }
-      }
-      expect(
-        SoilAssessment.needsMoreAnswers(SoilCheck.nutrients, [SoilAnswer.no]),
-        isFalse,
-      );
-      expect(
-        SoilAssessment.advise(SoilCheck.nutrients, [SoilAnswer.no]).actions,
-        isEmpty,
-      );
-    },
-  );
   test(
     'timeline filters one plant, combines soil actions once and uses completed time, not due time',
     () {

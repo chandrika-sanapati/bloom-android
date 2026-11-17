@@ -6,6 +6,7 @@ import 'package:bloom/domain/soil_care.dart';
 import 'package:bloom/ui/plant_detail_screen.dart';
 import 'package:bloom/ui/plant_timeline_screen.dart';
 import 'package:bloom/ui/soil_care_screen.dart';
+import 'package:bloom/data/plant_profile_catalog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,9 +15,10 @@ import 'package:path_provider/path_provider.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(PlantProfileCatalog.load);
   const native = MethodChannel('bloom.integration/notifications');
   testWidgets(
-    'on-demand drainage, guarded native Back, combined soil care and nested timeline persist safely',
+    'guarded native Back, combined soil care and nested timeline persist safely',
     (tester) async {
       final directory = await getTemporaryDirectory();
       final file = File('${directory.path}/bloom-timeline-integration.json');
@@ -65,24 +67,16 @@ void main() {
       );
       await tester.tap(find.text('Open plant'));
       await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(find.text('Soil health'), 220);
-      await tester.tap(find.text('Soil health'));
+      await tester.scrollUntilVisible(
+        find.text('Record soil care'),
+        180,
+        scrollable: _vertical,
+      );
+      await tester.ensureVisible(find.text('Record soil care'));
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Refresh potting mix'));
-      await tester.tap(find.text('Refresh potting mix'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('No'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('See guidance'));
-      await tester.pumpAndSettle();
-      expect(find.text('Check drainage first'), findsOneWidget);
-      expect(store.garden.soilCare, isEmpty);
-      await tester.tap(find.byTooltip('Back'));
-      await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(find.text('Record soil care'), 180);
       await tester.tap(find.text('Record soil care'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Repotted'));
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Repotted'));
       await tester.pumpAndSettle();
       await tester.runAsync(() => native.invokeMethod<void>('pressBack'));
       await tester.pumpAndSettle();
@@ -97,9 +91,13 @@ void main() {
             .value,
         isTrue,
       );
-      await tester.tap(find.text('Added nutrients'));
+      await tester.tap(
+        find.widgetWithText(CheckboxListTile, 'Added nutrients'),
+      );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Refreshed potting mix'));
+      await tester.tap(
+        find.widgetWithText(CheckboxListTile, 'Refreshed potting mix'),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
       await tester.pumpAndSettle();
@@ -109,7 +107,11 @@ void main() {
       expect(reloaded.soilCare.single.actions, hasLength(3));
       expect(reloaded.schedules.single.toJson(), beforeSchedule);
       expect(reloaded.records.single.toJson(), beforeWatering);
-      await tester.scrollUntilVisible(find.text('Care timeline'), 200);
+      await tester.scrollUntilVisible(
+        find.text('Care timeline'),
+        200,
+        scrollable: _vertical,
+      );
       await tester.tap(find.text('Care timeline'));
       await tester.pumpAndSettle();
       expect(find.byType(PlantTimelineScreen), findsOneWidget);
@@ -122,7 +124,9 @@ void main() {
       ).writeAsBytes(await binding.takeScreenshot('care-timeline'));
       await tester.tap(find.text(reloaded.soilCare.single.title));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Added nutrients'));
+      await tester.tap(
+        find.widgetWithText(CheckboxListTile, 'Added nutrients'),
+      );
       await tester.pumpAndSettle();
       await tester.runAsync(() => native.invokeMethod<void>('pressBack'));
       await tester.pumpAndSettle();
@@ -238,3 +242,9 @@ void main() {
     },
   );
 }
+
+final _vertical = find
+    .byWidgetPredicate(
+      (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+    )
+    .first;

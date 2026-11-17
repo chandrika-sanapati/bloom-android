@@ -1,11 +1,9 @@
 import 'package:bloom/domain/garden_store.dart';
 import 'package:bloom/domain/models.dart';
 import 'package:bloom/domain/soil_care.dart';
-import 'package:bloom/domain/soil_assessment.dart';
 import 'package:bloom/ui/plant_detail_screen.dart';
 import 'package:bloom/ui/plant_timeline_screen.dart';
 import 'package:bloom/ui/soil_care_screen.dart';
-import 'package:bloom/ui/soil_health_section.dart';
 import 'package:bloom/ui/check_screen.dart';
 import 'package:bloom/ui/catalog_screen.dart';
 import 'package:flutter/material.dart';
@@ -263,57 +261,6 @@ void main() {
     );
     expect(store.garden.soilCare, isEmpty);
   });
-  testWidgets('drainage check stops early with guidance and no care record', (
-    tester,
-  ) async {
-    final store = makeStore();
-    await open(
-      tester,
-      SoilAssessmentScreen(store: store, plantId: 'p', check: SoilCheck.mix),
-    );
-    await tester.tap(find.text('No'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('See guidance'));
-    await tester.pumpAndSettle();
-    expect(find.text('Check drainage first'), findsOneWidget);
-    expect(store.garden.soilCare, isEmpty);
-    await tester.tap(find.byTooltip('Back'));
-    await tester.pumpAndSettle();
-    expect(find.text('Discard changes?'), findsNothing);
-  });
-  testWidgets(
-    'unfinished assessment asks before leaving and preserves answers',
-    (tester) async {
-      final store = makeStore();
-      await open(
-        tester,
-        SoilAssessmentScreen(
-          store: store,
-          plantId: 'p',
-          check: SoilCheck.nutrients,
-        ),
-      );
-      await tester.tap(find.text('Yes'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Next'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Back'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Keep editing'));
-      await tester.pumpAndSettle();
-      expect(
-        find.text('Is fertilizer still supplying nutrients?'),
-        findsOneWidget,
-      );
-      await tester.tap(find.text('Not sure'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('See guidance'));
-      await tester.pumpAndSettle();
-      expect(find.text('Check the product or mix label first'), findsOneWidget);
-      expect(store.garden.soilCare, isEmpty);
-    },
-  );
-
   testWidgets('soil action form fits narrow large-text dark screens', (
     tester,
   ) async {

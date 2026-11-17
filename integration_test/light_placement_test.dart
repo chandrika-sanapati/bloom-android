@@ -5,6 +5,7 @@ import 'package:bloom/domain/garden_store.dart';
 import 'package:bloom/domain/models.dart';
 import 'package:bloom/ui/catalog_screen.dart';
 import 'package:bloom/ui/plant_detail_screen.dart';
+import 'package:bloom/data/plant_profile_catalog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -13,17 +14,26 @@ import 'package:path_provider/path_provider.dart';
 /// Runs against an isolated cache file, never the user's saved garden.
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(PlantProfileCatalog.load);
   var capturedCompact = false;
   const label = "I've placed it as suggested";
 
   Future<void> revealCheckbox(WidgetTester tester) async {
-    await tester.scrollUntilVisible(find.text('Light & placement'), 220);
+    await tester.scrollUntilVisible(
+      find.text('Light & placement'),
+      220,
+      scrollable: _vertical,
+    );
     await tester.pumpAndSettle();
     if (find.byType(CheckboxListTile).evaluate().isEmpty) {
       await tester.tap(find.text('Light & placement'));
       await tester.pumpAndSettle();
     }
-    await tester.scrollUntilVisible(find.byType(CheckboxListTile), 150);
+    await tester.scrollUntilVisible(
+      find.byType(CheckboxListTile),
+      150,
+      scrollable: _vertical,
+    );
     await tester.pumpAndSettle();
   }
 
@@ -76,7 +86,11 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('Light & placement'), 220);
+    await tester.scrollUntilVisible(
+      find.text('Light & placement'),
+      220,
+      scrollable: _vertical,
+    );
     await tester.pumpAndSettle();
     expect(find.byType(CheckboxListTile), findsNothing);
     if (!capturedCompact) {
@@ -184,3 +198,9 @@ void main() {
     await file.delete();
   });
 }
+
+final _vertical = find
+    .byWidgetPredicate(
+      (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+    )
+    .first;

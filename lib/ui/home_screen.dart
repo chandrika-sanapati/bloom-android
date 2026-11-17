@@ -142,7 +142,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _openCatalog() async {
     await widget.flags.markAddPlantHintSeen();
     if (!mounted) return;
-    setState(() => _showHint = false);
+    setState(() {
+      _showHint = false;
+      _fabOpen = false;
+    });
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => CatalogScreen(store: widget.store)),
     );

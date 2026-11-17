@@ -8,6 +8,7 @@ import 'package:bloom/domain/watering_notification.dart';
 import 'package:bloom/main.dart';
 import 'package:bloom/ui/check_screen.dart';
 import 'package:bloom/ui/plant_detail_screen.dart';
+import 'package:bloom/data/plant_profile_catalog.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,6 +17,7 @@ import 'package:path_provider/path_provider.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(PlantProfileCatalog.load);
   const channel = MethodChannel('bloom.integration/notifications');
   testWidgets(
     'persist preference; native notification intents in foreground/background, stale/deleted fallback',
