@@ -47,14 +47,7 @@ class FakeCloudBackend implements CloudGardenBackend {
 }
 
 Garden garden(String name) => Garden(
-  plants: [
-    Plant(
-      id: 'p',
-      name: name,
-      species: 'Epipremnum aureum',
-      asset: 'assets/images/pothos.jpg',
-    ),
-  ],
+  plants: [Plant(id: 'p', plantTypeId: 'pothos', displayName: name)],
 );
 
 void main() {

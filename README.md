@@ -34,6 +34,8 @@ The current app supports:
 - Material 3 light/dark themes using Android dynamic colors when available, with Bloom teal as the fallback.
 - A labeled FAB menu for Search by name and Identify from a photo.
 - Photo identification through the authenticated Supabase Edge Function, normalized candidate results, candidate confirmation, and safe unsupported-identity handling.
+- Plants added through catalog/search or photo identification use the same canonical care profile when the type matches; separate plants keep separate histories.
+- Plant profiles are data-driven: Supabase manages the catalog and aliases, while the bundled profile JSON keeps the app usable offline.
 - Species-specific light/placement advice during setup and on plant detail.
 - Optional saved acknowledgment that the user placed the plant as suggested; watering dates stay unchanged.
 - On-demand Soil health checks, including drainage, plus separate or combined nutrient/mix-refresh/repotting records.

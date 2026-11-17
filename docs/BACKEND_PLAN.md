@@ -69,6 +69,8 @@ identification_runs
 - expires_at timestamptz
 ```
 
+`plant_profiles` and `plant_profile_aliases` are managed catalog tables readable by authenticated clients. The app caches the bundled profile catalog for offline startup and uses the remote catalog when available; profile updates never silently rewrite existing schedules.
+
 The current sync implementation stores one versioned garden payload per user rather than normalizing every plant/event. The payload uses the existing local JSON schema and an explicit schema version. Normalized tables remain deferred.
 
 RLS requirements:

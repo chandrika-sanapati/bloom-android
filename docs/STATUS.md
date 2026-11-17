@@ -47,8 +47,10 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Local garden JSON persistence under the app support directory.
 - First-run Add plant hint stored in `SharedPreferences`.
 - Five catalog plants: Snake Plant, Monstera, Rubber Plant, Pothos, and Spider Plant.
+- Plant profile inventory is data-driven: bundled JSON provides the offline catalog/cache, while Supabase `plant_profiles` and `plant_profile_aliases` provide the managed authenticated catalog when available.
 - Material 3-style labeled FAB menu with Search by name and Identify from a photo entry points.
 - Photo intake and authenticated candidate-identification flow with camera/gallery choice, preview, removal, normalized candidates, confirmation, and unsupported-identity safety.
+- Catalog and photo-added identities share canonical reviewed profiles; supported aliases such as Pothos variants receive the same asset, schedule interval, care cue, and light guidance while retaining separate plant IDs.
 - Type-based starting watering intervals.
 - Reviewed Spider Plant profile with bundled image and species-specific light guidance.
 - Optional last-watered date during setup.
@@ -90,6 +92,7 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Supabase project `gwuwlzzpfklvfhtkubnj` is linked locally; the `identify-plant` Edge Function is deployed and `PLANTNET_API_KEY` exists as a hosted function secret. Live authenticated identification and Google sign-in have been exercised on the configured emulator.
 - Configured-build smoke check: APK built with Supabase URL, publishable key, PlantNet Edge Function endpoint, and Google Web Client ID; Supabase initialization completed and the normal app launched on `emulator-5554` without startup errors.
 - PlantNet end-to-end request verified in hosted logs: authenticated multipart request, PlantNet response, and HTTP 200 in under one second. Flutter now parses the Edge Function's normalized `candidates` response.
+- Canonical profile matching tests cover provider/name variants and legacy saved records; unsupported identities remain without invented schedules.
 - Live cloud-sync check: Google sign-in succeeded, a local Spider Plant mutation remained visible, and local-wins asynchronous sync behavior was verified through the configured build and deterministic backend tests.
 - Production verification: local and remote migration `20261115220000_create_gardens` match; `supabase db lint --linked` reports no schema errors; `identify-plant` is active with JWT verification enabled; unauthenticated requests return HTTP 401.
 - Account deletion verification: `delete-account` is deployed with JWT verification enabled; unauthenticated requests return HTTP 401. Successful authenticated deletion remains a manual account-level check.

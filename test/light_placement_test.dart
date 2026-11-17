@@ -9,12 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   final now = DateTime(2026, 11, 15, 10);
   final species = PlantSpecies.catalog[3];
-  final plant = Plant(
-    id: 'plant-1',
-    name: species.name,
-    species: species.scientific,
-    asset: species.asset,
-  );
+  final plant = Plant(id: 'plant-1', plantTypeId: species.id);
   final acknowledgment = LightPlacementAcknowledgment(
     acknowledgedAt: now,
     guidanceVersion: species.light.version,
@@ -25,9 +20,8 @@ void main() {
       plant.copyWith(lightPlacement: placement),
       Plant(
         id: 'plant-2',
-        name: 'Second Pothos',
-        species: plant.species,
-        asset: plant.asset,
+        plantTypeId: species.id,
+        displayName: 'Second Pothos',
       ),
     ],
     schedules: [
@@ -185,7 +179,7 @@ void main() {
         store.lastWatered(plant.id),
         now.subtract(const Duration(days: 15)),
       );
-      expect(store.garden.plants.last, same(initial.plants.last));
+      expect(store.garden.plants.last.id, initial.plants.last.id);
       expect(
         await store.setLightPlacementAcknowledged(plant.id, false),
         isTrue,

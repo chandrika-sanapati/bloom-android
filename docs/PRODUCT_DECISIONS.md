@@ -21,6 +21,8 @@ The source material was the earlier Bloom product repository. SwiftUI, Xcode, iO
 - **Profile:** The Home account action is labeled **Profile** and uses a user icon. Profile contains account controls and a focused **Preferences** section for notifications and reminder time; cloud synchronization remains background behavior.
 - **Cloud ownership:** The local garden is authoritative. Successful local persistence is never blocked by cloud sync. Every saved garden queues asynchronous sync; differing cloud payloads are overwritten using a revision guard, with bounded retry if another write races.
 - **Identification boundary:** PlantNet is called only through the authenticated Supabase Edge Function. Results are possible matches, not diagnoses or automatic care guidance. Confirmed unsupported identities do not receive invented schedules.
+- **Canonical plant types:** Search/catalog and photo identification resolve to the same reviewed `PlantSpecies` inventory. Matching physical plants retain separate IDs and history; their care behavior comes from the canonical type, never from the discovery path or provider-specific asset/name.
+- **Data-driven inventory:** Plant profile content is managed in Supabase `plant_profiles` and aliases, with the bundled JSON catalog as the offline cache/seed. Profile content is not hard-coded as the production source in Dart.
 
 ## How to read this document
 

@@ -28,7 +28,7 @@ class GardenStore extends ChangeNotifier {
     required this.persist,
     this.onChanged,
     this.onPersisted,
-  }) : _garden = garden; // ignore: prefer_initializing_formals
+  }) : _garden = _canonicalizeGarden(garden);
 
   /// Runs after each saved change, so reminders stay in step with the garden.
   final Future<void> Function(Garden garden)? onChanged;
@@ -41,6 +41,11 @@ class GardenStore extends ChangeNotifier {
   final Future<void> Function(Garden garden) persist;
 
   Garden get garden => _garden;
+
+  static Garden _canonicalizeGarden(Garden garden) {
+    final plants = garden.plants.map((plant) => plant.canonicalized()).toList();
+    return garden.copyWith(plants: plants);
+  }
 
   Plant? plant(String id) {
     for (final plant in _garden.plants) {
@@ -200,7 +205,8 @@ class GardenStore extends ChangeNotifier {
     DateTime? now,
   }) async {
     if (plant.name.trim().isEmpty) return false;
-    final species = PlantSpecies.forPlant(plant);
+    final canonical = plant.canonicalized();
+    final species = PlantSpecies.forPlant(canonical);
     final current = now ?? DateTime.now();
     if (lastWatered != null && lastWatered.isAfter(current)) return false;
     final reminder = _garden.preferences;
@@ -213,7 +219,7 @@ class GardenStore extends ChangeNotifier {
       minute: reminder.reminderMinute,
     );
 
-    final plants = [..._garden.plants, plant];
+    final plants = [..._garden.plants, canonical];
     final schedules = [
       ..._garden.schedules,
       if (species != null)
@@ -231,6 +237,7 @@ class GardenStore extends ChangeNotifier {
 
   /// Renames or re-species an existing plant, or inserts it if missing.
   Future<bool> _savePlant(Plant plant) {
+    plant = plant.canonicalized();
     final index = _garden.plants.indexWhere((p) => p.id == plant.id);
     final plants = [..._garden.plants];
     if (index >= 0) {

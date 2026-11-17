@@ -8,6 +8,7 @@ import 'data/garden_repository.dart';
 import 'data/auth_service.dart';
 import 'data/cloud_garden_sync.dart';
 import 'data/plant_identifier.dart';
+import 'data/plant_profile_catalog.dart';
 import 'data/watering_notifications.dart';
 import 'domain/garden_store.dart';
 import 'ui/home_screen.dart';
@@ -20,6 +21,7 @@ import 'domain/watering_notification.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _initializeSupabaseIfConfigured();
+  await PlantProfileCatalog.load();
   final repository = GardenRepository();
   final garden = await repository.load();
   final notifications = WateringNotifications();

@@ -298,12 +298,7 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
       ).then((confirmed) async {
         if (confirmed != true || !mounted) return;
         final saved = await widget.store.savePlant(
-          Plant(
-            id: newId(),
-            name: candidate.displayName,
-            species: candidate.scientificName,
-            asset: 'assets/images/area-whole.png',
-          ),
+          Plant(id: newId(), displayName: candidate.displayName),
         );
         if (!mounted || !saved) return;
         if (!context.mounted) return;

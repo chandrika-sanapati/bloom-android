@@ -41,29 +41,67 @@ bool _isSameDay(DateTime a, DateTime b) =>
 class Plant {
   const Plant({
     required this.id,
-    required this.name,
-    required this.species,
-    required this.asset,
+    this.plantTypeId,
+    this.displayName,
+    @Deprecated('Use plantTypeId and displayName.') String? name,
+    @Deprecated('Use plantTypeId.') String? species,
+    @Deprecated('Use the data-driven profile catalog.') String? asset,
+    String? legacyName,
+    String? legacySpecies,
+    String? legacyAsset,
     this.lightPlacement,
-  });
+  }) : legacyName = legacyName ?? name,
+       legacySpecies = legacySpecies ?? species,
+       legacyAsset = legacyAsset ?? asset;
 
   final String id;
-  final String name;
-  final String species;
-  final String asset;
+  final String? plantTypeId;
+  final String? displayName;
+  @Deprecated('Use plantTypeId and displayName.')
+  final String? legacyName;
+  @Deprecated('Use plantTypeId and the data-driven profile catalog.')
+  final String? legacySpecies;
+  @Deprecated('Use the data-driven profile catalog.')
+  final String? legacyAsset;
   final LightPlacementAcknowledgment? lightPlacement;
 
+  Plant canonicalized() {
+    final profile = PlantSpecies.forPlant(this);
+    if (profile == null) return this;
+    return Plant(
+      id: id,
+      plantTypeId: profile.id,
+      displayName: displayName,
+      lightPlacement: lightPlacement,
+    );
+  }
+
+  String get name =>
+      displayName ?? PlantSpecies.forPlant(this)?.name ?? legacyName ?? 'Plant';
+  String get species =>
+      PlantSpecies.forPlant(this)?.scientific ??
+      legacySpecies ??
+      'Unknown species';
+  String get asset =>
+      PlantSpecies.forPlant(this)?.asset ??
+      legacyAsset ??
+      'assets/images/area-whole.png';
+
   Plant copyWith({
-    String? name,
-    String? species,
-    String? asset,
+    String? plantTypeId,
+    String? displayName,
+    @Deprecated('Use displayName.') String? name,
+    @Deprecated('Use plantTypeId.') String? species,
+    @Deprecated('Use the data-driven profile catalog.') String? asset,
     LightPlacementAcknowledgment? lightPlacement,
     bool clearLightPlacement = false,
   }) => Plant(
     id: id,
-    name: name ?? this.name,
-    species: species ?? this.species,
-    asset: asset ?? this.asset,
+    plantTypeId: plantTypeId ?? this.plantTypeId,
+    displayName: displayName ?? name ?? this.displayName,
+    legacyName: legacyName ?? name,
+    legacySpecies: legacySpecies ?? species,
+    legacyAsset: legacyAsset ?? asset,
     lightPlacement: clearLightPlacement
         ? null
         : lightPlacement ?? this.lightPlacement,
@@ -71,17 +109,18 @@ class Plant {
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'name': name,
-    'species': species,
-    'asset': asset,
+    'plantTypeId': plantTypeId,
+    if (displayName != null) 'displayName': displayName,
     if (lightPlacement != null) 'lightPlacement': lightPlacement!.toJson(),
   };
 
   factory Plant.fromJson(Map<String, dynamic> json) => Plant(
     id: json['id'] as String,
-    name: json['name'] as String,
-    species: json['species'] as String,
-    asset: json['asset'] as String,
+    plantTypeId: json['plantTypeId'] as String?,
+    displayName: json['displayName'] as String?,
+    legacyName: json['name'] as String?,
+    legacySpecies: json['species'] as String?,
+    legacyAsset: json['asset'] as String?,
     lightPlacement: LightPlacementAcknowledgment.tryFromJson(
       json['lightPlacement'],
     ),
@@ -318,11 +357,20 @@ class PlantLightGuidance {
   final String placement;
   final String sourceUrl;
   final int version;
+
+  factory PlantLightGuidance.fromJson(Map<String, dynamic> json) =>
+      PlantLightGuidance(
+        requirement: json['requirement'] as String,
+        placement: json['placement'] as String,
+        sourceUrl: json['sourceUrl'] as String,
+        version: json['version'] as int? ?? 1,
+      );
 }
 
-/// Supported species and care profiles for the Android catalog.
+/// Runtime profile data loaded from the managed catalog asset/cache.
 class PlantSpecies {
   const PlantSpecies({
+    required this.id,
     required this.name,
     required this.scientific,
     required this.asset,
@@ -331,8 +379,10 @@ class PlantSpecies {
     required this.startingIntervalDays,
     required this.careCue,
     required this.light,
+    this.aliases = const [],
   });
 
+  final String id;
   final String name;
   final String scientific;
   final String asset;
@@ -341,111 +391,58 @@ class PlantSpecies {
   final int startingIntervalDays;
   final String careCue;
   final PlantLightGuidance light;
+  final List<String> aliases;
 
-  static const catalog = [
-    PlantSpecies(
-      name: 'Snake Plant',
-      scientific: 'Dracaena trifasciata',
-      asset: 'assets/images/snake.png',
-      minDays: 14,
-      maxDays: 30,
-      startingIntervalDays: 21,
-      careCue: 'Let the growing medium dry substantially before watering.',
-      light: PlantLightGuidance(
-        requirement: 'Bright daylight',
-        placement:
-            'Place near a window with good daylight. Some direct sun is '
-            'fine; introduce stronger sun gradually.',
-        sourceUrl: 'https://plants.ces.ncsu.edu/plants/dracaena-trifasciata/',
-      ),
-    ),
-    PlantSpecies(
-      name: 'Monstera',
-      scientific: 'Monstera deliciosa',
-      asset: 'assets/images/monstera.png',
-      minDays: 7,
-      maxDays: 14,
-      startingIntervalDays: 10,
-      careCue: 'Check the top 1–2 inches of soil and avoid waterlogging.',
-      light: PlantLightGuidance(
-        requirement: 'Indirect daylight',
-        placement:
-            'Place near a bright window, away from strong sun shining '
-            'directly on the leaves.',
-        sourceUrl: 'https://plants.ces.ncsu.edu/plants/monstera-deliciosa/',
-      ),
-    ),
-    PlantSpecies(
-      name: 'Rubber Plant',
-      scientific: 'Ficus elastica',
-      asset: 'assets/images/rubber.png',
-      minDays: 7,
-      maxDays: 21,
-      startingIntervalDays: 14,
-      careCue: 'Use a free-draining medium and check before watering.',
-      light: PlantLightGuidance(
-        requirement: 'Bright, indirect light',
-        placement:
-            'Place near a bright window, sheltered from strong afternoon '
-            'sun. Daylight should reach the plant without harsh sun on its leaves.',
-        sourceUrl: 'https://plants.ces.ncsu.edu/plants/ficus-elastica/',
-      ),
-    ),
-    PlantSpecies(
-      name: 'Pothos',
-      scientific: 'Epipremnum aureum',
-      asset: 'assets/images/pothos.jpg',
-      minDays: 7,
-      maxDays: 21,
-      startingIntervalDays: 14,
-      careCue:
-          'Allow the soil to dry between checks; avoid keeping it constantly wet.',
-      light: PlantLightGuidance(
-        requirement: 'Bright, indirect light',
-        placement:
-            'Choose a bright spot out of strong direct sun. It tolerates '
-            'lower light, but grows best with plenty of indirect daylight.',
-        sourceUrl: 'https://plants.ces.ncsu.edu/plants/epipremnum-aureum/',
-      ),
-    ),
-    PlantSpecies(
-      name: 'Spider Plant',
-      scientific: 'Chlorophytum comosum',
-      asset: 'assets/images/spider.jpg',
-      minDays: 7,
-      maxDays: 14,
-      startingIntervalDays: 10,
-      careCue: 'Keep the soil lightly moist, but let excess water drain away.',
-      light: PlantLightGuidance(
-        requirement: 'Medium, indirect daylight',
-        placement:
-            'Place in medium indirect light. Avoid strong direct sun; it '
-            'tolerates lower light and short dry periods.',
-        sourceUrl: 'https://plants.ces.ncsu.edu/plants/chlorophytum-comosum/',
-      ),
-    ),
-  ];
+  static List<PlantSpecies> _catalog = const [];
+  static void setCatalog(List<PlantSpecies> profiles) => _catalog = profiles;
+
+  factory PlantSpecies.fromJson(Map<String, dynamic> json) => PlantSpecies(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    scientific: json['scientificName'] as String,
+    aliases: (json['aliases'] as List? ?? const []).cast<String>(),
+    asset: json['asset'] as String,
+    minDays: json['minDays'] as int,
+    maxDays: json['maxDays'] as int,
+    startingIntervalDays: json['startingIntervalDays'] as int,
+    careCue: json['careCue'] as String,
+    light: PlantLightGuidance.fromJson(json['light'] as Map<String, dynamic>),
+  );
+
+  static List<PlantSpecies> get catalog => _catalog;
 
   static PlantSpecies? forPlant(Plant plant) {
-    final scientific = plant.species.trim().toLowerCase();
-    for (final species in catalog) {
-      if (species.scientific.toLowerCase() == scientific) return species;
+    final requested = plant.plantTypeId?.trim();
+    for (final profile in _catalog) {
+      if (requested?.isNotEmpty == true && profile.id == requested) {
+        return profile;
+      }
     }
-    for (final species in catalog) {
-      if (species.name.toLowerCase() == plant.name.trim().toLowerCase()) {
-        return species;
+    final values = [
+      plant.displayName ?? plant.legacyName,
+      plant.legacySpecies,
+    ].whereType<String>().map(_normalize).where((value) => value.isNotEmpty);
+    return _find(values);
+  }
+
+  static PlantSpecies? forScientificName(String scientific) =>
+      _find([_normalize(scientific)]);
+
+  static PlantSpecies? _find(Iterable<String> values) {
+    for (final value in values) {
+      for (final profile in _catalog) {
+        if (_normalize(profile.name) == value ||
+            _normalize(profile.scientific) == value ||
+            profile.aliases.any((alias) => _normalize(alias) == value)) {
+          return profile;
+        }
       }
     }
     return null;
   }
 
-  static PlantSpecies? forScientificName(String scientific) {
-    final normalized = scientific.trim().toLowerCase();
-    for (final species in catalog) {
-      if (species.scientific.toLowerCase() == normalized) return species;
-    }
-    return null;
-  }
+  static String _normalize(String value) =>
+      value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), ' ').trim();
 }
 
 /// Dry-soil follow-up window used by the current watering baseline.

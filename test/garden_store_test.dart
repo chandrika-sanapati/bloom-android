@@ -34,6 +34,50 @@ void main() {
   }
 
   group('watering profiles and first checks', () {
+    test(
+      'normalizes photo/provider Pothos variants to the reviewed profile',
+      () async {
+        final store = storeWith();
+        final added = await store.addPlant(
+          Plant(
+            id: 'photo-pothos',
+            name: 'Golden Pothos',
+            species: 'Epipremnum aureum njoy',
+            asset: 'assets/images/area-whole.png',
+          ),
+          now: now,
+        );
+
+        expect(added, isTrue);
+        final saved = store.plant('photo-pothos');
+        expect(saved?.name, 'Pothos');
+        expect(saved?.species, 'Epipremnum aureum');
+        expect(saved?.asset, 'assets/images/pothos.jpg');
+        expect(store.scheduleFor('photo-pothos')?.intervalDays, 14);
+      },
+    );
+
+    test('canonicalizes legacy catalog variants on store load', () {
+      final store = GardenStore(
+        garden: Garden(
+          plants: [
+            Plant(
+              id: 'legacy-pothos',
+              name: 'Devil’s Ivy',
+              species: 'unknown provider species',
+              asset: 'assets/images/area-whole.png',
+            ),
+          ],
+        ),
+        persist: (_) async {},
+      );
+
+      expect(store.plant('legacy-pothos')?.name, 'Pothos');
+      expect(store.plant('legacy-pothos')?.species, 'Epipremnum aureum');
+      expect(store.plant('legacy-pothos')?.asset, 'assets/images/pothos.jpg');
+      expect(store.scheduleFor('legacy-pothos'), isNull);
+    });
+
     test('creates a Pothos schedule from a known last-watered date', () async {
       final store = await storeWithPlant(lastWatered: DateTime(2026, 11, 1));
 

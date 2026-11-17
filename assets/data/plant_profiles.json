@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "profiles": [
+    {
+      "id": "snake_plant",
+      "name": "Snake Plant",
+      "scientificName": "Dracaena trifasciata",
+      "aliases": ["Sansevieria trifasciata", "snake plant"],
+      "asset": "assets/images/snake.png",
+      "minDays": 14,
+      "maxDays": 30,
+      "startingIntervalDays": 21,
+      "careCue": "Let the growing medium dry substantially before watering.",
+      "light": {
+        "requirement": "Bright daylight",
+        "placement": "Place near a window with good daylight. Some direct sun is fine; introduce stronger sun gradually.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/plants/dracaena-trifasciata/",
+        "version": 1
+      }
+    },
+    {
+      "id": "monstera",
+      "name": "Monstera",
+      "scientificName": "Monstera deliciosa",
+      "aliases": ["Swiss cheese plant"],
+      "asset": "assets/images/monstera.png",
+      "minDays": 7,
+      "maxDays": 14,
+      "startingIntervalDays": 10,
+      "careCue": "Check the top 1–2 inches of soil and avoid waterlogging.",
+      "light": {
+        "requirement": "Indirect daylight",
+        "placement": "Place near a bright window, away from strong sun shining directly on the leaves.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/plants/monstera-deliciosa/",
+        "version": 1
+      }
+    },
+    {
+      "id": "rubber_plant",
+      "name": "Rubber Plant",
+      "scientificName": "Ficus elastica",
+      "aliases": ["rubber tree", "rubber fig"],
+      "asset": "assets/images/rubber.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Use a free-draining medium and check before watering.",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place near a bright window, sheltered from strong afternoon sun. Daylight should reach the plant without harsh sun on its leaves.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/plants/ficus-elastica/",
+        "version": 1
+      }
+    },
+    {
+      "id": "pothos",
+      "name": "Pothos",
+      "scientificName": "Epipremnum aureum",
+      "aliases": ["Golden Pothos", "Devil's Ivy", "Devil’s Ivy", "Epipremnum aureum njoy"],
+      "asset": "assets/images/pothos.jpg",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Allow the soil to dry between checks; avoid keeping it constantly wet.",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Choose a bright spot out of strong direct sun. It tolerates lower light, but grows best with plenty of indirect daylight.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/plants/epipremnum-aureum/",
+        "version": 1
+      }
+    },
+    {
+      "id": "spider_plant",
+      "name": "Spider Plant",
+      "scientificName": "Chlorophytum comosum",
+      "aliases": ["airplane plant", "ribbon plant"],
+      "asset": "assets/images/spider.jpg",
+      "minDays": 7,
+      "maxDays": 14,
+      "startingIntervalDays": 10,
+      "careCue": "Keep the soil lightly moist, but let excess water drain away.",
+      "light": {
+        "requirement": "Medium, indirect daylight",
+        "placement": "Place in medium indirect light. Avoid strong direct sun; it tolerates lower light and short dry periods.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/plants/chlorophytum-comosum/",
+        "version": 1
+      }
+    }
+  ]
+}

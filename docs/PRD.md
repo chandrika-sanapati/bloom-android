@@ -27,7 +27,7 @@ A date is a prompt to inspect the plant, not proof that the plant needs water. B
 - Local garden JSON remains the immediate source of truth. Authenticated local saves queue asynchronous cloud sync; the local payload is authoritative and guarded-overwrites differing cloud data by revision.
 - Plant identification is available through the authenticated Supabase Edge Function when its endpoint is configured. PlantNet keys never ship in Flutter or the APK.
 - There is no analytics service, live weather, device-location inference, sensor integration, or automatic watering hardware.
-- The five supported catalog plants are the only plants that receive an automatic watering schedule in the current product.
+- The active plant inventory is data-driven. Profiles are managed in Supabase `plant_profiles`/`plant_profile_aliases` and cached from the bundled versioned catalog for offline use. Only profiles marked reviewed receive automatic care schedules.
 - The historical iOS screenshots in `docs/previews/` are not current product behavior.
 
 ## 3. Current implementation baseline
@@ -36,6 +36,7 @@ The following behavior exists in the current Android code:
 
 - Home shows **My plants** and **Activity → Upcoming / Past** after a plant is added.
 - The catalog contains Snake Plant, Monstera, Rubber Plant, Pothos, and Spider Plant.
+- A plant's reviewed care type is determined by its canonical profile, not by whether it was added from the catalog or identified from a photo. Separate physical plants retain separate IDs, while matching types share the same reviewed name, scientific identity, image, schedule interval, care cue, and light guidance.
 - Setup may accept a past last-watered date; otherwise the first check is created today at the saved reminder time (09:00 initially).
 - Each supported plant receives one active schedule with a profile starting interval.
 - Upcoming tasks are classified as Today, Upcoming, or Overdue.
@@ -156,6 +157,8 @@ For **Checked — not watered**:
 - When `PLANT_IDENTIFIER_ENDPOINT` is configured, selected photos are sent only to the authenticated Supabase Edge Function, which proxies PlantNet and returns normalized possible matches.
 - The PlantNet API key is server-side only. Identification results are candidates, not diagnoses or care instructions.
 - The user must confirm a candidate before adding it. Supported reviewed identities can use existing setup; unsupported identities may be saved without an invented watering schedule. Temporary identification photos are not saved to user Storage by the current app.
+- Provider/common-name aliases for reviewed catalog plants are normalized to the canonical profile at the GardenStore boundary. Existing saved variants are normalized when loaded without merging separate plant records.
+- Each physical user plant stores a stable `plantTypeId` reference and retains its own schedule/history. Discovery path never determines care behavior.
 
 ## 9. Accessibility and interaction requirements
 

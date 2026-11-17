@@ -46,6 +46,8 @@ Bloom should make the next watering check clearer, faster, and more trustworthy.
 - Local persistence with failed-save protection at the store boundary.
 - Optional future-only Android notifications, permission-denied behavior, inexact scheduling, and non-blocking startup.
 - Labeled FAB menu, authenticated photo identification, normalized candidates, confirmation, and unsupported-identity safety.
+- Canonical profile matching normalizes supported catalog/photo/provider aliases at the GardenStore boundary while preserving separate physical plant records.
+- Data-driven plant inventory is loaded from the bundled profile cache and refreshed from Supabase `plant_profiles` when available; user plants reference `plantTypeId` and no longer use discovery-specific care data.
 
 ## 4. Next engineering steps
 
