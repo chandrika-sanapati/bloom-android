@@ -95,10 +95,13 @@ class Plant {
     @Deprecated('Use the data-driven profile catalog.') String? asset,
     LightPlacementAcknowledgment? lightPlacement,
     bool clearLightPlacement = false,
+    bool clearDisplayName = false,
   }) => Plant(
     id: id,
     plantTypeId: plantTypeId ?? this.plantTypeId,
-    displayName: displayName ?? name ?? this.displayName,
+    displayName: clearDisplayName
+        ? null
+        : displayName ?? name ?? this.displayName,
     legacyName: legacyName ?? name,
     legacySpecies: legacySpecies ?? species,
     legacyAsset: legacyAsset ?? asset,

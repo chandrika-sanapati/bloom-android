@@ -44,8 +44,20 @@ class _CheckScreenState extends State<CheckScreen> {
       return;
     }
     setState(() => _saved = true);
+    final next = widget.store.scheduleFor(widget.plantId)?.nextCheckAt;
+    final messenger = ScaffoldMessenger.maybeOf(context);
     await WidgetsBinding.instance.endOfFrame;
-    if (mounted) Navigator.of(context).pop();
+    if (!mounted) return;
+    Navigator.of(context).pop();
+    messenger?.showSnackBar(
+      SnackBar(
+        content: Text(
+          next == null
+              ? '${outcome.label} — saved.'
+              : '${outcome.label} — saved. Next check ${formatMonthDay(next)}.',
+        ),
+      ),
+    );
   }
 
   @override

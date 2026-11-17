@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
+import '../domain/plant_activity.dart';
 import 'check_screen.dart';
 import 'check_route.dart';
 import 'light_placement_section.dart';
@@ -83,12 +84,57 @@ class _BodyState extends State<_Body> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final lastWatered = store.lastWatered(plant.id);
+    final records = store.recordsFor(plant.id);
+    final lastCheck = records.isEmpty ? null : records.first;
     final species = PlantSpecies.forPlant(plant);
+    final recent = PlantActivity.forPlant(store.garden, plant.id);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Plant')),
+      appBar: AppBar(
+        actions: [
+          PopupMenuButton<_MenuAction>(
+            tooltip: 'More options',
+            onSelected: (action) => switch (action) {
+              _MenuAction.edit => _editPlant(context),
+              _MenuAction.photo => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Growth photos are coming soon.')),
+              ),
+              _MenuAction.delete => _confirmRemoval(context),
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: _MenuAction.edit,
+                child: ListTile(
+                  leading: Icon(Icons.edit_outlined),
+                  title: Text('Edit'),
+                ),
+              ),
+              const PopupMenuItem(
+                value: _MenuAction.photo,
+                child: ListTile(
+                  leading: Icon(Icons.add_a_photo_outlined),
+                  title: Text('Take a new photo'),
+                ),
+              ),
+              PopupMenuItem(
+                value: _MenuAction.delete,
+                child: ListTile(
+                  leading: Icon(
+                    Icons.delete_outline,
+                    color: theme.colorScheme.error,
+                  ),
+                  title: Text(
+                    'Delete',
+                    style: TextStyle(color: theme.colorScheme.error),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
@@ -109,23 +155,7 @@ class _BodyState extends State<_Body> {
             ),
           ),
           const SizedBox(height: 20),
-          if (schedule != null)
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(50),
-              ),
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  settings: wateringCheckSettings(schedule!),
-                  builder: (_) => CheckScreen(store: store, plantId: plant.id),
-                ),
-              ),
-              icon: const Icon(Icons.water_drop),
-              label: const Text('Check watering'),
-            ),
-          const SizedBox(height: 24),
-          if (schedule == null) ...[
-            const SizedBox(height: 20),
+          if (schedule == null)
             Card(
               margin: EdgeInsets.zero,
               child: Padding(
@@ -135,50 +165,20 @@ class _BodyState extends State<_Body> {
                   style: theme.textTheme.bodyMedium,
                 ),
               ),
+            )
+          else
+            _WateringCard(
+              store: store,
+              plant: plant,
+              schedule: schedule!,
+              lastCheck: lastCheck,
+              lastWatered: lastWatered,
+              careCue: species?.hasCareProfile == true
+                  ? species!.careCue
+                  : null,
             ),
-          ] else ...[
-            Text('Watering', style: theme.textTheme.titleSmall),
-            const SizedBox(height: 8),
-            Card(
-              margin: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  _InfoRow(
-                    label: 'Added',
-                    value: formatDate(schedule!.createdAt),
-                  ),
-                  _InfoRow(
-                    label: 'Next check',
-                    value: formatDateTime(schedule!.nextCheckAt),
-                  ),
-                  _InfoRow(
-                    label: 'Starting suggestion',
-                    value: 'Every ${schedule!.intervalDays} days',
-                  ),
-                  _InfoRow(
-                    label: 'Last watered',
-                    value: lastWatered == null
-                        ? 'Not recorded'
-                        : formatDate(lastWatered),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.calendar_today),
-                    title: const Text('Edit next check'),
-                    onTap: () => pickNextCheck(context, store, plant.id),
-                  ),
-                ],
-              ),
-            ),
-          ],
           if (species case final profile? when profile.hasCareProfile) ...[
             const SizedBox(height: 16),
-            Text(
-              profile.careCue,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 24),
             LightPlacementSection(
               compact: true,
               guidance: profile.light,
@@ -191,50 +191,109 @@ class _BodyState extends State<_Body> {
               onChanged: _saveLightPlacement,
             ),
           ],
-          const SizedBox(height: 24),
-          SoilHealthSection(store: store, plantId: plant.id),
           const SizedBox(height: 16),
           Card(
             margin: EdgeInsets.zero,
-            child: ListTile(
-              leading: const Icon(Icons.history),
-              title: const Text('Care timeline'),
-              subtitle: const Text('View recorded care for this plant'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) =>
-                      PlantTimelineScreen(store: store, plantId: plant.id),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ListTile(
+                  title: const Text('Care timeline'),
+                  trailing: Text(
+                    recent.isEmpty ? '' : 'See all',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) =>
+                          PlantTimelineScreen(store: store, plantId: plant.id),
+                    ),
+                  ),
                 ),
-              ),
+                if (recent.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Text(
+                      'No care recorded yet.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                    child: Column(
+                      children: [
+                        for (final entry in recent.take(3))
+                          HistoryRow(
+                            plant: plant,
+                            entry: entry,
+                            showPlantName: false,
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
           ),
-          const SizedBox(height: 24),
-          Card(
-            margin: EdgeInsets.zero,
-            child: ListTile(
-              leading: Icon(
-                Icons.delete_outline,
-                color: theme.colorScheme.error,
-              ),
-              title: Text(
-                'Remove plant',
-                style: TextStyle(color: theme.colorScheme.error),
-              ),
-              onTap: () => _confirmRemoval(context),
-            ),
+          const SizedBox(height: 16),
+          SoilHealthSection(store: store, plantId: plant.id),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _editPlant(BuildContext context) async {
+    final controller = TextEditingController(text: plant.displayName ?? '');
+    final defaultName = PlantSpecies.forPlant(plant)?.name ?? plant.name;
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Edit plant'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          maxLength: 40,
+          decoration: InputDecoration(labelText: 'Name', hintText: defaultName),
+          onSubmitted: (value) => Navigator.of(dialogContext).pop(value),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(controller.text),
+            child: const Text('Save'),
           ),
         ],
       ),
     );
+    controller.dispose();
+    if (result == null || !context.mounted) return;
+    final name = result.trim();
+    final updated = name.isEmpty || name == defaultName
+        ? plant.copyWith(clearDisplayName: true)
+        : plant.copyWith(displayName: name);
+    final saved = await store.savePlant(updated);
+    if (!saved && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't save changes. Try again.")),
+      );
+    }
   }
 
   Future<void> _confirmRemoval(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('Remove ${plant.name}?'),
-        content: const Text('This also removes its watering history.'),
+        title: Text('Delete ${plant.name}?'),
+        content: const Text('Its care history will be deleted too.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -243,7 +302,7 @@ class _BodyState extends State<_Body> {
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             child: Text(
-              'Remove plant',
+              'Delete',
               style: TextStyle(
                 color: Theme.of(dialogContext).colorScheme.error,
               ),
@@ -255,6 +314,110 @@ class _BodyState extends State<_Body> {
     if (confirmed != true || !context.mounted) return;
     final removed = await store.deletePlant(plant.id);
     if (removed && context.mounted) Navigator.of(context).pop();
+  }
+}
+
+enum _MenuAction { edit, photo, delete }
+
+class _WateringCard extends StatelessWidget {
+  const _WateringCard({
+    required this.store,
+    required this.plant,
+    required this.schedule,
+    required this.lastCheck,
+    required this.lastWatered,
+    required this.careCue,
+  });
+
+  final GardenStore store;
+  final Plant plant;
+  final WateringSchedule schedule;
+  final WateringRecord? lastCheck;
+  final DateTime? lastWatered;
+  final String? careCue;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final timing = CareTaskTiming.classify(schedule.nextCheckAt);
+    final due = timing != CareTaskTiming.upcoming;
+    return Card(
+      margin: EdgeInsets.zero,
+      color: due ? theme.colorScheme.primaryContainer : null,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Next check',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              due
+                  ? '${timing.label} · ${formatDateTime(schedule.nextCheckAt)}'
+                  : formatDateTime(schedule.nextCheckAt),
+              style: theme.textTheme.titleLarge,
+            ),
+            if (careCue != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                careCue!,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+              ),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  settings: wateringCheckSettings(schedule),
+                  builder: (_) => CheckScreen(store: store, plantId: plant.id),
+                ),
+              ),
+              icon: const Icon(Icons.water_drop),
+              label: const Text('Check watering'),
+            ),
+            const SizedBox(height: 8),
+            _InfoRow(
+              label: 'Last check',
+              value: lastCheck == null
+                  ? 'Not yet'
+                  : [
+                      lastCheck!.outcome == WateringOutcome.watered
+                          ? 'Watered'
+                          : 'Not watered',
+                      if (lastCheck!.soil != Soil.unknown)
+                        'soil ${lastCheck!.soil.label.toLowerCase()}',
+                      formatMonthDay(lastCheck!.recordedAt.toLocal()),
+                    ].join(' · '),
+            ),
+            if (lastCheck?.outcome != WateringOutcome.watered)
+              _InfoRow(
+                label: 'Last watered',
+                value: lastWatered == null
+                    ? 'Not recorded'
+                    : formatDate(lastWatered!),
+              ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => pickNextCheck(context, store, plant.id),
+                icon: const Icon(Icons.calendar_today, size: 18),
+                label: const Text('Edit next check'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -276,6 +439,8 @@ class _InfoRow extends StatelessWidget {
             constraints.maxWidth < 320 ||
             MediaQuery.textScalerOf(context).scale(14) > 18;
         return ListTile(
+          contentPadding: EdgeInsets.zero,
+          dense: true,
           title: Text(label),
           subtitle: stack ? valueText : null,
           trailing: stack ? null : valueText,

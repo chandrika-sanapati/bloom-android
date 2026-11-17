@@ -176,10 +176,16 @@ class TaskRow extends StatelessWidget {
 }
 
 class HistoryRow extends StatelessWidget {
-  const HistoryRow({super.key, required this.plant, required this.entry});
+  const HistoryRow({
+    super.key,
+    required this.plant,
+    required this.entry,
+    this.showPlantName = true,
+  });
 
   final Plant plant;
   final PlantActivity entry;
+  final bool showPlantName;
 
   @override
   Widget build(BuildContext context) {
@@ -208,6 +214,10 @@ class HistoryRow extends StatelessWidget {
       ),
     };
     final showSoil = soil != null && soil != Soil.unknown;
+    final lines = [
+      if (showPlantName) plant.name,
+      if (showSoil) 'Soil: ${soil.label}',
+    ];
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
       leading: Icon(
@@ -217,10 +227,8 @@ class HistoryRow extends StatelessWidget {
             : theme.colorScheme.onSurfaceVariant,
       ),
       title: Text(title),
-      subtitle: Text(
-        showSoil ? '${plant.name}\nSoil: ${soil.label}' : plant.name,
-      ),
-      isThreeLine: showSoil,
+      subtitle: lines.isEmpty ? null : Text(lines.join('\n')),
+      isThreeLine: lines.length > 1,
       trailing: Text(
         formatMonthDay(entry.date.toLocal()),
         style: theme.textTheme.labelLarge?.copyWith(
