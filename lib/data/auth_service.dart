@@ -147,20 +147,6 @@ class AuthService {
     // network sign-out request after the user has been deleted.
     await clearLocalSession();
   }
-
-  Future<void> deleteCloudGarden() async {
-    if (!configured || !signedIn) {
-      throw const AuthException('No signed-in account is available.');
-    }
-    final response = await Supabase.instance.client.functions.invoke(
-      'delete-garden',
-    );
-    if (response.status < 200 || response.status >= 300) {
-      throw const AuthException(
-        'Your plant data could not be deleted. Nothing was removed.',
-      );
-    }
-  }
 }
 
 AuthService? configuredAuthService() {

@@ -7,6 +7,7 @@ import '../data/plant_identifier.dart';
 import '../data/watering_notifications.dart';
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
+import '../domain/plant_activity.dart';
 import 'catalog_screen.dart';
 import 'check_screen.dart';
 import 'check_route.dart';
@@ -308,8 +309,7 @@ class _PopulatedHome extends StatelessWidget {
     }
     scheduled.sort((a, b) => a.$2.nextCheckAt.compareTo(b.$2.nextCheckAt));
 
-    final past = [...store.garden.records]
-      ..sort((a, b) => b.recordedAt.compareTo(a.recordedAt));
+    final past = PlantActivity.forGarden(store.garden);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
@@ -398,21 +398,21 @@ class _PopulatedHome extends StatelessWidget {
     return widgets;
   }
 
-  List<Widget> _pastRows(BuildContext context, List<WateringRecord> records) {
-    if (records.isEmpty) {
+  List<Widget> _pastRows(BuildContext context, List<PlantActivity> entries) {
+    if (entries.isEmpty) {
       return const [
         EmptyActivityCard(
-          title: 'No watering history yet',
+          title: 'No care history yet',
           detail: 'Your completed checks will appear here.',
         ),
       ];
     }
     final store = state.widget.store;
     final rows = <Widget>[];
-    for (final record in records) {
-      final plant = store.plant(record.plantId);
+    for (final entry in entries) {
+      final plant = store.plant(entry.plantId);
       if (plant == null) continue;
-      rows.add(HistoryRow(plant: plant, record: record));
+      rows.add(HistoryRow(plant: plant, entry: entry));
       rows.add(const Divider(height: 1));
     }
     return rows;

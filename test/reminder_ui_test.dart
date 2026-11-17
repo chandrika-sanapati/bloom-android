@@ -183,7 +183,7 @@ void main() {
       large: true,
     );
     await tester.scrollUntilVisible(
-      find.text('Turn on watering notifications to receive reminders.'),
+      find.textContaining('Applies to future checks.'),
       180,
     );
     expect(tester.takeException(), isNull);

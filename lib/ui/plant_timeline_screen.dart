@@ -47,8 +47,6 @@ class PlantTimelineScreen extends StatelessWidget {
                             plant.name,
                             style: Theme.of(context).textTheme.headlineSmall,
                           ),
-                          const SizedBox(height: 8),
-                          const Text('Recorded care, newest first.'),
                           if (entries.isEmpty)
                             const Padding(
                               padding: EdgeInsets.only(top: 24),
@@ -77,8 +75,8 @@ class PlantTimelineScreen extends StatelessWidget {
                       Icons.visibility_outlined,
                     ),
                     PlantActivityKind.placement => (
-                      'Light placement acknowledged',
-                      'Your current saved confirmation. Earlier placement changes are not recorded.',
+                      'Light placement confirmed',
+                      'Placed as suggested.',
                       Icons.wb_sunny_outlined,
                     ),
                     PlantActivityKind.soilCare => (
@@ -170,8 +168,7 @@ Future<void> _confirmDeleteLatestWatering(
       title: Text('${record.outcome.label} record'),
       content: const Text(
         'Delete this latest watering record? Last watered and the next check '
-        'may change. A later custom next-check edit is preserved. Soil-care '
-        'records are not affected.',
+        'may update.',
       ),
       actions: [
         TextButton(

@@ -250,4 +250,23 @@ void main() {
       expect(PlantActivity.forPlant(garden, 'missing'), isEmpty);
     },
   );
+  test('garden-wide activity includes repotting for every plant', () {
+    final garden = Garden(
+      plants: [plant('p'), plant('q')],
+      soilCare: [
+        event('r', {SoilCareAction.repotted}),
+        event('n', {SoilCareAction.nutrientsAdded}, plantId: 'q'),
+      ],
+    );
+    final activity = PlantActivity.forGarden(garden);
+    expect(activity.map((a) => a.plantId).toSet(), {'p', 'q'});
+    expect(
+      activity.any(
+        (a) =>
+            a.plantId == 'p' &&
+            a.soilCare!.actions.contains(SoilCareAction.repotted),
+      ),
+      isTrue,
+    );
+  });
 }

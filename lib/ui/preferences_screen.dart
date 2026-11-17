@@ -111,122 +111,15 @@ class _PreferencesScreenState extends State<PreferencesScreen>
     }
   }
 
-  Future<void> _deletePlantData() async {
-    final firstConfirmation = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete all plant data?'),
-        content: const Text(
-          'This permanently deletes your local and cloud plant data. Your '
-          'Bloom account and login details will stay active.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Continue'),
-          ),
-        ],
-      ),
-    );
-    if (firstConfirmation != true || !mounted) return;
-
-    final finalConfirmation = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete plant data permanently?'),
-        content: const Text(
-          'All plants, schedules, watering history, and soil-care history will '
-          'be erased. Your account will not be deleted.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
-            ),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Delete plant data'),
-          ),
-        ],
-      ),
-    );
-    if (finalConfirmation != true || !mounted) return;
-
-    final auth = widget.auth;
-    if (auth == null || !auth.signedIn) return;
-    setState(() {
-      _busy = true;
-      _message = null;
-    });
-    try {
-      await auth.deleteCloudGarden();
-      final cleared = await widget.store.replaceGarden(
-        const Garden(),
-        syncCloud: false,
-      );
-      if (!cleared) {
-        throw StateError('Local garden could not be cleared.');
-      }
-      if (!mounted) return;
-      setState(() {
-        _busy = false;
-        _message =
-            'All plant data was deleted. Your account remains signed in.';
-      });
-    } on AuthException catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _busy = false;
-        _message = error.message;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _busy = false;
-        _message =
-            'Plant data was deleted from the cloud, but the local garden could not be cleared. Try again.';
-      });
-    }
-  }
-
   Future<void> _deleteAccountAndData() async {
-    final firstConfirmation = await showDialog<bool>(
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete account and all data?'),
+        icon: const Icon(Icons.warning_amber_rounded),
+        title: const Text('Delete your account?'),
         content: const Text(
-          'This permanently deletes your Bloom account, cloud plant data, and '
-          'local plant data from this device. This cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Continue'),
-          ),
-        ],
-      ),
-    );
-    if (firstConfirmation != true || !mounted) return;
-
-    final finalConfirmation = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete account permanently?'),
-        content: const Text(
-          'Your login account and all plant data will be erased. There is no '
-          'recovery option after deletion.',
+          'Your account and all plant data, on this device and in the cloud, '
+          'will be permanently deleted. This cannot be undone.',
         ),
         actions: [
           TextButton(
@@ -235,8 +128,8 @@ class _PreferencesScreenState extends State<PreferencesScreen>
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+              foregroundColor: Theme.of(dialogContext).colorScheme.onError,
             ),
             onPressed: () => Navigator.of(dialogContext).pop(true),
             child: const Text('Delete account'),
@@ -244,7 +137,7 @@ class _PreferencesScreenState extends State<PreferencesScreen>
         ],
       ),
     );
-    if (finalConfirmation != true || !mounted) return;
+    if (confirmed != true || !mounted) return;
 
     final auth = widget.auth;
     if (auth == null || !auth.signedIn) return;
@@ -396,16 +289,14 @@ class _PreferencesScreenState extends State<PreferencesScreen>
               const SizedBox(height: 24),
             ],
             const SizedBox(height: 24),
-            Text('Preferences', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 12),
-            Text('Watering reminders', style: theme.textTheme.titleMedium),
+            Text('Reminders', style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),
             Card(
               margin: EdgeInsets.zero,
               child: Column(
                 children: [
                   SwitchListTile(
-                    title: const Text('Watering notifications'),
+                    title: const Text('Notifications'),
                     value: preferences.taskNotifications,
                     onChanged: _busy ? null : _update,
                   ),
@@ -420,31 +311,15 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
-              "Applies to automatic checks after today. Custom times and today's checks stay unchanged.",
-              style: theme.textTheme.bodyMedium,
-            ),
-            if (legacy) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Older saved checks keep their time until completed or edited.',
-                style: theme.textTheme.bodySmall,
-              ),
-            ],
-            const SizedBox(height: 16),
-            Text(
-              'Bloom reminds you about future checks only. Android may deliver reminders later than the chosen time.',
+              legacy
+                  ? 'Applies to future checks. Custom and older check times stay as they are.'
+                  : 'Applies to future checks. Custom check times stay as they are.',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            if (!preferences.taskNotifications) ...[
-              const SizedBox(height: 8),
-              const Text(
-                'Turn on watering notifications to receive reminders.',
-              ),
-            ],
             if (preferences.taskNotifications &&
                 widget.notifications.permissionGranted.value == false) ...[
               const SizedBox(height: 16),
@@ -461,8 +336,7 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                       ),
                       const SizedBox(height: 6),
                       const Text(
-                        'Your watering checks remain available in Bloom. '
-                        'Allow notifications in Android settings to receive reminders.',
+                        'Allow notifications in Android settings to get reminders.',
                       ),
                       const SizedBox(height: 12),
                       OutlinedButton.icon(
@@ -485,29 +359,22 @@ class _PreferencesScreenState extends State<PreferencesScreen>
             ],
             if (widget.auth?.signedIn == true) ...[
               const SizedBox(height: 24),
-              ExpansionTile(
-                title: const Text('Privacy'),
-                subtitle: const Text('Manage or delete your Bloom data'),
-                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: _busy ? null : _deletePlantData,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: theme.colorScheme.error,
-                    ),
-                    icon: const Icon(Icons.delete_forever_outlined),
-                    label: const Text('Delete all plant data'),
+              Text('Data & privacy', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 12),
+              Card(
+                margin: EdgeInsets.zero,
+                child: ListTile(
+                  leading: Icon(
+                    Icons.person_remove_outlined,
+                    color: theme.colorScheme.error,
                   ),
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    onPressed: _busy ? null : _deleteAccountAndData,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: theme.colorScheme.error,
-                    ),
-                    icon: const Icon(Icons.person_remove_outlined),
-                    label: const Text('Delete account and all data'),
+                  title: Text(
+                    'Delete account',
+                    style: TextStyle(color: theme.colorScheme.error),
                   ),
-                ],
+                  subtitle: const Text('Removes your account and all plants'),
+                  onTap: _busy ? null : _deleteAccountAndData,
+                ),
               ),
             ],
           ],

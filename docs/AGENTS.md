@@ -8,6 +8,9 @@ The app is local-first and currently focused on watering check-ins for five revi
 
 ## Scope freeze
 
+On 17 November 2026 the owner approved a UX improvement list (plant page redesign, growth photos, multi-select delete, single account deletion) as an explicit exception to the freeze below.
+
+
 The repository is currently in a stabilization-only feature freeze. Do not add new product features, care domains, plant profiles, sync modes, identification behavior, or navigation destinations. Work only on bugs, reliability, data safety, accessibility, test coverage, documentation, and release readiness for behavior already present. Future ideas may be documented but must not be implemented without explicit scope approval.
 
 ## Product and UX responsibility

@@ -146,13 +146,6 @@ class _PlantSetupScreenState extends State<PlantSetupScreen> {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Bloom will suggest when to check the soil. You decide whether the plant needs water.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
             const SizedBox(height: 24),
             Wrap(
               spacing: 8,

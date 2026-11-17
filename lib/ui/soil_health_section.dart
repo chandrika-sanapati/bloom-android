@@ -27,7 +27,6 @@ class SoilHealthSection extends StatelessWidget {
         for (final check in SoilCheck.values)
           ListTile(
             title: Text(SoilAssessment.label(check)),
-            subtitle: const Text('Check whether action may help'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
@@ -109,7 +108,7 @@ class _SoilAssessmentScreenState extends State<SoilAssessmentScreen> {
             : mixes.first.mixContainsFeed!
             ? 'Yes'
             : 'No'}',
-      'A date alone cannot tell us how long a product supplies nutrients. Follow the product label.',
+      'Follow the product label for how often to feed.',
     ].join('\n');
   }
 
@@ -219,19 +218,21 @@ class _SoilAssessmentScreenState extends State<SoilAssessmentScreen> {
               const SizedBox(height: 12),
               Text(advice.reason),
               const SizedBox(height: 24),
-              const Text(
-                'Record only actions you have actually performed. Reading this guidance does not record care.',
-              ),
-              const SizedBox(height: 16),
               OutlinedButton.icon(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => SoilCareScreen(
-                      store: widget.store,
-                      plantId: widget.plantId,
+                onPressed: () async {
+                  final saved = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute<bool>(
+                      builder: (_) => SoilCareScreen(
+                        store: widget.store,
+                        plantId: widget.plantId,
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                  // Return to the plant page once care is recorded.
+                  if (saved == true && context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
                 icon: const Icon(Icons.add_task),
                 label: const Text('Record soil care'),
               ),

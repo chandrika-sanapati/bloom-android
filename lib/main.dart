@@ -230,6 +230,7 @@ class _BloomAppState extends State<BloomApp> with WidgetsBindingObserver {
           navigatorObservers: [_observer],
           title: 'Bloom',
           debugShowCheckedModeBanner: false,
+          scrollBehavior: const _NoStretchScrollBehavior(),
           theme: ThemeData(colorScheme: lightScheme, useMaterial3: true),
           darkTheme: ThemeData(colorScheme: darkScheme, useMaterial3: true),
           themeMode: ThemeMode.system,
@@ -295,4 +296,20 @@ class _AuthGate extends StatelessWidget {
       },
     );
   }
+}
+
+/// Removes the Android stretch ("rubber band") overscroll effect app-wide.
+class _NoStretchScrollBehavior extends MaterialScrollBehavior {
+  const _NoStretchScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) => child;
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) =>
+      const ClampingScrollPhysics();
 }

@@ -53,7 +53,7 @@ class _SoilCareScreenState extends State<SoilCareScreen> {
       _saving = false;
     });
     await WidgetsBinding.instance.endOfFrame;
-    if (mounted) Navigator.of(context).pop();
+    if (mounted) Navigator.of(context).pop(true);
   }
 
   Future<void> _save() async {
@@ -164,9 +164,7 @@ class _SoilCareScreenState extends State<SoilCareScreen> {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Select all actions you actually performed. One job can include more than one.',
-              ),
+              const Text('Select everything you did.'),
               const SizedBox(height: 12),
               Card(
                 margin: EdgeInsets.zero,

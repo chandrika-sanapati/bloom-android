@@ -72,10 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
         final sync = await widget.cloudSync.sync(widget.store.garden);
         if (!mounted) return;
         if (sync == CloudSyncResult.failed) {
-          setState(
-            () => _message =
-                'Signed in. Your garden is saved locally and will sync when available.',
-          );
+          setState(() => _message = 'Signed in.');
         }
         Navigator.of(context).pop(true);
       } else {
@@ -145,10 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final sync = await widget.cloudSync.sync(widget.store.garden);
       if (!mounted) return;
       if (sync == CloudSyncResult.failed) {
-        setState(
-          () => _message =
-              'Signed in. Your garden is saved locally and will sync when available.',
-        );
+        setState(() => _message = 'Signed in.');
       }
       Navigator.of(context).pop(true);
     } on AuthException catch (error) {
@@ -189,10 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final sync = await widget.cloudSync.sync(widget.store.garden);
       if (!mounted) return;
       if (sync == CloudSyncResult.failed) {
-        setState(
-          () => _message =
-              'Your account is confirmed. Your garden is saved locally and will sync when available.',
-        );
+        setState(() => _message = 'Account confirmed.');
       }
       Navigator.of(context).pop(true);
     } on AuthException catch (error) {

@@ -131,9 +131,7 @@ class _BodyState extends State<_Body> {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Care profile is being prepared. You can keep this plant, '
-                  'record care in the timeline, and add a personal next check '
-                  'when you are ready. Bloom will not invent watering guidance.',
+                  "Care guidance for this plant isn't available yet.",
                   style: theme.textTheme.bodyMedium,
                 ),
               ),

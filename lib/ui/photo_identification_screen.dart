@@ -102,8 +102,7 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Choose a clear photo of the plant. Bloom will use it to suggest '
-            'possible matches; you will always confirm the plant before adding it.',
+            'Choose a clear photo of the whole plant.',
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -205,7 +204,7 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
                 ),
               ],
               Text(
-                'These are possible matches, not a diagnosis. Confirm a plant before adding it.',
+                'Possible matches. Confirm the plant before adding it.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -230,13 +229,6 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
             const SizedBox(height: 16),
             Text(_message!, style: TextStyle(color: theme.colorScheme.error)),
           ],
-          const SizedBox(height: 24),
-          Text(
-            'Bloom does not diagnose disease, moisture, or plant health from a photo.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
           const SizedBox(height: 20),
           OutlinedButton(onPressed: _close, child: const Text('Cancel')),
         ],

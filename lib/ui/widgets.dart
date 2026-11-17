@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../domain/garden_store.dart';
 import '../domain/models.dart';
+import '../domain/plant_activity.dart';
 
 final _monthDay = DateFormat.MMMd();
 final _dateTime = DateFormat.yMMMd().add_jm();
@@ -175,32 +176,53 @@ class TaskRow extends StatelessWidget {
 }
 
 class HistoryRow extends StatelessWidget {
-  const HistoryRow({super.key, required this.plant, required this.record});
+  const HistoryRow({super.key, required this.plant, required this.entry});
 
   final Plant plant;
-  final WateringRecord record;
+  final PlantActivity entry;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final watered = record.outcome == WateringOutcome.watered;
+    final soil = entry.watering?.soil;
+    final (title, icon, highlighted) = switch (entry.kind) {
+      PlantActivityKind.watered => (
+        entry.watering!.outcome.label,
+        Icons.water_drop,
+        true,
+      ),
+      PlantActivityKind.checked => (
+        entry.watering!.outcome.label,
+        Icons.visibility_outlined,
+        false,
+      ),
+      PlantActivityKind.placement => (
+        'Light placement confirmed',
+        Icons.wb_sunny_outlined,
+        false,
+      ),
+      PlantActivityKind.soilCare => (
+        entry.soilCare!.title,
+        Icons.eco_outlined,
+        true,
+      ),
+    };
+    final showSoil = soil != null && soil != Soil.unknown;
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
       leading: Icon(
-        watered ? Icons.water_drop : Icons.visibility_outlined,
-        color: watered
+        icon,
+        color: highlighted
             ? theme.colorScheme.primary
             : theme.colorScheme.onSurfaceVariant,
       ),
-      title: Text(record.outcome.label),
+      title: Text(title),
       subtitle: Text(
-        record.soil == Soil.unknown
-            ? plant.name
-            : '${plant.name}\nSoil: ${record.soil.label}',
+        showSoil ? '${plant.name}\nSoil: ${soil.label}' : plant.name,
       ),
-      isThreeLine: record.soil != Soil.unknown,
+      isThreeLine: showSoil,
       trailing: Text(
-        formatMonthDay(record.recordedAt),
+        formatMonthDay(entry.date.toLocal()),
         style: theme.textTheme.labelLarge?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
         ),
