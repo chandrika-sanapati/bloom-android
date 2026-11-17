@@ -164,10 +164,10 @@ Without those defines, photo intake remains local-only and clearly reports that 
 
 ### Account and data deletion
 
-- The client never uses a service-role key. Profile's **Delete all data** action calls the authenticated `delete-account` Edge Function.
-- The function validates the caller's JWT, deletes the user's `gardens` row, and deletes the auth user with the server-side service-role binding.
-- Flutter clears the local garden only after the server confirms deletion. A failed server deletion leaves local data intact for retry.
-- The deletion flow requires two explicit confirmations and returns the user to the login landing screen after success.
+- The client never uses a service-role key. Profile's **Delete all plant data** action calls the authenticated `delete-garden` Edge Function; **Delete account and all data** calls `delete-account`.
+- Both functions validate the caller's JWT and use the server-side service-role binding. `delete-garden` deletes only the user's `gardens` row; `delete-account` deletes the garden and auth user.
+- Flutter clears the local garden only after the server confirms deletion. Plant-data deletion keeps the session; account deletion clears the local session and returns to login. A failed server deletion leaves local data intact for retry.
+- Both deletion flows require two explicit confirmations.
 
 ## Google sign-in setup checklist
 

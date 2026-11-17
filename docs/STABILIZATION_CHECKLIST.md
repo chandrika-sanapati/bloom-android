@@ -54,8 +54,9 @@ This checklist is the active work queue during the feature freeze. It covers onl
 - [ ] Review old garden JSON migration and malformed optional fields.
 - [ ] Rotate credentials that were shared during setup.
 - [x] Confirm no high-risk credentials are present in tracked files; Edge Function logs contain no tokens, garden payloads, or photo contents by inspection.
-- [x] Deploy and verify the authenticated account-deletion Edge Function boundary.
-- [ ] Manually confirm successful account deletion with a disposable test account and verify local/cloud data removal.
+- [x] Deploy and verify authenticated `delete-garden` and `delete-account` Edge Function boundaries.
+- [ ] Manually confirm plant-data deletion keeps the account and removes local/cloud plant data.
+- [ ] Manually confirm account deletion removes the account and local/cloud plant data.
 
 ## Explicitly frozen
 

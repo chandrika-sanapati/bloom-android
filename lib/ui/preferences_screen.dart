@@ -111,14 +111,14 @@ class _PreferencesScreenState extends State<PreferencesScreen>
     }
   }
 
-  Future<void> _deleteAllData() async {
+  Future<void> _deletePlantData() async {
     final firstConfirmation = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete all Bloom data?'),
+        title: const Text('Delete all plant data?'),
         content: const Text(
-          'This permanently deletes your cloud account, cloud garden, and '
-          'local garden from this device. This cannot be undone.',
+          'This permanently deletes your local and cloud plant data. Your '
+          'Bloom account and login details will stay active.',
         ),
         actions: [
           TextButton(
@@ -137,9 +137,95 @@ class _PreferencesScreenState extends State<PreferencesScreen>
     final finalConfirmation = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete everything permanently?'),
+        title: const Text('Delete plant data permanently?'),
         content: const Text(
-          'Your account and all saved plant data will be erased. There is no '
+          'All plants, schedules, watering history, and soil-care history will '
+          'be erased. Your account will not be deleted.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Delete plant data'),
+          ),
+        ],
+      ),
+    );
+    if (finalConfirmation != true || !mounted) return;
+
+    final auth = widget.auth;
+    if (auth == null || !auth.signedIn) return;
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    try {
+      await auth.deleteCloudGarden();
+      final cleared = await widget.store.replaceGarden(
+        const Garden(),
+        syncCloud: false,
+      );
+      if (!cleared) {
+        throw StateError('Local garden could not be cleared.');
+      }
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _message =
+            'All plant data was deleted. Your account remains signed in.';
+      });
+    } on AuthException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _message = error.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _message =
+            'Plant data was deleted from the cloud, but the local garden could not be cleared. Try again.';
+      });
+    }
+  }
+
+  Future<void> _deleteAccountAndData() async {
+    final firstConfirmation = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete account and all data?'),
+        content: const Text(
+          'This permanently deletes your Bloom account, cloud plant data, and '
+          'local plant data from this device. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+    if (firstConfirmation != true || !mounted) return;
+
+    final finalConfirmation = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete account permanently?'),
+        content: const Text(
+          'Your login account and all plant data will be erased. There is no '
           'recovery option after deletion.',
         ),
         actions: [
@@ -153,7 +239,7 @@ class _PreferencesScreenState extends State<PreferencesScreen>
               foregroundColor: Theme.of(context).colorScheme.onError,
             ),
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Delete everything'),
+            child: const Text('Delete account'),
           ),
         ],
       ),
@@ -168,10 +254,11 @@ class _PreferencesScreenState extends State<PreferencesScreen>
     });
     try {
       await auth.deleteAccount();
-      final cleared = await widget.store.replaceGarden(const Garden());
-      if (!cleared) {
-        throw StateError('Local garden could not be cleared.');
-      }
+      final cleared = await widget.store.replaceGarden(
+        const Garden(),
+        syncCloud: false,
+      );
+      if (!cleared) throw StateError('Local garden could not be cleared.');
       if (!mounted) return;
       Navigator.of(context).popUntil((route) => route.isFirst);
     } on AuthException catch (error) {
@@ -312,12 +399,21 @@ class _PreferencesScreenState extends State<PreferencesScreen>
               Text('Privacy', style: theme.textTheme.titleMedium),
               const SizedBox(height: 12),
               OutlinedButton.icon(
-                onPressed: _busy ? null : _deleteAllData,
+                onPressed: _busy ? null : _deletePlantData,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: theme.colorScheme.error,
                 ),
                 icon: const Icon(Icons.delete_forever_outlined),
-                label: const Text('Delete all data'),
+                label: const Text('Delete all plant data'),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _busy ? null : _deleteAccountAndData,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.colorScheme.error,
+                ),
+                icon: const Icon(Icons.person_remove_outlined),
+                label: const Text('Delete account and all data'),
               ),
               const SizedBox(height: 24),
             ],

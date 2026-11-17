@@ -82,7 +82,8 @@ class GardenStore extends ChangeNotifier {
   Future<bool> addPlant(Plant value, {DateTime? lastWatered, DateTime? now}) =>
       _serial(() => _addPlant(value, lastWatered: lastWatered, now: now));
   Future<bool> savePlant(Plant value) => _serial(() => _savePlant(value));
-  Future<bool> replaceGarden(Garden value) => _serial(() => _commit(value));
+  Future<bool> replaceGarden(Garden value, {bool syncCloud = true}) =>
+      _serial(() => _commit(value, syncCloud: syncCloud));
   Future<bool> setLightPlacementAcknowledged(
     String id,
     bool value, {
@@ -529,7 +530,11 @@ class GardenStore extends ChangeNotifier {
     );
   }
 
-  Future<bool> _commit(Garden next, {bool syncNotifications = true}) async {
+  Future<bool> _commit(
+    Garden next, {
+    bool syncNotifications = true,
+    bool syncCloud = true,
+  }) async {
     try {
       await persist(next);
     } catch (_) {
@@ -549,13 +554,15 @@ class GardenStore extends ChangeNotifier {
         }
       }());
     }
-    unawaited(() async {
-      try {
-        await onPersisted?.call(next);
-      } catch (_) {
-        /* Retry on resume or on the next local change. */
-      }
-    }());
+    if (syncCloud) {
+      unawaited(() async {
+        try {
+          await onPersisted?.call(next);
+        } catch (_) {
+          /* Retry on resume or on the next local change. */
+        }
+      }());
+    }
     return true;
   }
 }
