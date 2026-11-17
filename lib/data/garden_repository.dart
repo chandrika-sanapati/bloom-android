@@ -24,6 +24,9 @@ class GardenRepository {
     return file;
   }
 
+  /// Path of the backup made when the saved garden couldn't be read.
+  String? lastUnreadableBackup;
+
   Future<Garden> load() async {
     final file = await _resolveFile();
     if (!await file.exists()) return const Garden();
@@ -32,7 +35,26 @@ class GardenRepository {
           jsonDecode(await file.readAsString()) as Map<String, dynamic>;
       return Garden.fromJson(json);
     } catch (_) {
+      // Keep the unreadable data before any later save replaces it, so it can
+      // be recovered instead of being silently overwritten by an empty garden.
+      lastUnreadableBackup = await _backUpUnreadable(file);
       return const Garden();
+    }
+  }
+
+  Future<String?> _backUpUnreadable(File file) async {
+    final stamp = DateTime.now().toUtc().toIso8601String().replaceAll(
+      RegExp(r'[^0-9]'),
+      '',
+    );
+    final backup = File(
+      p.join(file.parent.path, 'garden.unreadable-$stamp.json'),
+    );
+    try {
+      await file.copy(backup.path);
+      return backup.path;
+    } catch (_) {
+      return null;
     }
   }
 
