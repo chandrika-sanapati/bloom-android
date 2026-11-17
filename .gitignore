@@ -126,3 +126,7 @@ app.*.symbols
 /android/app/profile
 /android/app/debug
 /supabase/.temp/
+
+# Local build settings (dart-define values)
+config/*.json
+!config/*.example.json

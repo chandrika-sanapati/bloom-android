@@ -1,0 +1,6 @@
+{
+  "SUPABASE_URL": "https://<project-ref>.supabase.co",
+  "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_...",
+  "PLANT_IDENTIFIER_ENDPOINT": "https://<project-ref>.supabase.co/functions/v1/identify-plant",
+  "GOOGLE_WEB_CLIENT_ID": "<web-client-id>.apps.googleusercontent.com"
+}

@@ -128,6 +128,12 @@ flutter run \
 
 Without these defines Bloom remains local-first.
 
+For local configured builds, copy `config/prod.example.json` to `config/prod.json` (ignored by git), fill in the values, and build with:
+
+```sh
+flutter build apk --release --dart-define-from-file=config/prod.json
+```
+
 Optional Google sign-in also requires:
 
 ```sh
