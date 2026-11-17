@@ -25,7 +25,7 @@ Any proposed feature expansion must be recorded as a future idea only and must n
 Latest pulled `main` was verified on the local Android 36 emulator (`emulator-5554`):
 
 - `flutter analyze`: passed with zero issues.
-- `flutter test`: **89 tests passed**, including auth UI, local-wins cloud overwrite/retry, asynchronous persistence boundaries, latest-watering correction/recalculation, older-record protection, failed-save rollback, notification no-burst safety, denied-permission recovery UI, and the reviewed Spider Plant profile.
+- `flutter test`: **98 tests passed**, including auth UI, local-wins cloud overwrite/retry, asynchronous persistence boundaries, signed-out/ordered sync behavior, PlantNet provider errors and normalized candidates, latest-watering correction/recalculation, failed-save rollback, notification no-burst safety, denied-permission recovery UI, and the reviewed Spider Plant profile.
 - Normal debug APK: built, installed, and launched as `com.chandrika.bloom`.
 - `integration_test/light_placement_test.dart`: **2 tests passed** using the isolated integration package.
 - `integration_test/care_timeline_test.dart`: **2 tests passed** using the isolated integration package, including latest watering-record deletion and Snackbar Undo from the timeline.
@@ -87,6 +87,7 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - Configured-build smoke check: APK built with Supabase URL, publishable key, PlantNet Edge Function endpoint, and Google Web Client ID; Supabase initialization completed and the normal app launched on `emulator-5554` without startup errors.
 - PlantNet end-to-end request verified in hosted logs: authenticated multipart request, PlantNet response, and HTTP 200 in under one second. Flutter now parses the Edge Function's normalized `candidates` response.
 - Live cloud-sync check: Google sign-in succeeded, a local Spider Plant mutation remained visible, and local-wins asynchronous sync behavior was verified through the configured build and deterministic backend tests.
+- Production verification: local and remote migration `20261115220000_create_gardens` match; `supabase db lint --linked` reports no schema errors; `identify-plant` is active with JWT verification enabled; unauthenticated requests return HTTP 401.
 - Analytics, sharing, social features, broader environmental checks, diagnosis, and additional catalog/care expansion remain outside the frozen scope.
 
 ## Reminder preferences and notification navigation — implemented on 15 November 2026

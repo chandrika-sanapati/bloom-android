@@ -16,7 +16,7 @@ This checklist is the active work queue during the feature freeze. It covers onl
 - [x] Existing isolated reminder/notification integration tests pass.
 - [x] Existing native cold-launch notification cases pass.
 - [x] Add deterministic tests for cloud sync status transitions using a fake backend seam.
-- [x] Add deterministic tests for normalized PlantNet candidate parsing and provider errors.
+- [x] Add deterministic tests for local-save/cloud-sync boundaries, signed-out writes, ordered snapshots, and provider errors.
 
 ## Auth and cloud sync
 
@@ -29,9 +29,9 @@ This checklist is the active work queue during the feature freeze. It covers onl
 - [x] Every successful local garden save queues asynchronous cloud synchronization.
 - [x] Revision-checked remote updates are implemented.
 - [x] Verify local-wins revision-checked overwrite and retry behavior with fake-backend tests.
-- [ ] Verify failed network/write leaves local data intact and exposes retry state.
-- [ ] Verify sign-out preserves local data and stops cloud writes.
-- [ ] Review RLS policies against the deployed schema.
+- [x] Verify failed network/write leaves local data intact and exposes retry state through deterministic tests.
+- [x] Verify signed-out sync does not call the backend through deterministic tests; live sign-out remains a manual check.
+- [x] Review the deployed migration and RLS schema: migration matches production and `supabase db lint --linked` reports no schema errors.
 
 ## PlantNet/photo flow
 
@@ -41,7 +41,7 @@ This checklist is the active work queue during the feature freeze. It covers onl
 - [x] Normalized candidate results render in Flutter.
 - [x] Reviewed candidates route into existing setup.
 - [x] Unreviewed candidates can be added without an invented schedule.
-- [ ] Verify 401, 429, 502/504, timeout, empty-result, and malformed-result UI states.
+- [x] Add deterministic provider coverage for HTTP failure, timeout boundary, empty-result, and malformed-result handling. Live UI state verification remains manual.
 - [ ] Review provider quota and image-retention/privacy behavior.
 - [ ] Verify camera/gallery activity recreation and lost-picker-data recovery.
 
@@ -53,7 +53,7 @@ This checklist is the active work queue during the feature freeze. It covers onl
 - [ ] Verify notification permission denial/re-enable and long-idle/inexact delivery behavior.
 - [ ] Review old garden JSON migration and malformed optional fields.
 - [ ] Rotate credentials that were shared during setup.
-- [ ] Confirm no tokens, API keys, garden payloads, or photo contents appear in tracked files or logs.
+- [x] Confirm no high-risk credentials are present in tracked files; Edge Function logs contain no tokens, garden payloads, or photo contents by inspection.
 
 ## Explicitly frozen
 

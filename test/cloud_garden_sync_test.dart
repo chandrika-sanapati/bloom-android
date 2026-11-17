@@ -10,18 +10,22 @@ class FakeCloudBackend implements CloudGardenBackend {
   Map<String, dynamic>? remote;
   int revision;
   bool fail = false;
+  int reads = 0;
+  int writes = 0;
 
   @override
   String? userId = 'user-1';
 
   @override
   Future<Map<String, dynamic>?> readGarden(String userId) async {
+    reads++;
     if (fail) throw StateError('offline');
     return remote == null ? null : {'payload': remote, 'revision': revision};
   }
 
   @override
   Future<void> insertGarden(String userId, Map<String, dynamic> garden) async {
+    writes++;
     if (fail) throw StateError('offline');
     remote = garden;
     revision = 1;
@@ -33,6 +37,7 @@ class FakeCloudBackend implements CloudGardenBackend {
     int expectedRevision,
     Map<String, dynamic> garden,
   ) async {
+    writes++;
     if (fail) throw StateError('offline');
     if (expectedRevision != revision) return null;
     remote = garden;
@@ -108,6 +113,27 @@ void main() {
     expect(await sync.sync(garden('Local')), CloudSyncResult.failed);
     expect(sync.status.value, CloudSyncStatus.failed);
     expect(sync.message.value, contains('still saved locally'));
+  });
+
+  test('signed-out sync does not call the backend', () async {
+    final backend = FakeCloudBackend()..userId = null;
+    final sync = CloudGardenSync(backend: backend);
+
+    expect(await sync.sync(garden('Local')), CloudSyncResult.signedOut);
+    expect(backend.reads, 0);
+    expect(backend.writes, 0);
+  });
+
+  test('queued snapshots are uploaded in local-save order', () async {
+    final backend = FakeCloudBackend();
+    final sync = CloudGardenSync(backend: backend);
+
+    final first = sync.sync(garden('First'));
+    final second = sync.sync(garden('Second'));
+    await Future.wait([first, second]);
+
+    expect(jsonEncode(backend.remote), contains('Second'));
+    expect(backend.revision, 2);
   });
 }
 

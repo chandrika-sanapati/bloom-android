@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:bloom/domain/garden_store.dart';
 import 'package:bloom/domain/models.dart';
+import 'package:bloom/domain/soil_care.dart';
 
 void main() {
   final now = DateTime(2026, 11, 15, 10);
@@ -375,6 +378,60 @@ void main() {
   });
 
   group('persistence boundary', () {
+    test(
+      'local save does not wait for a failing asynchronous callback',
+      () async {
+        final callbackStarted = Completer<void>();
+        final callbackRelease = Completer<void>();
+        final store = GardenStore(
+          garden: const Garden(),
+          persist: (_) async {},
+          onPersisted: (_) async {
+            callbackStarted.complete();
+            await callbackRelease.future;
+            throw StateError('cloud unavailable');
+          },
+        );
+
+        expect(await store.addPlant(plant(), now: now), isTrue);
+        expect(store.garden.plants, hasLength(1));
+        await callbackStarted.future;
+        callbackRelease.complete();
+        await Future<void>.delayed(Duration.zero);
+        expect(store.garden.plants, hasLength(1));
+      },
+    );
+
+    test(
+      'every local save queues persistence callback, including side-effect-free saves',
+      () async {
+        var callbacks = 0;
+        final store = GardenStore(
+          garden: const Garden(),
+          persist: (_) async {},
+          onPersisted: (_) async => callbacks++,
+        );
+
+        expect(
+          await store.saveSoilCare(
+            SoilCareEvent(
+              id: 'event-1',
+              plantId: 'missing',
+              occurredOn: now,
+              recordedAt: now,
+              actions: {SoilCareAction.mixRefreshed},
+            ),
+          ),
+          isFalse,
+        );
+        expect(callbacks, 0);
+
+        await store.addPlant(plant(), now: now);
+        await Future<void>.delayed(Duration.zero);
+        expect(callbacks, 1);
+      },
+    );
+
     test('failed saves leave the garden unchanged', () async {
       var attempts = 0;
       final store = storeWith(

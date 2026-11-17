@@ -53,7 +53,7 @@ Bloom should make the next watering check clearer, faster, and more trustworthy.
 
 **Status:** Complete.
 
-1. Add focused Dart tests for profile values, first-check calculation, timing classification, watering transitions, dry follow-up, late completion, edit validation, failed persistence, auth UI, and local-wins cloud sync. **Done; the current suite passes 89 tests.**
+1. Add focused Dart tests for profile values, first-check calculation, timing classification, watering transitions, dry follow-up, late completion, edit validation, failed persistence, auth UI, local-wins cloud sync, and provider errors. **Done; the current suite passes 98 tests.**
 2. Make `flutter analyze` pass with zero findings. **Done.**
 3. Build a debug APK with the Android Studio JDK and install it on the available emulator. **Done.**
 4. Keep verification results and known environment limitations in `docs/STATUS.md`. **Done.**
@@ -94,7 +94,7 @@ Do not add these to the watering baseline without a new product decision:
 
 ## 6. Definition of done for the next milestone
 
-- Focused automated domain/widget tests exist and pass. **Complete: 89 tests with auth UI, local-wins cloud sync, correction, Undo, notification-safety, and permission-recovery coverage.**
+- Focused automated domain/widget tests exist and pass. **Complete: 98 tests with auth UI, local-wins cloud sync, provider errors, correction, Undo, notification-safety, and permission-recovery coverage.**
 - The debug APK builds and launches on the supported Android emulator. **Complete.**
 - The core add → check → edit → relaunch journey is manually verified on Android. **Complete.**
 - Persistence failures do not replace the saved garden with an uncommitted state.
