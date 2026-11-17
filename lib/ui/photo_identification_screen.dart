@@ -274,7 +274,7 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
 
   void _useCandidate(BuildContext context, PlantCandidate candidate) {
     final species = PlantSpecies.forScientificName(candidate.scientificName);
-    if (species == null) {
+    if (species == null || !species.hasCareProfile) {
       showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(

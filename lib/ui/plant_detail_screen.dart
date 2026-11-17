@@ -172,10 +172,10 @@ class _BodyState extends State<_Body> {
               ),
             ),
           ],
-          if (species != null) ...[
+          if (species case final profile? when profile.hasCareProfile) ...[
             const SizedBox(height: 16),
             Text(
-              species.careCue,
+              profile.careCue,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -183,13 +183,13 @@ class _BodyState extends State<_Body> {
             const SizedBox(height: 24),
             LightPlacementSection(
               compact: true,
-              guidance: species.light,
+              guidance: profile.light,
               acknowledged: plant.lightPlacement != null,
               saving: _savingLight,
               earlierGuidance:
                   plant.lightPlacement != null &&
                   plant.lightPlacement!.guidanceVersion !=
-                      species.light.version,
+                      profile.light.version,
               onChanged: _saveLightPlacement,
             ),
           ],

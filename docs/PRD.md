@@ -27,7 +27,7 @@ A date is a prompt to inspect the plant, not proof that the plant needs water. B
 - Local garden data remains the immediate source of truth on-device. Authenticated local saves queue asynchronous sync to one normalized cloud `plant_collection`; the local snapshot is authoritative and guarded-overwrites differing cloud data by revision.
 - Plant identification is available through the authenticated Supabase Edge Function when its endpoint is configured. PlantNet keys never ship in Flutter or the APK.
 - There is no analytics service, live weather, device-location inference, sensor integration, or automatic watering hardware.
-- The active plant inventory is data-driven. Profiles are managed in Supabase `plant_profiles`/`plant_profile_aliases` and cached from the bundled versioned catalog for offline use. Only profiles marked reviewed receive automatic care schedules.
+- The active plant inventory is data-driven. Profiles are managed in Supabase `plant_profiles`/`plant_profile_aliases` and cached from the bundled versioned catalog for offline use. The current test seed contains 50 common houseplant profiles; profile content requires review before production release.
 - The historical iOS screenshots in `docs/previews/` are not current product behavior.
 
 ## 3. Current implementation baseline

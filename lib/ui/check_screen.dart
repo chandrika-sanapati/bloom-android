@@ -91,10 +91,10 @@ class _CheckScreenState extends State<CheckScreen> {
               padding: const EdgeInsets.all(20),
               children: [
                 Text(plant.name, style: theme.textTheme.headlineSmall),
-                if (species != null) ...[
+                if (species case final profile? when profile.hasCareProfile) ...[
                   const SizedBox(height: 4),
                   Text(
-                    species.careCue,
+                    profile.careCue,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),

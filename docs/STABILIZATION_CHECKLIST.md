@@ -33,6 +33,8 @@ This checklist is the active work queue during the feature freeze. It covers onl
 - [x] Verify signed-out sync does not call the backend through deterministic tests; live sign-out remains a manual check.
 - [x] Review the deployed migration and RLS schema: migration matches production and `supabase db lint --linked` reports no schema errors.
 - [x] Verify normalized plant collection migration and transactional sync function are deployed with JWT authentication.
+- [x] Seed 50 plant profiles and aliases into the managed production catalog for testing.
+- [ ] Review and source the seeded profile content before production release.
 
 ## PlantNet/photo flow
 

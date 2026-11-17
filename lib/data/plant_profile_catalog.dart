@@ -38,7 +38,7 @@ class PlantProfileCatalog {
     final rows = await client
         .from('plant_profiles')
         .select(
-          'id, common_name, scientific_name, asset_key, min_interval_days, max_interval_days, starting_interval_days, care_cue, light_requirement, light_placement, light_source_url, light_version, aliases:plant_profile_aliases(alias)',
+          'id, common_name, scientific_name, asset_key, min_interval_days, max_interval_days, starting_interval_days, care_cue, light_requirement, light_placement, light_source_url, light_version, review_status, aliases:plant_profile_aliases(alias)',
         )
         .eq('active', true);
     return (rows as List)
@@ -64,6 +64,7 @@ class PlantProfileCatalog {
               sourceUrl: value['light_source_url'] as String,
               version: value['light_version'] as int,
             ),
+            reviewStatus: value['review_status'] as String,
           );
         })
         .toList(growable: false);

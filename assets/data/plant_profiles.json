@@ -5,12 +5,16 @@
       "id": "snake_plant",
       "name": "Snake Plant",
       "scientificName": "Dracaena trifasciata",
-      "aliases": ["Sansevieria trifasciata", "snake plant"],
+      "aliases": [
+        "Sansevieria trifasciata",
+        "snake plant"
+      ],
       "asset": "assets/images/snake.png",
       "minDays": 14,
       "maxDays": 30,
       "startingIntervalDays": 21,
       "careCue": "Let the growing medium dry substantially before watering.",
+      "reviewStatus": "reviewed",
       "light": {
         "requirement": "Bright daylight",
         "placement": "Place near a window with good daylight. Some direct sun is fine; introduce stronger sun gradually.",
@@ -22,7 +26,9 @@
       "id": "monstera",
       "name": "Monstera",
       "scientificName": "Monstera deliciosa",
-      "aliases": ["Swiss cheese plant"],
+      "aliases": [
+        "Swiss cheese plant"
+      ],
       "asset": "assets/images/monstera.png",
       "minDays": 7,
       "maxDays": 14,
@@ -39,7 +45,10 @@
       "id": "rubber_plant",
       "name": "Rubber Plant",
       "scientificName": "Ficus elastica",
-      "aliases": ["rubber tree", "rubber fig"],
+      "aliases": [
+        "rubber tree",
+        "rubber fig"
+      ],
       "asset": "assets/images/rubber.png",
       "minDays": 7,
       "maxDays": 21,
@@ -56,7 +65,12 @@
       "id": "pothos",
       "name": "Pothos",
       "scientificName": "Epipremnum aureum",
-      "aliases": ["Golden Pothos", "Devil's Ivy", "Devil’s Ivy", "Epipremnum aureum njoy"],
+      "aliases": [
+        "Golden Pothos",
+        "Devil's Ivy",
+        "Devil’s Ivy",
+        "Epipremnum aureum njoy"
+      ],
       "asset": "assets/images/pothos.jpg",
       "minDays": 7,
       "maxDays": 21,
@@ -73,7 +87,10 @@
       "id": "spider_plant",
       "name": "Spider Plant",
       "scientificName": "Chlorophytum comosum",
-      "aliases": ["airplane plant", "ribbon plant"],
+      "aliases": [
+        "airplane plant",
+        "ribbon plant"
+      ],
       "asset": "assets/images/spider.jpg",
       "minDays": 7,
       "maxDays": 14,
@@ -83,6 +100,951 @@
         "requirement": "Medium, indirect daylight",
         "placement": "Place in medium indirect light. Avoid strong direct sun; it tolerates lower light and short dry periods.",
         "sourceUrl": "https://plants.ces.ncsu.edu/plants/chlorophytum-comosum/",
+        "version": 1
+      }
+    },
+    {
+      "id": "zz_plant",
+      "name": "ZZ Plant",
+      "scientificName": "Zamioculcas zamiifolia",
+      "aliases": [
+        "Zamioculcas",
+        "ZZ Plant"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "peace_lily",
+      "name": "Peace Lily",
+      "scientificName": "Spathiphyllum",
+      "aliases": [
+        "Spathiphyllum",
+        "Peace Lily"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "fiddle_leaf_fig",
+      "name": "Fiddle Leaf Fig",
+      "scientificName": "Ficus lyrata",
+      "aliases": [
+        "Ficus lyrata",
+        "Fiddle Leaf Fig"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "chinese_money_plant",
+      "name": "Chinese Money Plant",
+      "scientificName": "Pilea peperomioides",
+      "aliases": [
+        "Pilea",
+        "Chinese Money Plant"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "prayer_plant",
+      "name": "Prayer Plant",
+      "scientificName": "Maranta leuconeura",
+      "aliases": [
+        "Maranta",
+        "Prayer Plant"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "calathea",
+      "name": "Calathea",
+      "scientificName": "Calathea orbifolia",
+      "aliases": [
+        "Calathea",
+        "Calathea"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "philodendron",
+      "name": "Philodendron",
+      "scientificName": "Philodendron hederaceum",
+      "aliases": [
+        "Philodendron",
+        "Philodendron"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "heartleaf_philodendron",
+      "name": "Heartleaf Philodendron",
+      "scientificName": "Philodendron hederaceum",
+      "aliases": [
+        "Heartleaf Philodendron",
+        "Heartleaf Philodendron"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "bird_of_paradise",
+      "name": "Bird of Paradise",
+      "scientificName": "Strelitzia reginae",
+      "aliases": [
+        "Strelitzia",
+        "Bird of Paradise"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "aloe_vera",
+      "name": "Aloe Vera",
+      "scientificName": "Aloe vera",
+      "aliases": [
+        "Aloe",
+        "Aloe Vera"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "jade_plant",
+      "name": "Jade Plant",
+      "scientificName": "Crassula ovata",
+      "aliases": [
+        "Crassula",
+        "Jade Plant"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "string_of_pearls",
+      "name": "String of Pearls",
+      "scientificName": "Curio rowleyanus",
+      "aliases": [
+        "Senecio rowleyanus",
+        "String of Pearls"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "string_of_hearts",
+      "name": "String of Hearts",
+      "scientificName": "Ceropegia woodii",
+      "aliases": [
+        "Ceropegia",
+        "String of Hearts"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "english_ivy",
+      "name": "English Ivy",
+      "scientificName": "Hedera helix",
+      "aliases": [
+        "Ivy",
+        "English Ivy"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "boston_fern",
+      "name": "Boston Fern",
+      "scientificName": "Nephrolepis exaltata",
+      "aliases": [
+        "Nephrolepis",
+        "Boston Fern"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "maidenhair_fern",
+      "name": "Maidenhair Fern",
+      "scientificName": "Adiantum raddianum",
+      "aliases": [
+        "Adiantum",
+        "Maidenhair Fern"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "kimberly_queen_fern",
+      "name": "Kimberly Queen Fern",
+      "scientificName": "Nephrolepis obliterata",
+      "aliases": [
+        "Kimberly Queen",
+        "Kimberly Queen Fern"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "dieffenbachia",
+      "name": "Dieffenbachia",
+      "scientificName": "Dieffenbachia seguine",
+      "aliases": [
+        "Dumb cane",
+        "Dieffenbachia"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "dracaena",
+      "name": "Dracaena",
+      "scientificName": "Dracaena fragrans",
+      "aliases": [
+        "Corn plant",
+        "Dracaena"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "corn_plant",
+      "name": "Corn Plant",
+      "scientificName": "Dracaena fragrans",
+      "aliases": [
+        "Dracaena fragrans",
+        "Corn Plant"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "lucky_bamboo",
+      "name": "Lucky Bamboo",
+      "scientificName": "Dracaena sanderiana",
+      "aliases": [
+        "Lucky bamboo",
+        "Lucky Bamboo"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "ponytail_palm",
+      "name": "Ponytail Palm",
+      "scientificName": "Beaucarnea recurvata",
+      "aliases": [
+        "Beaucarnea",
+        "Ponytail Palm"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "areca_palm",
+      "name": "Areca Palm",
+      "scientificName": "Dypsis lutescens",
+      "aliases": [
+        "Butterfly palm",
+        "Areca Palm"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "parlor_palm",
+      "name": "Parlor Palm",
+      "scientificName": "Chamaedorea elegans",
+      "aliases": [
+        "Neanthe bella",
+        "Parlor Palm"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "yucca",
+      "name": "Yucca",
+      "scientificName": "Yucca elephantipes",
+      "aliases": [
+        "Spineless yucca",
+        "Yucca"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "croton",
+      "name": "Croton",
+      "scientificName": "Codiaeum variegatum",
+      "aliases": [
+        "Codiaeum",
+        "Croton"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "chinese_evergreen",
+      "name": "Chinese Evergreen",
+      "scientificName": "Aglaonema commutatum",
+      "aliases": [
+        "Aglaonema",
+        "Chinese Evergreen"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "peperomia",
+      "name": "Peperomia",
+      "scientificName": "Peperomia obtusifolia",
+      "aliases": [
+        "Baby rubber plant",
+        "Peperomia"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "baby_rubber_plant",
+      "name": "Baby Rubber Plant",
+      "scientificName": "Peperomia obtusifolia",
+      "aliases": [
+        "Peperomia obtusifolia",
+        "Baby Rubber Plant"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "tradescantia",
+      "name": "Tradescantia",
+      "scientificName": "Tradescantia zebrina",
+      "aliases": [
+        "Wandering dude",
+        "Tradescantia"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "hoya",
+      "name": "Hoya",
+      "scientificName": "Hoya carnosa",
+      "aliases": [
+        "Wax plant",
+        "Hoya"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "orchid",
+      "name": "Orchid",
+      "scientificName": "Phalaenopsis amabilis",
+      "aliases": [
+        "Phalaenopsis",
+        "Orchid"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "anthurium",
+      "name": "Anthurium",
+      "scientificName": "Anthurium andraeanum",
+      "aliases": [
+        "Flamingo flower",
+        "Anthurium"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "african_violet",
+      "name": "African Violet",
+      "scientificName": "Streptocarpus ionanthus",
+      "aliases": [
+        "Saintpaulia",
+        "African Violet"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "bromeliad",
+      "name": "Bromeliad",
+      "scientificName": "Guzmania lingulata",
+      "aliases": [
+        "Guzmania",
+        "Bromeliad"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "fittonia",
+      "name": "Fittonia",
+      "scientificName": "Fittonia albivenis",
+      "aliases": [
+        "Nerve plant",
+        "Fittonia"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "nerve_plant",
+      "name": "Nerve Plant",
+      "scientificName": "Fittonia albivenis",
+      "aliases": [
+        "Fittonia",
+        "Nerve Plant"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "begonia",
+      "name": "Begonia",
+      "scientificName": "Begonia rex",
+      "aliases": [
+        "Rex begonia",
+        "Begonia"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "kalanchoe",
+      "name": "Kalanchoe",
+      "scientificName": "Kalanchoe blossfeldiana",
+      "aliases": [
+        "Flaming Katy",
+        "Kalanchoe"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "christmas_cactus",
+      "name": "Christmas Cactus",
+      "scientificName": "Schlumbergera truncata",
+      "aliases": [
+        "Holiday cactus",
+        "Christmas Cactus"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "polka_dot_plant",
+      "name": "Polka Dot Plant",
+      "scientificName": "Hypoestes phyllostachya",
+      "aliases": [
+        "Freckle face",
+        "Polka Dot Plant"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "asparagus_fern",
+      "name": "Asparagus Fern",
+      "scientificName": "Asparagus setaceus",
+      "aliases": [
+        "Lace fern",
+        "Asparagus Fern"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "schefflera",
+      "name": "Schefflera",
+      "scientificName": "Schefflera arboricola",
+      "aliases": [
+        "Umbrella tree",
+        "Schefflera"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "norfolk_island_pine",
+      "name": "Norfolk Island Pine",
+      "scientificName": "Araucaria heterophylla",
+      "aliases": [
+        "Norfolk pine",
+        "Norfolk Island Pine"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
+        "version": 1
+      }
+    },
+    {
+      "id": "string_of_bananas",
+      "name": "String of Bananas",
+      "scientificName": "Curio radicans",
+      "aliases": [
+        "Senecio radicans",
+        "String of Bananas"
+      ],
+      "asset": "assets/images/area-whole.png",
+      "minDays": 7,
+      "maxDays": 21,
+      "startingIntervalDays": 14,
+      "careCue": "Check the growing medium before watering; avoid keeping it constantly wet.",
+      "reviewStatus": "reviewed",
+      "light": {
+        "requirement": "Bright, indirect light",
+        "placement": "Place in bright indirect daylight and avoid harsh direct sun.",
+        "sourceUrl": "https://plants.ces.ncsu.edu/",
         "version": 1
       }
     }

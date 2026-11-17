@@ -48,6 +48,7 @@ The repeatable commands require Flutter, Android platform-tools, and the Android
 - First-run Add plant hint stored in `SharedPreferences`.
 - Five catalog plants: Snake Plant, Monstera, Rubber Plant, Pothos, and Spider Plant.
 - Plant profile inventory is data-driven: bundled JSON provides the offline catalog/cache, while Supabase `plant_profiles` and `plant_profile_aliases` provide the managed authenticated catalog when available.
+- Production profile seed is applied: 50 common houseplant identities/profiles are available in Supabase. The current test seed marks all 50 reviewed; content review and source refinement remain a release-readiness task.
 - Material 3-style labeled FAB menu with Search by name and Identify from a photo entry points.
 - Photo intake and authenticated candidate-identification flow with camera/gallery choice, preview, removal, normalized candidates, confirmation, and unsupported-identity safety.
 - Catalog and photo-added identities share canonical reviewed profiles; supported aliases such as Pothos variants receive the same asset, schedule interval, care cue, and light guidance while retaining separate plant IDs.

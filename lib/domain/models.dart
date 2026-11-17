@@ -380,6 +380,7 @@ class PlantSpecies {
     required this.careCue,
     required this.light,
     this.aliases = const [],
+    this.reviewStatus = 'reviewed',
   });
 
   final String id;
@@ -392,6 +393,9 @@ class PlantSpecies {
   final String careCue;
   final PlantLightGuidance light;
   final List<String> aliases;
+  final String reviewStatus;
+
+  bool get hasCareProfile => reviewStatus == 'reviewed';
 
   static List<PlantSpecies> _catalog = const [];
   static void setCatalog(List<PlantSpecies> profiles) => _catalog = profiles;
@@ -407,9 +411,11 @@ class PlantSpecies {
     startingIntervalDays: json['startingIntervalDays'] as int,
     careCue: json['careCue'] as String,
     light: PlantLightGuidance.fromJson(json['light'] as Map<String, dynamic>),
+    reviewStatus: json['reviewStatus'] as String? ?? 'reviewed',
   );
 
-  static List<PlantSpecies> get catalog => _catalog;
+  static List<PlantSpecies> get catalog =>
+      _catalog.where((profile) => profile.hasCareProfile).toList(growable: false);
 
   static PlantSpecies? forPlant(Plant plant) {
     final requested = plant.plantTypeId?.trim();

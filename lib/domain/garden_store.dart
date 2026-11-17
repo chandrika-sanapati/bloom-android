@@ -222,10 +222,10 @@ class GardenStore extends ChangeNotifier {
     final plants = [..._garden.plants, canonical];
     final schedules = [
       ..._garden.schedules,
-      if (species != null)
+      if (species?.hasCareProfile == true)
         WateringSchedule(
           plantId: plant.id,
-          intervalDays: species.startingIntervalDays,
+          intervalDays: species!.startingIntervalDays,
           nextCheckAt: next,
           createdAt: current,
           updatedAt: current,
