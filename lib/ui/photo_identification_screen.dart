@@ -273,7 +273,10 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
   }
 
   void _useCandidate(BuildContext context, PlantCandidate candidate) {
-    final species = PlantSpecies.forScientificName(candidate.scientificName);
+    final species = PlantSpecies.forCandidate(
+      scientificName: candidate.scientificName,
+      commonNames: candidate.commonNames,
+    );
     if (species == null || !species.hasCareProfile) {
       showDialog<bool>(
         context: context,
@@ -298,7 +301,11 @@ class _PhotoIdentificationScreenState extends State<PhotoIdentificationScreen> {
       ).then((confirmed) async {
         if (confirmed != true || !mounted) return;
         final saved = await widget.store.savePlant(
-          Plant(id: newId(), displayName: candidate.displayName),
+          Plant(
+            id: newId(),
+            displayName: candidate.displayName,
+            legacySpecies: candidate.scientificName,
+          ),
         );
         if (!mounted || !saved) return;
         if (!context.mounted) return;

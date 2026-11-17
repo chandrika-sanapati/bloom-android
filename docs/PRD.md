@@ -35,7 +35,7 @@ A date is a prompt to inspect the plant, not proof that the plant needs water. B
 The following behavior exists in the current Android code:
 
 - Home shows **My plants** and **Activity → Upcoming / Past** after a plant is added.
-- The catalog contains Snake Plant, Monstera, Rubber Plant, Pothos, and Spider Plant.
+- The data-driven catalog contains a 50-profile test inventory; the five original profiles have dedicated care assets/content and the remaining seeded profiles are under content review.
 - A plant's reviewed care type is determined by its canonical profile, not by whether it was added from the catalog or identified from a photo. Separate physical plants retain separate IDs, while matching types share the same reviewed name, scientific identity, image, schedule interval, care cue, and light guidance.
 - Setup may accept a past last-watered date; otherwise the first check is created today at the saved reminder time (09:00 initially).
 - Each supported plant receives one active schedule with a profile starting interval.
@@ -78,7 +78,7 @@ The following behavior exists in the current Android code:
 - Sharing, social features, analytics, community schedules, and cloud merge/sharing beyond local-wins synchronization.
 - Watering-specific search/filters and global history correction. The per-plant Care timeline is explicitly authorized in section 19.
 
-## 6. Supported profiles
+## 6. Supported profiles and profile inventory
 
 These are check-in profiles, not universal watering instructions. Actual needs vary with pot size, drainage, medium, light, temperature, humidity, season, and plant size.
 
@@ -91,6 +91,8 @@ These are check-in profiles, not universal watering instructions. Actual needs v
 | Spider Plant | *Chlorophytum comosum* | 7–14 days | 10 days |
 
 The range and starting value are versioned product content. Updating profile content must not silently rewrite saved schedules, records, or recorded dates.
+
+The complete inventory is data-driven in Supabase `plant_profiles` and `plant_profile_aliases`, with the bundled JSON catalog as the offline cache. The table above documents the original five reviewed profiles; the additional seeded inventory is available for identity/profile testing and must be reviewed before production content release.
 
 ## 7. Schedule behavior
 

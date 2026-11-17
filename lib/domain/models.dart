@@ -414,8 +414,9 @@ class PlantSpecies {
     reviewStatus: json['reviewStatus'] as String? ?? 'reviewed',
   );
 
-  static List<PlantSpecies> get catalog =>
-      _catalog.where((profile) => profile.hasCareProfile).toList(growable: false);
+  static List<PlantSpecies> get catalog => _catalog
+      .where((profile) => profile.hasCareProfile)
+      .toList(growable: false);
 
   static PlantSpecies? forPlant(Plant plant) {
     final requested = plant.plantTypeId?.trim();
@@ -432,7 +433,16 @@ class PlantSpecies {
   }
 
   static PlantSpecies? forScientificName(String scientific) =>
-      _find([_normalize(scientific)]);
+      _find([_normalize(scientific), _scientificBase(scientific)]);
+
+  static PlantSpecies? forCandidate({
+    required String scientificName,
+    List<String> commonNames = const [],
+  }) => _find([
+    _normalize(scientificName),
+    _scientificBase(scientificName),
+    ...commonNames.map(_normalize),
+  ]);
 
   static PlantSpecies? _find(Iterable<String> values) {
     for (final value in values) {
@@ -449,6 +459,11 @@ class PlantSpecies {
 
   static String _normalize(String value) =>
       value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), ' ').trim();
+
+  static String _scientificBase(String value) {
+    final words = _normalize(value).split(' ');
+    return words.length < 2 ? _normalize(value) : words.take(2).join(' ');
+  }
 }
 
 /// Dry-soil follow-up window used by the current watering baseline.

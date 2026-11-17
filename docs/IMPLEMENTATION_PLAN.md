@@ -64,7 +64,7 @@ Bloom should make the next watering check clearer, faster, and more trustworthy.
 
 **Status:** Automated and emulator integration verification complete; long-idle/OEM notification behavior, real permission denial/re-enable, and manual accessibility checks remain.
 
-- Add each catalog plant and confirm its starting schedule. **Covered by domain tests; Snake Plant verified on emulator.**
+- Add profile-backed catalog plants and confirm their starting schedule. **Covered by domain tests; Snake Plant verified on emulator.**
 - Enter a valid last-watered date and confirm the calculated next check. **Date/time picker verified on emulator; calculation covered by domain tests.**
 - Reject future last-watered dates. **Covered by domain tests.**
 - Complete Watered and confirm Last watered, Past, and the next schedule. **Verified on emulator and covered by domain tests.**

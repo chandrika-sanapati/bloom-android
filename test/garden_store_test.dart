@@ -78,6 +78,23 @@ void main() {
       expect(store.scheduleFor('legacy-pothos'), isNull);
     });
 
+    test('matches PlantNet Pothos scientific and common-name variants', () {
+      expect(
+        PlantSpecies.forCandidate(
+          scientificName: 'Epipremnum aureum (Linden & André)',
+          commonNames: const ['Golden Pothos'],
+        )?.id,
+        'pothos',
+      );
+      expect(
+        PlantSpecies.forCandidate(
+          scientificName: 'Unknown species',
+          commonNames: const ["Devil's Ivy"],
+        )?.id,
+        'pothos',
+      );
+    });
+
     test('creates a Pothos schedule from a known last-watered date', () async {
       final store = await storeWithPlant(lastWatered: DateTime(2026, 11, 1));
 
